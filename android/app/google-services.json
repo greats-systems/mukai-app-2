@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "972015824763",
+    "project_id": "mukai-sacco-management-systems",
+    "storage_bucket": "mukai-sacco-management-systems.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:972015824763:android:dad97ccf6090a54ed457de",
+        "android_client_info": {
+          "package_name": "com.example.mukai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiSKbhgfO7AusMMQAg7Ygf5znzDhmE-X4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:972015824763:android:be1a4315961a9f70d457de",
+        "android_client_info": {
+          "package_name": "com.greatssystem.mukai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBiSKbhgfO7AusMMQAg7Ygf5znzDhmE-X4"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
