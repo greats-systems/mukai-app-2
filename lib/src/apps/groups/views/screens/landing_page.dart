@@ -1,42 +1,80 @@
+import 'dart:developer';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/src/apps/home/wallet_balances.dart';
+import 'package:mukai/brick/models/group.model.dart';
+import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
+import 'package:mukai/src/apps/groups/views/screens/add_asset.dart';
+import 'package:mukai/src/apps/groups/views/screens/coop_assets.dart';
+import 'package:mukai/src/apps/groups/views/screens/coop_memeber_analytics.dart';
+import 'package:mukai/src/apps/groups/views/screens/coop_reports.dart';
+import 'package:mukai/src/apps/groups/views/screens/coop_wallet_balances.dart';
+import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/apps/home/admin/admin_recent_transactions.dart';
-import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
-import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class AdminLandingScreen extends StatefulWidget {
-  const AdminLandingScreen({super.key});
+class CoopLandingScreen extends StatefulWidget {
+  const CoopLandingScreen({super.key, required this.group});
+  final Group group;
   static const routeName = '/home';
   @override
-  State<AdminLandingScreen> createState() => _AdminLandingScreenState();
+  State<CoopLandingScreen> createState() => _CoopLandingScreenState();
 }
 
-class _AdminLandingScreenState extends State<AdminLandingScreen> {
+class _CoopLandingScreenState extends State<CoopLandingScreen> {
   AuthController get authController => Get.put(AuthController());
   TransactionController get transactionController =>
       Get.put(TransactionController());
   late PageController pageController = PageController();
   final GetStorage _getStorage = GetStorage();
-  final tabList = ["Contributions", "Transfers", "Payments"];
+  final tabList = ["Dashboard", "Members", "Assets"];
   int selectedTab = 0;
   bool refresh = false;
   late double height;
   late double width;
   String? walletId;
 
+  String? userId;
+  String? role;
+  bool _isLoading = false;
+  void fetchProfile() async {
+    if (_isDisposed) return;
+    setState(() {
+      _isLoading = true;
+      userId = _getStorage.read('userId');
+      role = _getStorage.read('account_type');
+    });
+
+    // final userjson = await profileController.getUserDetails(userId!);
+
+    if (_isDisposed) return;
+    setState(() {
+      // userProfile = userjson;
+      _isLoading = false;
+    });
+  }
+
   @override
   void initState() {
     pageController = PageController(initialPage: selectedTab);
     walletId = _getStorage.read('walletId');
+    fetchProfile();
+
     super.initState();
+  }
+
+  bool _isDisposed = false;
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
   }
 
   @override
@@ -45,9 +83,16 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
+      floatingActionButton: selectedTab == 2 ? FloatingActionButton(
+        onPressed: () {
+          Get.to(() => AddAssetWidget(group: widget.group));
+        },
+        backgroundColor: primaryColor,
+        child: const Icon(Icons.add),
+      ) : null,
       backgroundColor: primaryColor,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
+        preferredSize: const Size.fromHeight(150.0), // Match the toolbarHeight
         child: Container(
           decoration: BoxDecoration(
             boxShadow: [
@@ -64,9 +109,34 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
             automaticallyImplyLeading: false,
             centerTitle: false,
             titleSpacing: 0.0,
-            toolbarHeight: 100.0,
+            toolbarHeight: 150.0,
             elevation: 0,
-            title: const AdminAppHeaderWidget(),
+            title:   _isLoading
+        ? Center(
+            child: CircularProgressIndicator(),
+          )
+        : Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        profileButton(),
+                        logoButton(),
+                      ],
+                    ),
+                    heightBox(20),
+                     tabBar(),
+                     heightBox(20),
+                  ],
+                ),
+              ),
+        
+            ],
+          ),
           ),
         ),
       ),
@@ -75,8 +145,8 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
           decoration: BoxDecoration(
             color: whiteF5Color,
             borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(40),
-              topRight: Radius.circular(40),
+              topLeft: Radius.circular(5),
+              topRight: Radius.circular(5),
             ),
           ),
           child: ListView(
@@ -88,7 +158,68 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
           )),
     );
   }
+  logoButton() {
+    return GestureDetector(
+      onTap: () {
+        log('CoopHeaderWidget\nuserId: $userId\nrole: $role');
+        if (role == 'coop-manager') {
+          Get.to(() => BottomBar(role: 'admin'));
+        } else {
+          Get.to(() => BottomBar(
+                role: 'member',
+              ));
+        }
+      },
+      child: Container(
+        height: 55.0,
+        width: 55.0,
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: whiteF5Color,
+              blurRadius: 10.0,
+              offset: const Offset(0, 0),
+            )
+          ],
+          shape: BoxShape.circle,
+          color: whiteF5Color.withOpacity(0),
+        ),
+        // alignment: Alignment.center,
+        child: Padding(
+          padding: const EdgeInsets.all(5.0),
+          child: Image.asset(
+            'assets/images/logo-nobg.png',
+          ),
+        ),
+      ),
+    );
+  }
 
+  profileButton() {
+    return GestureDetector(
+      onTap: () {
+        // Get.to(() => const ProfileScreen());
+      },
+      child: Row(
+        spacing: 15,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              SizedBox(
+                width: width * 0.3,
+                child: AutoSizeText(
+                  Utils.trimp('${widget.group.name ?? 'No name'}'),
+                  style: semibold18WhiteF5,
+                ),
+              ),
+            ],
+          )
+        ],
+      ),
+    );
+  }
   adminInitiateTrans() {
     return Column(
       children: [
@@ -107,7 +238,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
         heightBox(20),
         Container(
             alignment: Alignment(0, 0),
-            height: height * 0.07,
+            height: height * 0.06,
             width: width * 0.6,
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -143,7 +274,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
           },
           child: Container(
               alignment: Alignment(0, 0),
-              height: height * 0.07,
+              height: height * 0.06,
               width: width * 0.6,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -176,9 +307,9 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
   adminOptions() {
     return Column(
       children: [
-        WalletBalancesWidget(), 
-      heightBox(20), 
-      tabBar(), tabPreviews()],
+         
+      // heightBox(20), 
+      tabPreviews()],
     );
   }
 
@@ -188,7 +319,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     return SizedBox(
       height: height,
       child: Padding(
-        padding: const EdgeInsets.only(top: 20.0),
+        padding: const EdgeInsets.only(top: 3.0),
         child: Column(
           children: [
             Expanded(
@@ -204,22 +335,18 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
                   });
                 },
                 children: [
-                  Container(
-                      color: whiteColor,
-                      child: AdminRecentTransactionsWidget(
-                        category: 'daily',
-                      )),
-                  Container(
-                    color: whiteColor,
-                    child: const AdminRecentTransactionsWidget(
-                      category: 'weekly',
-                    ),
+                 Column(
+                   children: [
+                     SizedBox(height: height*0.33,child: CoopReportsWidget()),
+                     CoopMemeberAnalytics(group: widget.group),
+                     CoopWalletBalancesWidget(group: widget.group),
+                   ],
+                 ),
+                //  GroupMembersList(groupId: widget.group.id!, category: 'accepted',),
+                  MukandoMembersList(group: widget.group,),
+                  CoopAssetsWidget(
+                    group: widget.group,
                   ),
-                  Container(
-                      color: whiteColor,
-                      child: const AdminRecentTransactionsWidget(
-                        category: 'monthly',
-                      )),
                 ],
               ),
             ),

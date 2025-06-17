@@ -28,58 +28,43 @@ class MukandoMembersListTile extends StatelessWidget {
         ? Utils.formatTime(timestamp)
         : DateFormat.yMMMd().format(timestamp);
 
-    return ListTile(
-      leading: picInfo(null),
-      title: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(groupMember.email ?? 'No name', style: bold16Black),
-        ],
-      ),
-      subtitle: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Row(
-            children: [
-              contentIcon,
-              const SizedBox(width: 10),
-              SizedBox(
-                width: width * 0.5,
-                child: AutoSizeText(
-                  Utils.trimp('No data'),
-                  style: medium14Black,
-                  maxLines: 1,
+    return Container(
+      color: Colors.transparent,
+      child: ListTile(
+        leading: picInfo(null),
+        title: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(groupMember.email ?? 'No name', style: bold16Black),
+          ],
+        ),
+        subtitle: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Row(
+              children: [
+                contentIcon,
+                const SizedBox(width: 10),
+                SizedBox(
+                  width: width * 0.5,
+                  child: AutoSizeText(
+                    Utils.trimp('No data'),
+                    style: medium14Black,
+                    maxLines: 1,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          Text(
-            timestampText,
-            style: const TextStyle(color: blackColor, fontSize: 10),
-          ),
-        ],
-      ),
-      onTap: () {
-        log('Member: ${groupMember.first_name}');
-        // log('ConversationTile onTap:\nisMine: $isMine\nreceiverId: ${chat.reciever_id}\nprofileId: ${chat.profile_id}');
-        /*
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ConversationPage(
-              firstName: displayName,
-              profileImageUrl:
-                  isMine ? chat.reciever_avatar_id : chat.profile_avatar_id ?? 'no avatar',
-              receiverId:
-                  isMine ? chat.reciever_id ?? '' : chat.profile_id ?? '',
-              receiverFirstName: firstName ?? '',
-              receiverLastName: lastName ?? '',
-              conversationId: chat.id ?? '',
+              ],
             ),
-          ),
-        );
-        */
-      },
+            Text(
+              timestampText,
+              style: const TextStyle(color: blackColor, fontSize: 10),
+            ),
+          ],
+        ),
+        onTap: () {
+          log('Member: ${groupMember.first_name}');
+        },
+      ),
     );
   }
 

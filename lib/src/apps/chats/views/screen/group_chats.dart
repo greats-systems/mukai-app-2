@@ -8,6 +8,7 @@ import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_landing_page.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
+import 'package:mukai/src/apps/groups/views/screens/landing_page.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 
@@ -56,7 +57,7 @@ class _GroupsListState extends State<GroupsList> {
     return _groupsStream != null
         ? Column(
             children: [
-              _buildSearchField(),
+              // _buildSearchField(),
               _buildGroupsList(),
               const SizedBox(height: 10),              
             ],
@@ -141,7 +142,9 @@ class _GroupsListState extends State<GroupsList> {
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         // log('Group: ${group.name}');
-        Get.to(() => MukandoMembersLandingPage(group: group));
+        
+        Get.to(() => CoopLandingScreen(group: group));
+        // Get.to(() => MukandoMembersLandingPage(group: group));
       },
     );
   }

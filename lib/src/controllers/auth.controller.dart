@@ -805,9 +805,9 @@ class AuthController extends MainController {
             'account_type', response.data['user']['account_type']);
         log('Wrote account_type to storage');
         await _getStorage.read('account_type');
-        final walletJson = await dio
-            .get('$APP_API_ENDPOINT/wallets/${response.data['user']['id']}');
-        await _getStorage.write('walletId', walletJson.data['id']);
+        // final walletJson = await dio
+        //     .get('$APP_API_ENDPOINT/wallets/${response.data['user']['id']}');
+        // await _getStorage.write('walletId', walletJson.data['id']);
         await _handleSuccessfulLogin(
           accountType: response.data['user']['account_type'],
           userId: response.data['user']['id'],

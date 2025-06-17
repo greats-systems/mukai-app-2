@@ -388,7 +388,7 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
               decoration: InputDecoration(
                 border: InputBorder.none,
                 hintText: 'Select Wallet Profile',
-                hintStyle: const TextStyle(color: Colors.grey, fontSize: 22),
+                hintStyle: const TextStyle(color: Colors.black, fontSize: 22),
                 filled: true,
                 fillColor: recWhiteColor,
               ),

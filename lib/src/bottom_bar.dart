@@ -67,7 +67,7 @@ class _BottomBarState extends State<BottomBar> {
     BoxIcons.bx_donate_heart,
     BoxIcons.bx_user_circle
   ];
-  final iconTitleList = <String>['Home', 'Reports', 'Inbox', 'Settings'];
+  final iconTitleList = <String>['Home', 'Reports', 'Coops', 'Settings'];
   int selectedIndex = 0;
   DateTime? backPressTime;
   

@@ -9,14 +9,14 @@ import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
 import 'package:path_provider/path_provider.dart';
 
-class ReportsScreen extends StatefulWidget {
-  const ReportsScreen({super.key});
+class CoopReportsWidget extends StatefulWidget {
+  const CoopReportsWidget({super.key});
 
   @override
-  State<ReportsScreen> createState() => _ReportsScreenState();
+  State<CoopReportsWidget> createState() => _CoopReportsWidgetState();
 }
 
-class _ReportsScreenState extends State<ReportsScreen> {
+class _CoopReportsWidgetState extends State<CoopReportsWidget> {
     final GetStorage getStorage = GetStorage();
 
   List<String> periodList = [
@@ -155,20 +155,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final height = size.height;
     final width = size.width;
     // return Center(child: const Text('Reports screen'));
-    return   Scaffold(
-      appBar: AppBar(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20.0), // Adjust the radius as needed
-          ),
-        ),
-        elevation: 0,
-        backgroundColor: primaryColor,
-        automaticallyImplyLeading: false,
-        centerTitle: false,
-        titleSpacing: 20.0,
-        toolbarHeight: 70.0,
-        title:               Row(
+    return  Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: SizedBox(
+          height: height,
+          width: width,
+          child: Column(
+            children: [
+ Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   GestureDetector(
@@ -201,16 +195,16 @@ class _ReportsScreenState extends State<ReportsScreen> {
                     child: Container(
                       padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: primaryColor.withAlpha(100),
                         borderRadius: BorderRadius.circular(8),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.download, color: Colors.white, size: 16),
+                          Icon(Icons.download, color: Colors.black, size: 16),
                           SizedBox(width: 4),
                           Text(
                             'Download Report',
-                            style: TextStyle(fontSize: 14, color: Colors.white),
+                            style: TextStyle(fontSize: 14, color: Colors.black),
                           ),
                         ],
                       ),
@@ -218,14 +212,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                    DropdownButton<String>(
                     underline: SizedBox(),
-                    dropdownColor: primaryColor,
+                    dropdownColor: primaryColor.withValues(alpha: 100),
                     value: selectedCurrencyValue ??
                         currencyList[0], // Default selected value
                     items: currencyList
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
-                        child: Text(value, style: TextStyle(color: Colors.white),),
+                        child: Text(value, style: TextStyle(color: Colors.black),),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
@@ -234,14 +228,14 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                   DropdownButton<String>(
                     underline: SizedBox(),
-                    dropdownColor: primaryColor,
+                    dropdownColor: primaryColor.withValues(alpha: 100),
                     value: selectedDropdownValue ??
                         periodList[0], // Default selected value
                     items: periodList
                         .map<DropdownMenuItem<String>>((String value) {
                       return DropdownMenuItem<String>(
                         value: value,
-                        child: Text(value, style: TextStyle(color: Colors.white),),
+                        child: Text(value, style: TextStyle(color: Colors.black),),
                       );
                     }).toList(),
                     onChanged: (String? newValue) {
@@ -250,21 +244,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   ),
                 ],
               ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SizedBox(
-          height: height,
-          width: width,
-          child: Column(
-            children: [
-
               SizedBox(
-                height: 45,
+                height: 25,
               ),
               SizedBox(
                 width: width*0.85,
-                height: height*0.4,
+                height: height*0.2,
                 child: MyBarGraph(
                   periodicDeposits: selectedDropdownValue == 'Weekly'
                       ? weeklyDeposits
@@ -274,51 +259,11 @@ class _ReportsScreenState extends State<ReportsScreen> {
                       : monthlyWithdrawals,
                 ),
               ),
-              SizedBox(
-                height: 45,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        color: primaryColor,
-                        borderRadius: BorderRadius.circular(25)),
-                    width: width / 2.5,
-                    height: height / 6,
-                    child: Center(
-                        child: Text(
-                      'Deposits\n\$12 300,89',
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade400,
-                          fontWeight: FontWeight.bold),
-                    )),
-                  ),
-                  SizedBox(
-                    width: width / 12,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: recColor,
-                        borderRadius: BorderRadius.circular(25)),
-                    width: width / 2.5,
-                    height: height / 6,
-                    child: Center(
-                        child: Text(
-                      'Withdrawals\n\$3 289,20',
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade400,
-                          fontWeight: FontWeight.bold),
-                    )),
-                  ),
-                ],
-              )
+
+
             ],
           ),
         ),
-      ),
-    );
+      );
   }
 }

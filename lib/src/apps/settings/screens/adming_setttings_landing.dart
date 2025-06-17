@@ -91,7 +91,7 @@ class _AdmingSetttingsLandingScreenState
       ),
       height5Space,
       Container(
-        height: height * 0.29,
+        height: height * 0.35,
         width: width * 0.9,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -211,7 +211,7 @@ class _AdmingSetttingsLandingScreenState
       ),
       height5Space,
       Container(
-        height: height * 0.18,
+        height: height * 0.21,
         width: width * 0.9,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(

@@ -82,7 +82,7 @@ class _MyWidgetState extends State<AdminRecentTransactionsWidget> {
           ),
           ConstrainedBox(
             constraints: BoxConstraints(
-              maxHeight: MediaQuery.of(context).size.height * 0.3,
+              maxHeight: MediaQuery.of(context).size.height * 0.9,
             ),
             child: StreamBuilder<List<Transaction>>(
                 stream: _transactionsStream,

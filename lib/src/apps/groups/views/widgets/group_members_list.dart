@@ -11,9 +11,10 @@ import 'package:mukai/src/apps/transactions/controllers/transactions_controller.
 import 'package:mukai/theme/theme.dart';
 
 class GroupMembersList extends StatefulWidget {
-  final String category;
+  final String groupId;
+   String? category;
 
-  const GroupMembersList({super.key, required this.category});
+   GroupMembersList({super.key, required this.groupId, this.category});
 
   @override
   State<GroupMembersList> createState() => _GroupMembersListState();
@@ -32,11 +33,11 @@ class _GroupMembersListState extends State<GroupMembersList> {
 
   @override
   void initState() {
-    log('Getting data for coop_member_requests ${widget.category}');
+    log('Getting data for coop_member_requests for group${widget.groupId}');
     _membersStream = supabase
         .from('cooperative_member_requests')
         .stream(primaryKey: ['id'])
-        .eq('status', widget.category)
+        .eq('id', widget.groupId)
         .order('created_at')
         .asyncMap((maps) async {
           List<Profile> profiles = [];

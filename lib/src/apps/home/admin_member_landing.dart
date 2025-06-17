@@ -107,7 +107,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
         heightBox(20),
         Container(
             alignment: Alignment(0, 0),
-            height: height * 0.07,
+            height: height * 0.06,
             width: width * 0.6,
             padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
@@ -143,7 +143,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
           },
           child: Container(
               alignment: Alignment(0, 0),
-              height: height * 0.07,
+              height: height * 0.06,
               width: width * 0.6,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(

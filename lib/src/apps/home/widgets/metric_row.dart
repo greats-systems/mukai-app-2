@@ -4,11 +4,12 @@ import 'package:mukai/theme/theme.dart';
 
 class MetricRow extends StatelessWidget {
   final String title;
-  final String value;
+  final String zigValue;
+  final String usdValue;
   final String icon;
 
   const MetricRow(
-      {required this.title, required this.value, required this.icon});
+      {required this.title, required this.zigValue, required this.usdValue, required this.icon});
 
   @override
   Widget build(BuildContext context) {
@@ -32,14 +33,31 @@ class MetricRow extends StatelessWidget {
                 fontSize: 14,
               ),
             ),
-            Text(
-              value,
+            Row(
+              children: [
+                Text(
+              '$zigValue ZIG',
               style: TextStyle(
                 color: whiteColor,
                 fontSize: 14,
                 fontWeight: FontWeight.bold,
               ),
-            ),
+            ),width5Space,
+                        Container(
+              color: whiteF5Color.withOpacity(0.5),
+              width: 1.5,
+              height: 20,
+            ), width5Space, Text(
+              '$usdValue USD',
+              style: TextStyle(
+                color: whiteColor,
+                fontSize: 14,
+                fontWeight: FontWeight.bold,
+              ),
+            )
+              ],
+            )
+            
           ],
         ),
       ],
