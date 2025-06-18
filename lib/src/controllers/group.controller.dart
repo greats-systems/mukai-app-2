@@ -116,6 +116,8 @@ class GroupController {
           .toList();
 
       log('Fetched ${profiles.length} members for group $groupId');
+      log('Fetched ${profiles.map((profile) => profile.toMap())}');
+
       return profiles;
     } on PostgrestException catch (e) {
       log('Supabase error fetching group members: ${e.message}', error: e);

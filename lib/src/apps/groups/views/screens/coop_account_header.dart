@@ -8,20 +8,21 @@ import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 
-class AdminAppHeaderWidget extends StatefulWidget {
+class CoopHeaderWidget extends StatefulWidget {
   final String? title;
   final String? subtitile;
   final String? amount;
   final Widget? widgetButton;
-  const AdminAppHeaderWidget(
+  const CoopHeaderWidget(
       {super.key, this.title, this.subtitile, this.amount, this.widgetButton});
 
   @override
-  State<AdminAppHeaderWidget> createState() => _AdminAppHeaderWidgetState();
+  State<CoopHeaderWidget> createState() => _CoopHeaderWidgetState();
 }
 
-class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
+class _CoopHeaderWidgetState extends State<CoopHeaderWidget> {
   ProfileController get profileController => Get.put(ProfileController());
   final GetStorage _getStorage = GetStorage();
   late double height;
@@ -89,7 +90,7 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
   logoButton() {
     return GestureDetector(
       onTap: () {
-        log('AdminAppHeaderWidget\nuserId: $userId\nrole: $role');
+        log('CoopHeaderWidget\nuserId: $userId\nrole: $role');
         if (role == 'coop-manager') {
           Get.to(() => BottomBar(role: 'admin'));
         } else {
@@ -138,22 +139,8 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  'Hi, ${userProfile?['first_name'] ?? 'No name'}',
+                  Utils.trimp('${widget.title ?? 'No name'}'),
                   style: semibold18WhiteF5,
-                ),
-              ),
-              SizedBox(
-                width: width * 0.5,
-                child: AutoSizeText(
-                  'Greats Coop',
-                  style: regular12whiteF5,
-                ),
-              ),
-              SizedBox(
-                width: width * 0.3,
-                child: AutoSizeText(
-                  '${userProfile?['account_type'] ?? 'No name'}',
-                  style: regular12whiteF5,
                 ),
               ),
             ],

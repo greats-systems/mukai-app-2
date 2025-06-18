@@ -1,14 +1,12 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:intl_phone_field/country_picker_dialog.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:mukai/brick/models/asset.model.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
-import 'package:mukai/src/bottom_bar.dart';
+import 'package:mukai/src/controllers/asset.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/apps/home/admin_landing.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
@@ -24,26 +22,25 @@ import 'package:iconify_flutter_plus/icons/bx.dart';
 import 'package:iconify_flutter_plus/icons/ic.dart';
 import 'package:iconify_flutter_plus/icons/ph.dart';
 
-class MemberDetailScreen extends StatefulWidget {
-  final Profile profile;
-  final String? status;
+class AddAssetWidget extends StatefulWidget {
+Group? group;
 
-  const MemberDetailScreen({
+   AddAssetWidget({
     super.key,
-    required this.profile,
-    this.status,
+    required this.group,
   });
 
   @override
-  State<MemberDetailScreen> createState() => _MemberDetailScreenState();
+  State<AddAssetWidget> createState() => _MemberDetailScreenState();
 }
 
-class _MemberDetailScreenState extends State<MemberDetailScreen> {
+class _MemberDetailScreenState extends State<AddAssetWidget> {
   TextEditingController firstNameController = TextEditingController();
-  TextEditingController walletAddressController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
+  TextEditingController fiatValueController = TextEditingController();
+
   TextEditingController monthlySubController = TextEditingController();
   TextEditingController totalSubsController = TextEditingController();
-  TextEditingController totalFinesController = TextEditingController();
   TextEditingController cityController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController accountTypeController = TextEditingController();
@@ -58,72 +55,17 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
   AuthController get authController => Get.put(AuthController());
   GroupController get groupController => Get.put(GroupController());
   ProfileController get profileController => Get.put(ProfileController());
-  late Profile profile;
+  AssetController get assetController => Get.put(AssetController());
   late double height;
   late double width;
   Map<String, dynamic>? userJson = {};
   bool _isLoading = false;
 
-  Future<void> fetchData() async {
-    setState(() {
-      bool _isLoading = true;
-    });
-    final json = await profileController
-        .getMemberProfileByID(profile.id ?? 'No ID');
-    if (json != null) {
-      setState(() {
-        userJson = json;
-        bool _isLoading = false;
-      });
-    } else {
-      setState(() {
-        userJson = {'message': 'No data'};
-        bool _isLoading = false;
-      });
-    }
-    log('MemberDetailScreen userJson: ${userJson.toString()}');
-  }
-
   @override
   void initState() {
-    profile = widget.profile;
-    fetchData();
-    // getProfile().then((value) {});
     super.initState();
   }
 
-  void setDetails() {
-    if (userJson != null) {
-      firstNameController.text = userJson!['first_name'];
-    }
-  }
-
-  /*
-  Future<void> getProfile() async {
-    log(profile.id ?? 'No ID');
-    log('Fetching data');
-    // final jsonData = await fetchData();
-    log('Done');
-    // log('jsonData: ${JsonEncoder.withIndent(' ').convert(jsonData)}');
-    profileController.selectedProfile.value = profile;
-    profileController.profile.value = profile;
-    profileController.profile.refresh();
-    log(JsonEncoder.withIndent(' ')
-        .convert(profileController.profile.value.toMap()));
-
-    authController.selected_province.value =
-        profile.province_state ?? 'no province';
-    authController.selected_city.value = profile.id ?? 'no city';
-    profile.country = profile.country ?? 'no country';
-
-    firstNameController.text = profile.first_name ?? 'no name';
-    lastNameController.text = profile.last_name ?? 'no name';
-    accountTypeController.text = profile.account_type ?? 'no account type';
-    emailController.text = profile.email ?? 'no email';
-    mobileNumberController.text = profile.phone ?? 'no phone';
-    cityController.text = profile.city ?? 'no city';
-  }
-  */
 
   @override
   Widget build(BuildContext context) {
@@ -155,7 +97,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 ),
               ),
               title: Text(
-                "${Utils.trimp(userJson?['first_name'] ?? 'No name')} ${Utils.trimp(userJson?['last_name'] ?? 'No name')} ",
+                "Add ${Utils.trimp(widget.group?.name ?? '')} Asset",
                 style: semibold18WhiteF5,
               ),
             ),
@@ -165,53 +107,47 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(fixPadding * 2.0),
                 children: [
-                  userProfileImage(size),
+                  // heightBox(20),
+                  // userProfileImage(size),
+                  // heightBox(10),
                   heightBox(10),
-                  heightBox(10),
-                  accountTypeField(),
+                  assetTypeField(),
                   heightBox(10),
                   nameField(),
                   heightBox(10),
-                  lastNameField(),
+                  descriptionField(),
                   heightBox(10),
-                  emailField(),
+                  assetValueField(),
                   heightBox(20),
-                  mobileNumberField(),
-                  heightBox(20),
-                  const Text(
-                    "Location Details",
-                    style: semibold14Black,
-                  ),
-                  heightSpace,
-                  country_field(),
-                  heightBox(15),
-                  Obx(() => profileController.selectedProfile.value.country
-                              ?.toLowerCase() ==
-                          'zimbabwe'
-                      ? province_field()
-                      : cityField()),
-                  heightBox(10),
-                  Obx(() => profileController.selectedProfile.value.country
-                              ?.toLowerCase() ==
-                          'zimbabwe'
-                      ? town_cityField()
-                      : SizedBox()),
-                  heightBox(10),
-                  walletAddressField(),
-                  heightBox(10),
-                  monthlySubField(),
-                  heightBox(20),
-                  totalSubscriptionsPaidField(),
-                  heightBox(20),
-                  totalFinesIncurredField(),
-                  heightBox(10),
+                  // const Text(
+                  //   "Location Details",
+                  //   style: semibold14Black,
+                  // ),
+                  // heightSpace,
+                  // country_field(),
+                  // heightBox(15),
+                  // Obx(() => profileController.selectedProfile.value.country
+                  //             ?.toLowerCase() ==
+                  //         'zimbabwe'
+                  //     ? province_field()
+                  //     : cityField()),
+                  // heightBox(10),
+                  // Obx(() => profileController.selectedProfile.value.country
+                  //             ?.toLowerCase() ==
+                  //         'zimbabwe'
+                  //     ? town_cityField()
+                  //     : SizedBox()),
+                  // heightBox(10),
+        
                 ],
               ),
             ),
-            bottomNavigationBar:
-                profileController.selectedProfile.value == 'accepted'
-                    ? updateButton(context)
-                    : requestSummary(profile),
+            bottomNavigationBar: Obx(() => assetController.isLoading.value == true
+                ? const LinearProgressIndicator(
+                  minHeight: 1,
+                    color: whiteColor,
+                  )
+                : saveButton(context)),
           );
   }
 
@@ -229,7 +165,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
               onChanged: (value) {
                 if (value != null) {
                   profileController.selectedProfile.value.country = value;
-                  profileController.profile.value.country = value;
+                  assetController.asset.value?.purpose = value;
                 }
               },
               key: country_field_key,
@@ -241,7 +177,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
 
                   labelText: 'Select Country',
                   labelStyle: const TextStyle(
-                      color: recColor, fontSize: 22), // Black label text
+                      color: recColor, fontSize: 14), // Black label text
                   // border: const OutlineInputBorder(),
                   filled: true,
                   fillColor: recWhiteColor, // White background for input field
@@ -331,7 +267,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         child: Obx(() => DropdownSearch<String>(
               onChanged: (value) {
                 if (value != null) {
-                  profileController.profile.value.province_state = value;
+                  assetController.asset.value?.purpose = value;
                   var selectedProvinceData =
                       authController.province_options_with_districts.firstWhere(
                     (item) => item.keys.first == value,
@@ -390,12 +326,13 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     );
   }
 
-  updateButton(BuildContext context) {
+   saveButton(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: GestureDetector(
         onTap: () {
-          profileController.updateUser();
+
+          assetController.createAsset(widget.group!.id!, null, 'group');
           Navigator.pop(context);
         },
         child: Obx(() => profileController.isLoading.value == true
@@ -414,7 +351,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                   boxShadow: buttonShadow,
                 ),
                 child: const Text(
-                  "Update",
+                  "Save Asset",
                   style: bold18White,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
@@ -424,113 +361,8 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     );
   }
 
-  mobileNumberField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Mobile number",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            style: semibold14Black,
-            onChanged: (value) {
-              profileController.profile.value.phone = value;
-            },
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.phone,
-            controller: mobileNumberController,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: userJson?['phone'] ?? 'No mobile number',
-              hintStyle: semibold14Grey,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
 
-  /*
-  mobileNumberField() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Container(
-        decoration: BoxDecoration(
-          color: whiteColor,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: IntlPhoneField(
-          // focusNode: FocusNode(onKeyEvent: ),
-          keyboardType: TextInputType.phone,
-          onChanged: (value) => {
-            profileController.profile.value.phone = value.completeNumber,
-          },
-          controller: mobileNumberController,
-          disableLengthCheck: true,
-          showCountryFlag: false,
-          dropdownTextStyle: semibold14Black,
-          initialCountryCode: "ZW",
-          dropdownIconPosition: IconPosition.trailing,
-          dropdownIcon: const Icon(
-            Icons.keyboard_arrow_down,
-            color: blackOrignalColor,
-          ),
-          style: medium14Black,
-          dropdownDecoration: const BoxDecoration(
-            border: Border(
-              right: BorderSide(color: blackOrignalColor, width: 2.0),
-            ),
-          ),
-          pickerDialogStyle: PickerDialogStyle(backgroundColor: dialogBgColor),
-          flagsButtonMargin: const EdgeInsets.symmetric(
-              horizontal: fixPadding, vertical: fixPadding / 1.5),
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
-            hintText: "Enter your mobile number",
-            hintStyle: medium14Black,
-          ),
-        ),
-      ),
-    );
-  }
-  */
 
-  emailField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Contact Details",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            style: semibold14Black,
-            onChanged: (value) {
-              profileController.profile.value.email = value;
-            },
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.emailAddress,
-            controller: emailController,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: userJson?['email'] ?? 'No email',
-              hintStyle: semibold14Grey,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
 
   cityField() {
     return Column(
@@ -539,7 +371,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              profileController.profile.value.city = value;
+              assetController.asset.value?.purpose = value;
             },
             style: semibold14Black,
             cursorColor: primaryColor,
@@ -562,14 +394,14 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'First name',
+          'Asset name',
           style: semibold14Black,
         ),
         heightSpace,
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              profileController.profile.value.first_name = value;
+              assetController.asset.value?.assetDescriptiveName = value;
             },
             style: semibold14Black,
             cursorColor: primaryColor,
@@ -577,7 +409,38 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
             controller: firstNameController,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: userJson?['first_name'] ?? 'No name',
+              hintText: 'Enter asset name',
+              hintStyle: semibold14Grey,
+              contentPadding: EdgeInsets.all(fixPadding * 1.5),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+    descriptionField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Asset description',
+          style: semibold14Black,
+        ),
+        heightSpace,
+        boxWidget(
+          child: TextField(
+            onChanged: (value) {
+              assetController.asset.value?.assetDescription = value;
+            },
+            style: semibold14Black,
+            cursorColor: primaryColor,
+            maxLines: 3,
+            keyboardType: TextInputType.name,
+            controller: descriptionController,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Enter asset description',
               hintStyle: semibold14Grey,
               contentPadding: EdgeInsets.all(fixPadding * 1.5),
             ),
@@ -599,7 +462,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              profileController.profile.value.first_name = value;
+              assetController.asset.value?.purpose = value;
             },
             style: semibold14Black,
             cursorColor: primaryColor,
@@ -615,112 +478,28 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     );
   }
 
-  walletAddressField() {
+  assetValueField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Wallet Address",
+          "Asset Value",
           style: semibold14Black,
         ),
         heightSpace,
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              profileController.profile.value.first_name = value;
+              assetController.asset.value?.fiatValue = double.parse(value);
             },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
-            controller: walletAddressController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  totalSubscriptionsPaidField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Total subscriptions paid",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              profileController.profile.value.first_name = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: totalSubsController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  totalFinesIncurredField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Total Fines incurred",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              profileController.profile.value.first_name = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: totalFinesController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  lastNameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Last Name",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              profileController.profile.value.last_name = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: lastNameController,
+            controller: fiatValueController,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: userJson?['last_name'] ?? 'No name',
-              hintStyle: semibold14Grey,
+              hintText: 'Enter asset market value or purchase price',
+              hintStyle: semibold12Grey,
               contentPadding: EdgeInsets.all(fixPadding * 1.5),
             ),
           ),
@@ -729,29 +508,39 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     );
   }
 
-  accountTypeField() {
+  assetTypeField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         const Text(
-          "Account Type",
+          "Asset Category",
           style: semibold14Black,
         ),
         heightSpace,
         boxWidget(
-          child: TextField(
-            readOnly: true,
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: accountTypeController,
-            decoration: InputDecoration(
-              hintText: userJson?['account_type'] ?? 'No account type',
-              hintStyle: medium14Black,
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
+          child: DropdownSearch<String>(
+                onChanged: (value) {
+                  if (value != null) {
+                    assetController.asset.value?.category = value;
+                  }
+                },
+                selectedItem: "Fixed", // Default to Fixed
+                items: (filter, infiniteScrollProps) => const ["Fixed", "Non-Fixed", "Other"],
+                decoratorProps: DropDownDecoratorProps(
+                  decoration: InputDecoration(
+                    border: InputBorder.none,
+                    hintText: 'Select Asset Type',
+                    hintStyle: semibold14Grey,
+                    contentPadding: EdgeInsets.all(fixPadding * 1.5),
+                  ),
+                ),
+                popupProps: PopupProps.menu(
+                  itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: Text(item, style: semibold14Black),
+                  ),
+                ),
+              ),
         )
       ],
     );
@@ -780,15 +569,14 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
     return Obx(
-        () => profileController.selectedProfile.value.profile_image_url != null
+        () => assetController.selectedAsset.value?.imageUrl != null
             ? SizedBox(
                 height: height * 0.2,
                 width: width * 0.3,
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(20),
                   child: RenderSupabaseImageIdWidget(
-                    filePath: profileController
-                        .selectedProfile.value.profile_image_url!,
+                    filePath: assetController.selectedAsset.value?.imageUrl ?? '',
                   ),
                 ),
               )
@@ -826,7 +614,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                       padding: const EdgeInsets.all(fixPadding * 2.0),
                       children: [
                         const Text(
-                          "Change profile Photo",
+                          "Change asset Photo",
                           style: semibold18White,
                         ),
                         heightSpace,
@@ -866,7 +654,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     );
   }
 
-  requestSummary(Profile profile) {
+  requestSummary(Profile asset) {
     return Container(
       width: double.maxFinite,
       margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
@@ -894,13 +682,13 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     backgroundColor: tertiaryColor,
                     title: 'Membership Request',
                     middleText:
-                        'Are you sure you want to accept ${profile.first_name ?? 'No name'.toUpperCase()} ${profile.last_name ?? 'No name'.toUpperCase()} Membership Request ID ${profile.id ?? 'No ID'.substring(0, 8)}?',
+                        'Are you sure you want to accept ${asset.first_name ?? 'No name'.toUpperCase()} ${asset.last_name ?? 'No name'.toUpperCase()} Membership Request ID ${asset.id ?? 'No ID'.substring(0, 8)}?',
                     textConfirm: 'Yes, Accept',
                     confirmTextColor: whiteColor,
                     onConfirm: () async {
-                      if (profile.id != null) {
+                      if (asset.id != null) {
                         await profileController.updateMemberRequest(
-                            profile.id!, 'accepted');
+                            asset.id!, 'accepted');
                         // Get.to(() => AdminLandingScreen(role));
                         Get.back();
                       } else {
@@ -949,12 +737,12 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                       backgroundColor: tertiaryColor,
                       title: 'Membership Request',
                       middleText:
-                          'Are you sure you want to decline ${profile.first_name!.toUpperCase()} ${profile.last_name!.toUpperCase()} Request ID ${profile.id!.substring(0, 8)}?',
+                          'Are you sure you want to decline ${asset.first_name!.toUpperCase()} ${asset.last_name!.toUpperCase()} Request ID ${asset.id!.substring(0, 8)}?',
                       textConfirm: 'Yes, Decline',
                       confirmTextColor: whiteColor,
                       onConfirm: () async {
                         await profileController.updateMemberRequest(
-                            profile.id!, 'declined');
+                            asset.id!, 'declined');
                         // Navigator.pop(context);
                       },
                       cancelTextColor: redColor,

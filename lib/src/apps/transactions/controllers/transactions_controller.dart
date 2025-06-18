@@ -8,6 +8,7 @@ import 'package:mukai/brick/models/transaction.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/bottom_bar.dart';
+import 'package:mukai/src/controllers/auth.controller.dart';
 // import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/main.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
@@ -19,6 +20,8 @@ import 'package:get_storage/get_storage.dart';
 import 'package:mukai/constants.dart' as constants;
 
 class TransactionController extends MainController {
+  AuthController get authController => Get.put(AuthController());
+
   TransactionController();
   final dio = Dio();
   var accountNumber = ''.obs;
@@ -234,6 +237,7 @@ class TransactionController extends MainController {
       }
 
       transferTransaction.value.account_id = userId;
+      
       transferTransaction.value.category = 'transfer';
 
       log('transaction ${transferTransaction.toJson()}');
@@ -246,21 +250,39 @@ class TransactionController extends MainController {
           },
         ),
       ).timeout(Duration(seconds: 10));
-      log(response.toString());
-      final role = await _getStorage.read('account_type');
-      
-      if(role == 'coop-member'){
-        Get.to(() => BottomBar(
-            role: 'member',
-          ));
+      log("transferTransaction response: ${response.toString()}");
+      log("transferTransaction response data : ${response.data}");
+      if (response.statusCode == 201) {
+        selectedProfile.value = Profile(
+          first_name: '',
+          last_name: '',
+          account_type: '',
+          gender: '',
+          profile_image_id: '',
+          profile_image_url: '',
+          phone: '',
+          city: '', country: '',
+          // location: Location(city: 'name', country: 'country', collectionId: 0),
+          id: '',
+          email: '', full_name: '',
+        );
+        await Helper.successSnackBar(
+            title: 'Transaction Successful',
+            message: response.data['message'],
+            duration: 5);
+        authController.initiateNewTransaction.value = false;
+        final role = await _getStorage.read('account_type');
+        if (role == 'coop-member') {
+          Get.to(() => BottomBar(
+                role: 'member',
+              ));
+        } else {
+          Get.to(() => BottomBar(
+                role: 'admin',
+              ));
+        }
       }
-      else {
-        Get.to(() => BottomBar(
-            role: 'admin',
-          ));
-      }
-      
-      
+
       /*
       if (response.statusCode == 200) {
         // Get.to(() => BottomBar());

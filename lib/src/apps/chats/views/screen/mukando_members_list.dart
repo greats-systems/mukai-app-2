@@ -9,6 +9,17 @@ import 'package:mukai/src/controllers/group.controller.dart';
 // import 'package:mukai/theme/theme.dart';
 // import 'package:mukai/utils/utils.dart';
 import 'dart:developer';
+import 'dart:developer';
+
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/constants.dart';
+import 'package:mukai/src/apps/groups/views/screens/member_detail.dart';
+import 'package:mukai/src/apps/groups/views/widgets/member_item.dart';
+import 'package:mukai/src/controllers/profile_controller.dart';
+import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
+import 'package:mukai/theme/theme.dart';
 
 class MukandoMembersList extends StatefulWidget {
   final Group group;
@@ -21,6 +32,7 @@ class MukandoMembersList extends StatefulWidget {
 class _MukandoMembersListState extends State<MukandoMembersList> {
   final GetStorage _getStorage = GetStorage();
   final GroupController _groupController = GroupController();
+  ProfileController get profileController => Get.put(ProfileController());
   String? loggedInUserId;
   List<Profile>? mukandoMembers = [];
   bool _isLoading = true;
@@ -76,8 +88,40 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
     return ListView.builder(
       itemCount: mukandoMembers!.length,
       itemBuilder: (context, index) {
-        final member = mukandoMembers![index];
-        return MukandoMembersListTile(groupMember: member);
+        Profile profile = mukandoMembers![index];
+        return Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: GestureDetector(
+            onTap: () {
+              profileController.selectedProfile.value = profile;
+              log('Profile ID: ${profile.id}');
+              Get.to(() => MemberDetailScreen(
+                    profile: profile,
+                  ));
+            },
+            child: Container(
+              width: double.maxFinite,
+              clipBehavior: Clip.hardEdge,
+              decoration: BoxDecoration(
+                color: whiteColor,
+                borderRadius: BorderRadius.circular(10.0),
+                boxShadow: recShadow,
+              ),
+              child: Container(
+                padding: const EdgeInsets.all(fixPadding * 1.5),
+                margin: const EdgeInsets.symmetric(vertical: fixPadding),
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(10.0),
+                  color: whiteColor.withOpacity(0.1),
+                ),
+                child: MemberItemWidget(
+                  profile: profile,
+                ),
+              ),
+            ),
+          ),
+        );
+        // MukandoMembersListTile(groupMember: member);
       },
     );
   }

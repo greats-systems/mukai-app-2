@@ -32,7 +32,7 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
   late PageController pageController = PageController();
-  final tabList = ["Direct Chats", "Group Chats", "Notifications"];
+  final tabList = [ "My Coops", "Messages", "Notifications"];
   int selectedTab = 0;
   bool refresh = false;
   late double height;
@@ -63,9 +63,11 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 0.0,
-        toolbarHeight: 170.0,
+        toolbarHeight: 100.0,
         title: Column(
-          children: [const AdminAppHeaderLogoWidget(), tabBar()],
+          children: [
+            // const AdminAppHeaderLogoWidget(), 
+          tabBar()],
         ),
       ),
       body: Column(
@@ -144,24 +146,16 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
                 });
               },
               children: [
-                Container(
-                    color: whiteF5Color,
-                    child: RealTimeConversationsList(
-                      index: 0,
-                    )),
 
-                /*
-                Container(
-                  color: whiteF5Color,
-                  child: GroupConversationsList(
-                    index: 0,
-                  ),
-                ),
-                */
                 Container(
                   color: whiteF5Color,
                   child: GroupsList(index: 0,),
                 ),
+                                Container(
+                    color: whiteF5Color,
+                    child: RealTimeConversationsList(
+                      index: 0,
+                    )),
                 Container(
                     color: whiteF5Color,
                     child: NotificationsList(
@@ -208,9 +202,9 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
                     children: [
                       Iconify(
                         index == 0
-                            ? Ri.chat_3_line
-                            : index == 1
                                 ? Ri.group_line
+                            : index == 1
+                            ? Ri.chat_3_line
                                 : Ri.notification_2_fill,
                         color: selectedTab == index
                             ? secondaryColor

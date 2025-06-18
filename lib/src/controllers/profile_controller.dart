@@ -52,7 +52,7 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       Helper.errorSnackBar(
-          title: 'Error', message: error.toString(), duration: 5);
+          title: 'Profiles Error', message: error.toString(), duration: 5);
       return null;
     }
   }
@@ -63,12 +63,29 @@ class ProfileController extends MainController {
           .from('wallets')
           .select()
           .eq('profile_id', id)
+          // .eq('is_group_account', false)
           .single();
       return profileJson;
     } catch (error) {
       isLoading.value = false;
       Helper.errorSnackBar(
           title: 'Error', message: error.toString(), duration: 5);
+      return null;
+    }
+  }
+    Future<List<Map<String, dynamic>>?> getProfileWallets(String id) async {
+      List<Map<String, dynamic>> profileWallets = [];
+    try {
+      final profileJson = await supabase
+          .from('wallets')
+          .select()
+          .eq('profile_id', id);
+         profileWallets = profileJson.map((item) => item).toList();
+      return profileWallets;
+    } catch (error) {
+      isLoading.value = false;
+      Helper.errorSnackBar(
+          title: 'GetProfileWallets Error', message: error.toString(), duration: 5);
       return null;
     }
   }
@@ -131,8 +148,7 @@ class ProfileController extends MainController {
       return profiles;
     }
   }
-
-  Future<Map<String, dynamic>?> getAcceptedMemberProfileByID(String id) async {
+    Future<Map<String, dynamic>?> getAcceptedMemberProfileByID(String id) async {
     // Profile? profile;
     try {
       isLoading.value = true;
@@ -147,6 +163,25 @@ class ProfileController extends MainController {
           .from('profiles')
           .select()
           .eq('id', profile_id)
+          .single();
+      return profileJson;
+    } catch (error) {
+      isLoading.value = false;
+      Helper.errorSnackBar(
+          title: 'Error', message: 'Something went wrong', duration: 5);
+      return null;
+    }
+  }
+
+
+  Future<Map<String, dynamic>?> getMemberProfileByID(String id) async {
+    // Profile? profile;
+    try {
+      isLoading.value = true;
+      final profileJson = await supabase
+          .from('profiles')
+          .select()
+          .eq('id', id)
           .single();
       return profileJson;
     } catch (error) {

@@ -1,37 +1,35 @@
+import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
-import 'package:mukai/src/apps/home/widgets/app_header.dart';
-import 'package:mukai/src/apps/home/widgets/apps_features.dart';
+import 'package:mukai/src/controllers/auth.controller.dart';
+import 'package:mukai/src/apps/home/admin/admin_recent_transactions.dart';
+import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
+import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
-import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
-class MemberLandingScreen extends StatefulWidget {
-  const MemberLandingScreen({super.key, this.userId});
-  final String? userId;
+class AdminLandingScreen extends StatefulWidget {
+  const AdminLandingScreen({super.key});
   static const routeName = '/home';
-
   @override
-  State<MemberLandingScreen> createState() => _MemberLandingScreenState();
+  State<AdminLandingScreen> createState() => _AdminLandingScreenState();
 }
 
-class _MemberLandingScreenState extends State<MemberLandingScreen> {
-  late PageController pageController = PageController();
+class _AdminLandingScreenState extends State<AdminLandingScreen> {
   AuthController get authController => Get.put(AuthController());
-  final GetStorage _getStorage = GetStorage();
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  final tabList = ["Account", "Wallets", "Assets"];
+  late PageController pageController = PageController();
+  final GetStorage _getStorage = GetStorage();
+  final tabList = ["Contributions", "Transfers", "Payments"];
   int selectedTab = 0;
   bool refresh = false;
   late double height;
   late double width;
-
   String? walletId;
 
   @override
@@ -47,8 +45,9 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
+      backgroundColor: primaryColor,
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(325.0), // Match the toolbarHeight
+        preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
         child: Container(
           decoration: BoxDecoration(
             boxShadow: [
@@ -61,75 +60,36 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
             ],
           ),
           child: AppBar(
-            shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.vertical(
-                bottom: Radius.circular(20.0), // Adjust the radius as needed
-              ),
-            ),
-            backgroundColor: whiteF5Color,
+            backgroundColor: Colors.transparent,
             automaticallyImplyLeading: false,
             centerTitle: false,
-            titleSpacing: -1.0,
-            toolbarHeight: 325.0,
+            titleSpacing: 0.0,
+            toolbarHeight: 100.0,
             elevation: 0,
-            title: Column(
-              children: [const AppHeaderWidget(),WalletBalancesWidget(),  heightBox(30), tabBar()],
-            ),
+            title: const AdminAppHeaderWidget(),
           ),
         ),
       ),
       body: Container(
-        color: const Color.fromRGBO(255, 255, 255, 1),
-        child: Obx(() => authController.initiateNewTransaction.value == true
-            ? memberInitiateTrans()
-            : Column(
-                children: [
-                  heightBox(20),
-                  Expanded(
-                    child: PageView(
-                      controller: pageController,
-                      onPageChanged: (index) {
-                        setState(() {
-                          refresh = true;
-                          selectedTab = index;
-                        });
-                        setState(() {
-                          refresh = false;
-                        });
-                      },
-                      children: [
-                        Container(
-                            color: whiteColor,
-                            child: const HomeAccountWidgetApps(
-                              category: 'accountList',
-                            )),
-                        Container(
-                          color: whiteColor,
-                          child: const HomeAccountWidgetApps(
-                            category: 'walletList',
-                          ),
-                        ),
-                        Container(
-                            color: whiteColor,
-                            child: const HomeAccountWidgetApps(
-                              category: 'assetsList',
-                            )),
-                        // Container(
-                        //   color: whiteColor,
-                        //   child: const HomeAccountWidgetApps(
-                        //     category: 'stocksList',
-                        //   ),
-                        // ),
-                      ],
-                    ),
-                  ),
-                ],
-              )),
-      ),
+          padding: EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: whiteF5Color,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(40),
+              topRight: Radius.circular(40),
+            ),
+          ),
+          child: ListView(
+            children: [
+              Obx(() => authController.initiateNewTransaction.value == true
+                  ? adminInitiateTrans()
+                  : adminOptions())
+            ],
+          )),
     );
   }
 
-  memberInitiateTrans() {
+  adminInitiateTrans() {
     return Column(
       children: [
         Container(
@@ -213,14 +173,68 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
     );
   }
 
+  adminOptions() {
+    return Column(
+      children: [
+        WalletBalancesWidget(), 
+      heightBox(20), 
+      tabBar(), tabPreviews()],
+    );
+  }
+
+
+
+  tabPreviews() {
+    return SizedBox(
+      height: height,
+      child: Padding(
+        padding: const EdgeInsets.only(top: 20.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: PageView(
+                controller: pageController,
+                onPageChanged: (index) {
+                  setState(() {
+                    refresh = true;
+                    selectedTab = index;
+                  });
+                  setState(() {
+                    refresh = false;
+                  });
+                },
+                children: [
+                  Container(
+                      color: whiteColor,
+                      child: AdminRecentTransactionsWidget(
+                        category: 'daily',
+                      )),
+                  Container(
+                    color: whiteColor,
+                    child: const AdminRecentTransactionsWidget(
+                      category: 'weekly',
+                    ),
+                  ),
+                  Container(
+                      color: whiteColor,
+                      child: const AdminRecentTransactionsWidget(
+                        category: 'monthly',
+                      )),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   tabBar() {
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: recColor,
-        borderRadius: BorderRadius.only(
-            bottomLeft: Radius.circular(15.0),
-            bottomRight: Radius.circular(15.0)),
+        color: secondaryColor,
+        borderRadius: BorderRadius.all(Radius.circular(15.0)),
       ),
       child: Row(
         children: List.generate(
@@ -235,15 +249,20 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                   pageController.jumpToPage(selectedTab);
                 },
                 child: Container(
-                  padding: const EdgeInsets.all(fixPadding * 2),
+                  margin: EdgeInsets.all(
+                    fixPadding * 0.5,
+                  ),
+                  padding: const EdgeInsets.all(fixPadding * 1.3),
                   decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(15.0)),
                       color: selectedTab == index
                           ? primaryColor
-                          : tertiaryColor),
+                          : Colors.transparent),
                   child: Text(
                     tabList[index].toString(),
-                    style:
-                        selectedTab == index ? semibold12White : semibold12black,
+                    style: selectedTab == index
+                        ? semibold12White
+                        : semibold12White,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                   ),

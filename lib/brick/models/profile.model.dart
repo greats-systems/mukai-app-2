@@ -98,6 +98,12 @@ class Profile extends OfflineFirstWithSupabaseModel {
     return {
       "id": id,
       "full_name": full_name,
+      "first_name": first_name,
+      "last_name": last_name,
+      "profile_image_id": profile_image_id,
+      "profile_image_url": profile_image_url,
+      "gender": gender,
+      "account_type": account_type,
       "profile_picture_id": profile_picture_id,
       "email": email,
       "wallet_balance": wallet_balance,
@@ -108,7 +114,6 @@ class Profile extends OfflineFirstWithSupabaseModel {
       'country': country,
       'neighbourhood': neighbourhood,
       'province_state': province_state,
-      "account_type": account_type,
       "status": status,
     };
   }

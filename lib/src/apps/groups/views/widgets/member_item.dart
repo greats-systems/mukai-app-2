@@ -117,7 +117,7 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
       final firstName = profile.first_name?.toUpperCase() ?? 'N';
       final lastName = profile.last_name?.toUpperCase() ?? '';
       final idSnippet = profile.id?.substring(0, 8) ?? '';
-      return '$firstName $lastName${lastName.isNotEmpty ? '-' : ''}$idSnippet';
+      return '$firstName $lastName';
     } else {
       return 'No name to format';
     }
@@ -130,20 +130,19 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Account Type', style: semibold16Primary),
                   Text(
                     Utils.trimp(profile.account_type ?? ''),
-                    style: semibold16Primary,
+                    style: semibold14Primary,
                   ),
                 ],
               ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Status', style: semibold16Primary),
+                  const Text('Phone', style: semibold14Primary),
                   Text(
-                    Utils.trimp(profile.status ?? ''),
-                    style: semibold16Primary,
+                    Utils.trimp(profile.phone ?? ''),
+                    style: semibold14Primary,
                   ),
                 ],
               ),

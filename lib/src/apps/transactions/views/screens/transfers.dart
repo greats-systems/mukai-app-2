@@ -7,6 +7,7 @@ import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/widgets/transfer_to_wallet.dart';
+import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
 
@@ -16,6 +17,8 @@ class TransfersScreen extends StatelessWidget {
   AuthController get authController => Get.put(AuthController());
   TransactionController get transactionController =>
       Get.put(TransactionController());
+  final WalletController walletController = WalletController();
+
   final TextEditingController amountController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   final province_field_key = GlobalKey<DropdownSearchState>();
@@ -76,21 +79,24 @@ class TransfersScreen extends StatelessWidget {
                 ),
                 boxShadow: boxShadow,
               ),
-              child: ListView(
+              child: Obx(() => ListView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(fixPadding * 2.0),
                 children: [
                   height20Space,
-                  if (transactionController.selectedTransferOption.value ==
-                      'mobile_money')
-                    sendToMobileWallet(),
-                  if (transactionController.selectedTransferOption.value ==
+                  // if (transactionController.selectedTransferOptionCategory.value ==
+                  //     'mobile_money')
+                  //   sendToMobileWallet(),
+                  if (transactionController.selectedTransferOptionCategory.value ==
                       'wallet')
-                    TransferToWalletWidget(),
+                    TransferToWalletWidget()
+                    else
+                    sendToMobileWallet(),
+
                   height20Space,
                   registerContent(),
                 ],
-              ),
+              )),
             ),
           )
         ],
@@ -101,6 +107,16 @@ class TransfersScreen extends StatelessWidget {
   sendToMobileWallet() {
     return Column(
       children: [
+        Obx(() => transactionController.transferTransaction.value.sending_wallet != null ? Row(
+          children: [
+            Text(
+              'Sending Wallet: ${transactionController.transferTransaction.value.sending_wallet?.substring(28,36)}',
+              style: semibold12black,
+            ),
+
+          ],
+        ) : SizedBox.shrink()),
+        heightSpace,
         numberField(),
         heightSpace,
         amountField(),

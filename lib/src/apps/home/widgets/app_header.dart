@@ -88,32 +88,32 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
             ],
           ),
         ),
-        heightBox(30),
-        Padding(
-          padding: EdgeInsets.only(left: width * 0.3),
-          child: Column(
-            children: [
-              SizedBox(
-                width: width,
-                child: AutoSizeText(
-                  'Your available balance',
-                  style: medium14Black,
-                ),
-              ),
-              height5Space,
-              Padding(
-                padding: EdgeInsets.only(left: width * 0.06),
-                child: SizedBox(
-                  width: width,
-                  child: AutoSizeText(
-                    '\$${(wallet?.balance ?? 0.0).toStringAsFixed(2)}',
-                    style: medium14Black,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
+        // heightBox(30),
+        // Padding(
+        //   padding: EdgeInsets.only(left: width * 0.3),
+        //   child: Column(
+        //     children: [
+        //       SizedBox(
+        //         width: width,
+        //         child: AutoSizeText(
+        //           'Your available balance',
+        //           style: medium14Black,
+        //         ),
+        //       ),
+        //       height5Space,
+        //       Padding(
+        //         padding: EdgeInsets.only(left: width * 0.06),
+        //         child: SizedBox(
+        //           width: width,
+        //           child: AutoSizeText(
+        //             '\$${(wallet?.balance ?? 0.0).toStringAsFixed(2)}',
+        //             style: medium14Black,
+        //           ),
+        //         ),
+        //       ),
+        //     ],
+        //   ),
+        // ),
       ],
     );
   }
