@@ -1,15 +1,20 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:get/get.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
 
 class WalletController {
   final dio = Dio();
+  var selectedWallet = Wallet().obs;
   Future<Wallet?> getWalletDetailsByID(String userId) async {
+    log('getWalletDetailsByID userId: $userId');
     try {
-      final json = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
+      final json = await dio.get('$APP_API_ENDPOINT/wallets/get_wallet_by_profile_id/$userId');
+      selectedWallet.value = Wallet.fromJson(json.data);
+      log('selectedWallet: ${selectedWallet.value.wallet_adress}');
       return Wallet.fromJson(json.data);
     } catch (e) {
       log('getWalletDetailsByID error: $e');

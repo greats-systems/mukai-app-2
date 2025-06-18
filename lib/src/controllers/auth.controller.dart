@@ -1353,19 +1353,22 @@ class AuthController extends MainController {
   Future<void> memberCoopRequest() async {
     try {
       isLoading.value = true;
-      // if (selected_coop.value.id == null) {
-      //   throw Exception('Cooperative is required');
-      // }
-      // var user_id = await _getStorage.read('userId');
+
       var req_data = {
         // 'coop_id': selected_coop.value.id,
         'member_id': userId.value,
         'request_type': 'new account',
         'status': 'unresolved',
+        'coop_id': selected_coop.value.id,
+        'city': town_city.value,
+        'country': city.value.country,
+        'province_state': province.value,
+        'category': cooperative_category.value
       };
       log('req_data: $req_data');
+      log('${APP_API_ENDPOINT}/cooperative_member_requests');
       await dio.post(
-        '$APP_API_ENDPOINT/cooperative-member-requests',
+        '$APP_API_ENDPOINT/cooperative_member_requests',
         data: req_data,
       );
       Helper.successSnackBar(

@@ -247,7 +247,7 @@ class MemberRegisterCoopScreen extends StatelessWidget {
             decoratorProps: DropDownDecoratorProps(
               decoration: InputDecoration(
                 border: InputBorder.none,
-                labelText: 'Select Cooperative Officer',
+                labelText: 'Select Cooperative',
                 labelStyle: const TextStyle(color: blackColor, fontSize: 22),
                 filled: true,
                 fillColor: recWhiteColor,
@@ -513,7 +513,7 @@ class MemberRegisterCoopScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
-          Image.asset("assets/images/logo-nobg.png", height: 150.0),
+          Image.asset("assets/images/logo-nobg.png", height: 120.0),
           Text(
             'express your greatness',
             style:

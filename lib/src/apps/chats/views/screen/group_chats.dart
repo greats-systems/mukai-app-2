@@ -6,8 +6,10 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_landing_page.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
+import 'package:mukai/src/apps/groups/views/screens/create_group.dart';
 import 'package:mukai/src/apps/groups/views/screens/landing_page.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
@@ -63,7 +65,34 @@ class _GroupsListState extends State<GroupsList> {
             ],
           )
         : Center(
-            child: Text('No groups'),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('No groups'),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to search screen
+                  },
+                  child: const Text('Search for Groups'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to create group screen
+                  },
+                  child: const Text('Create a Group'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
           );
   }
 
@@ -105,7 +134,40 @@ class _GroupsListState extends State<GroupsList> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return const Center(child: Text('No groups found'));
+            return  Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('This account has no groups associated with it.'),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to search screen
+                    Get.to(() => MemberRegisterCoopScreen());
+
+                  },
+                  child: const Text('Search for Groups'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to create group screen
+                            Get.to(() => CreateGroup());
+
+                  },
+                  child: const Text('Create a Group'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
+                  ),
+                ),
+              ],
+            ),
+          );
           }
 
           final groups = snapshot.data!

@@ -150,10 +150,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
             ),
           ),
           child: ListView(
-            children: [
-              Obx(() => authController.initiateNewTransaction.value == true
-                  ? adminInitiateTrans()
-                  : adminOptions())
+            children: [adminOptions()
             ],
           )),
     );

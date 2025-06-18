@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/apps/home/widgets/apps_features.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
@@ -25,7 +26,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
   final GetStorage _getStorage = GetStorage();
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  final tabList = ["Account", "Wallets", "Assets", 'FinMarkets'];
+  final tabList = ["Account", "Wallets", "Assets"];
   int selectedTab = 0;
   bool refresh = false;
   late double height;
@@ -47,7 +48,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
     height = size.height;
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(225.0), // Match the toolbarHeight
+        preferredSize: const Size.fromHeight(325.0), // Match the toolbarHeight
         child: Container(
           decoration: BoxDecoration(
             boxShadow: [
@@ -69,10 +70,10 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
             automaticallyImplyLeading: false,
             centerTitle: false,
             titleSpacing: -1.0,
-            toolbarHeight: 225.0,
+            toolbarHeight: 325.0,
             elevation: 0,
             title: Column(
-              children: [const AppHeaderWidget(), heightBox(30), tabBar()],
+              children: [const AppHeaderWidget(),WalletBalancesWidget(),  heightBox(30), tabBar()],
             ),
           ),
         ),
@@ -113,12 +114,12 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                             child: const HomeAccountWidgetApps(
                               category: 'assetsList',
                             )),
-                        Container(
-                          color: whiteColor,
-                          child: const HomeAccountWidgetApps(
-                            category: 'stocksList',
-                          ),
-                        ),
+                        // Container(
+                        //   color: whiteColor,
+                        //   child: const HomeAccountWidgetApps(
+                        //     category: 'stocksList',
+                        //   ),
+                        // ),
                       ],
                     ),
                   ),
@@ -238,11 +239,11 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                   decoration: BoxDecoration(
                       color: selectedTab == index
                           ? primaryColor
-                          : Colors.transparent),
+                          : tertiaryColor),
                   child: Text(
                     tabList[index].toString(),
                     style:
-                        selectedTab == index ? semibold12White : semibold12Grey,
+                        selectedTab == index ? semibold12White : semibold12black,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                   ),

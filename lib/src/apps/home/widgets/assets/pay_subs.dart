@@ -14,15 +14,15 @@ import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 
-class TransferTransactionScreen extends StatefulWidget {
-  const TransferTransactionScreen({super.key});
+class MemberPaySubs extends StatefulWidget {
+  const MemberPaySubs({super.key});
 
   @override
-  State<TransferTransactionScreen> createState() =>
+  State<MemberPaySubs> createState() =>
       _TransferTransactionScreenState();
 }
 
-class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
+class _TransferTransactionScreenState extends State<MemberPaySubs> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
   final WalletController walletController = WalletController();
@@ -168,7 +168,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
           toolbarHeight: 70.0,
           title: const SizedBox(
             child: Text(
-              'Transfer Transaction',
+              'Pay Cooperative Subscription',
               style: medium18WhiteF5,
             ),
           ),

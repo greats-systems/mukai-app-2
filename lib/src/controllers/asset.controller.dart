@@ -11,16 +11,55 @@ class AssetController {
   final selectedAsset = Rx<Asset?>(null);
   var selectedGroup = Rx<Group?>(null);
   final isLoading = Rx<bool>(false);
-  final asset = Rx<Asset?>(null);
+  final asset = Asset().obs;
   final dio = Dio();
 
-  Future<List<Asset>?> getGroupAssets(String groupId) async {
+    Future<List<Asset>?> getGroupAssets(String groupId) async {
       List<Asset> assets = [];
 
     try {
       isLoading.value = true;
       log('getGroupAssets: $groupId');
       final response = await dio.get('$APP_API_ENDPOINT/assets/group/$groupId');
+      if (response.statusCode == 200) {
+        isLoading.value = false;
+        var data = response.data['data'];
+        log('getGroupAssets response: $data');
+        if (data.isNotEmpty) {
+          var assets_list = await Future.value(List<Asset>.from(data.map((e) => Asset.fromJson(e))));
+          log('getGroupAssets assets: $assets_list');
+          assets = assets_list;
+          return assets;
+        } else {
+          isLoading.value = false;
+          return assets;
+        }
+      } else {
+        isLoading.value = false;
+        await Helper.errorSnackBar(
+            title: 'Asset Fetch Failed',
+            message: response.data['message'],
+            duration: 5);
+        return assets;
+      }
+    } catch (e) {
+      log('getGroupAssets error: $e');
+      isLoading.value = false;
+      await Helper.errorSnackBar(
+            title: 'Asset Fetch Failed',
+            message: e.toString(),
+            duration: 5);
+      return assets;
+    }
+  }
+
+  Future<List<Asset>?> getMemberAssets(String profileId) async {
+      List<Asset> assets = [];
+
+    try {
+      isLoading.value = true;
+      log('getMemberAssets: $profileId');
+      final response = await dio.get('$APP_API_ENDPOINT/assets/profile/$profileId');
       if (response.statusCode == 200) {
         isLoading.value = false;
         var data = response.data['data'];
@@ -141,15 +180,15 @@ class AssetController {
     }
   }
 
-    Future<void> createAsset(String groupId) async {
+    Future<void> createAsset(String? groupId, String? profileId, String ownershipType) async {
     try {
       var assetData = {
-        "asset_descriptive_name": asset.value?.assetDescriptiveName ?? '',
-        "asset_description": asset.value?.assetDescription ?? '',
+        "asset_descriptive_name": asset.value.assetDescriptiveName ,
+        "asset_description": asset.value.assetDescription ,
         "status": "active",
-        "valuation_currency": asset.value?.valuationCurrency ?? 'USD',
-        "fiat_value": double.parse(asset.value?.fiatValue.toString() ?? '0'),
-        "token_value": double.parse(asset.value?.tokenValue.toString() ?? '0'),
+        "valuation_currency": asset.value.valuationCurrency ?? 'USD',
+        "fiat_value": double.parse(asset.value.fiatValue.toString() ?? '0'),
+        "token_value": double.parse(asset.value.fiatValue.toString() ?? '0'),
         "asset_images":null,
         "last_transaction_timestamp": null,
         "verifiable_certificate_issuer_id": null,
@@ -162,8 +201,8 @@ class AssetController {
         "is_shared": false,
         "is_active": false,
         "has_documents": false,
-        "profile_id": null,
-        'group_id': groupId,
+        "profile_id": ownershipType == 'group' ? null : profileId,
+        'group_id': ownershipType == 'group' ? groupId : null,
       };
       log('assetData: $assetData');
       final response = await dio.post('$APP_API_ENDPOINT/assets/', data: assetData);

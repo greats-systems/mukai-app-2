@@ -237,6 +237,7 @@ class TransactionController extends MainController {
       }
 
       transferTransaction.value.account_id = userId;
+      
       transferTransaction.value.category = 'transfer';
 
       log('transaction ${transferTransaction.toJson()}');
