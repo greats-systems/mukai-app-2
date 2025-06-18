@@ -12,6 +12,8 @@ class EmailnPasswordWidget extends StatelessWidget {
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
 
+  bool obscureText = false;
+
   @override
   Widget build(BuildContext context) {
     return Container(

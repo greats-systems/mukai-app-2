@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:developer';
-import 'dart:convert';
+// import 'dart:convert';
+import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
@@ -8,10 +9,16 @@ import 'package:mukai/constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GroupController {
+  final dio = Dio();
   Future<Map<String, dynamic>> createGroup(Group group) async {
     // log(group.toJson().toString());
-    List<String?> walletIDs = [];
+    // List<String?> walletIDs = [];
     try {
+      final response = await dio.post('$APP_API_ENDPOINT/groups', data: group);
+      final groupCreated = Group.fromMap(response.data);
+      log(groupCreated.toString());
+      return {'statusCode': 200, 'message': 'Group created'};
+      /*
       final createGroupResponse = await supabase
           .from('group')
           .insert({
@@ -25,6 +32,7 @@ class GroupController {
           .select()
           .single();
       log('createGroupResponse: $createGroupResponse');
+      
       for (int i = 0; i < group.members!.length; i++) {
         final groupMemberWalletsJson = await supabase
             .from('wallets')
@@ -57,7 +65,7 @@ class GroupController {
             .single();
         log(updateMemberResponse.toString());
       }
-      return {'statusCode': 200, 'message': 'Group data saved'};
+      */
     } catch (e, s) {
       log('createGroup error $e $s');
       return {'error': e};
@@ -66,14 +74,17 @@ class GroupController {
 
   Future<List<Group>> getGroups() async {
     try {
+      final response = await dio.get('$APP_API_ENDPOINT/groups');
+      /*
       final response = await supabase
           .from('group')
           .select()
           .order('created_at', ascending: false);
+          */
 
-      return response.map((data) => Group.fromMap(data)).toList();
+      return response.data.map((data) => Group.fromMap(data)).toList();
     } catch (e, s) {
-      log('Error fetching group: $e\n$s');
+      log('Error fetching groups: $e\n$s');
       rethrow;
     }
   }
@@ -81,21 +92,23 @@ class GroupController {
   Future<List<Profile>?> getMukandoGroupMembers(String groupId) async {
     try {
       // 1. Fetch the group data with members
+      /*
       final response = await supabase
           .from('group')
           .select('members')
           .eq('id', groupId)
           .single()
           .timeout(const Duration(seconds: 10)); // Add timeout
-
+      */
+      final response = await dio.get('$APP_API_ENDPOINT/groups/$groupId');
       // 2. Validate and parse the response
-      if (response == null || response['members'] == null) {
+      if (response.data['members'] == null) {
         log('No members found for group $groupId');
         return [];
       }
 
       // 3. Convert members to Profile objects
-      final membersList = response['members'] as List;
+      final membersList = response.data['members'] as List;
       final profiles = membersList
           .whereType<Map<String, dynamic>>() // Ensure each item is a Map
           .map((item) => Profile.fromMap(item))
@@ -116,15 +129,18 @@ class GroupController {
     }
   }
 
-  Future<Wallet?> getGroupWallet(String profileId) async {
+  Future<Wallet?> getGroupWallet(String groupId) async {
     try {
+      final response = await dio.get('$APP_API_ENDPOINT/groups/$groupId');
+      /*
       final response = await supabase
           .from('wallets')
           .select()
           .eq('profile_id', profileId)
           .eq('is_group_wallet', true)
           .single();
-      final walletJson = Wallet.fromJson(response);
+          */
+      final walletJson = Wallet.fromJson(response.data);
       // log('getGroupWallet ${JsonEncoder.withIndent(' ').convert(walletJson)}');
       // log(walletJson.id ?? 'No wallet id');
       return walletJson;
@@ -134,8 +150,11 @@ class GroupController {
     }
   }
 
-  Future<List<Wallet>?> getChildrenWallets(String parentWalletId) async {
+  Future<List<Wallet>?> getChildrenWallets(String walletId) async {
     try {
+      final response = await dio.get('$APP_API_ENDPOINT/wallets/$walletId');
+      return response.data.map((wallet) => Wallet.fromJson(wallet)).toList();
+      /*
       final walletsIds = await supabase
           .from('wallets')
           .select('children_wallets')
@@ -143,24 +162,61 @@ class GroupController {
           .single();
       // return Wallet.fromJson(response);
       log('getChildrenWallets data: $walletsIds');
+      */
     } catch (e, s) {
-      log('getGroupWallet error: $e $s');
+      log('getChildrenWallets error: $e $s');
       return null;
     }
   }
 
-  Future<Group?> getGroupById(String id) async {
+  Future<Group?> getGroupById(String groupId) async {
     try {
+      /*
       final response =
           await supabase.from('group').select().eq('id', id).single();
-
-      if (response != null) {
-        return Group.fromMap(response);
+      */
+      final response = await dio.get('$APP_API_ENDPOINT/groups/$groupId');
+      if (response.data.isNotEmpty) {
+        return Group.fromMap(response.data);
       }
       return null;
     } catch (e, s) {
       log('Error fetching group: $e\n$s');
       rethrow;
+    }
+  }
+
+  Future<void> updateGroup(Group group) async {
+    try {
+      final response =
+          await dio.patch('$APP_API_ENDPOINT/groups/${group.id}', data: group);
+      log(response.data);
+    } catch (e, s) {
+      log('updateGroup error: $e $s');
+    }
+  }
+
+  Future<void> deleteGroup(Group group) async {
+    try {
+      final response =
+          await dio.delete('$APP_API_ENDPOINT/groups/${group.id}');
+      log(response.data);
+    } catch (e, s) {
+      log('updateGroup error: $e $s');
+    }
+  }
+  Future<List<Map<String, dynamic>>?> getAcceptedUsers() async {
+    // List<Profile> profiles = [];
+    try {
+      final response = await supabase
+          .from('cooperative_member_requests')
+          .select('*, profiles(*)')
+          .eq('status', 'accepted');
+      // log(JsonEncoder.withIndent(' ').convert(response));
+      return response;
+    } catch (e) {
+      log('getAcceptedUsers error: $e');
+      return null;
     }
   }
 
@@ -183,19 +239,26 @@ class GroupController {
   */
 
   // Add a member to a group
+  /*
   Future<void> addMemberToGroup(String groupId, String memberId) async {
     try {
+      final Group group;
+      group
+      final response = await dio.patch('$APP_API_ENDPOINT/groups/$groupId');
+      /*
       await supabase.from('group_member').insert({
         'group_id': groupId,
         'member_id': memberId,
         'status': 'active',
         'joined_at': DateTime.now().toIso8601String(),
       });
+      */
     } catch (e, s) {
       log('Error adding member to group: $e\n$s');
       rethrow;
     }
   }
+  
 
   // Remove a member from a group
   Future<void> removeMemberFromGroup(String groupId, String memberId) async {
@@ -209,6 +272,7 @@ class GroupController {
       rethrow;
     }
   }
+  */
 
   // Get members of a specific group
   /*
@@ -226,7 +290,7 @@ class GroupController {
       rethrow;
     }
   }
-  */
+  
 
   Future<List<Map<String, dynamic>>?> getAcceptedUsers() async {
     // List<Profile> profiles = [];
@@ -242,4 +306,5 @@ class GroupController {
       return null;
     }
   }
+  */
 }

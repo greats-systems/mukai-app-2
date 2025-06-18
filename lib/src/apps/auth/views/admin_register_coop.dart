@@ -2,16 +2,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
-import 'package:iconify_flutter_plus/icons/bx.dart';
 import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:get/get.dart';
-import 'package:intl_phone_field/country_picker_dialog.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
-import 'package:mukai/widget/render_supabase_image.dart';
 
 class AdminRegisterCoopScreen extends StatelessWidget {
   AdminRegisterCoopScreen({super.key});

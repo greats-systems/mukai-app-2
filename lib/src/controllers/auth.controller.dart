@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
@@ -6,16 +8,14 @@ import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/auth.model.dart';
 import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/firebase_api.dart';
 import 'package:mukai/network_service.dart';
 import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
 import 'package:mukai/src/apps/auth/views/login.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
-import 'package:mukai/src/apps/home/admin_landing.dart';
-import 'package:mukai/src/apps/home/member_landing.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
-import 'package:mukai/src/apps/profile/controllers/profile_provider.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/main.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
@@ -29,8 +29,6 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/constants.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 // 1048336443350-aongaja6tp71ggdrodjau92u2o73frb4.apps.googleusercontent.com
 class AuthBind extends Bindings {
@@ -43,6 +41,38 @@ class AuthBind extends Bindings {
 class AuthController extends MainController {
   var uuid = const Uuid();
   final dio = Dio();
+  final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initializeAuth();
+  }
+
+  Future<void> _initializeAuth() async {
+    try {
+      await _sessionManager.restoreSession();
+      if (await _sessionManager.isLoggedIn()) {
+        // Get user data if needed
+        final userId = _getStorage.read('userId');
+        if (userId != null) {
+          await _loadUserData(userId);
+        }
+      }
+    } catch (e) {
+      log('Auth initialization error: $e');
+    }
+  }
+
+  Future<void> _loadUserData(String userId) async {
+    try {
+      final response = await dio.get('$APP_API_ENDPOINT/users/$userId');
+      // Update your profile controller with the user data
+      profileController.profile.value = Profile.fromMap(response.data);
+    } catch (e) {
+      log('Failed to load user data: $e');
+    }
+  }
 
   ProfileController get profileController => Get.put(ProfileController());
   var isSessionLogged = true.obs;
@@ -428,6 +458,7 @@ class AuthController extends MainController {
   var selected_district_ward_options =
       ["Harare", "Chitungwiza", "Epworth", "Norton"].obs;
 
+  /*
   @override
   onInit() {
     super.onInit();
@@ -438,6 +469,7 @@ class AuthController extends MainController {
     //       )
     //     });
   }
+  */
 
   initialize() {
     isLoading.value = false;
@@ -762,7 +794,40 @@ class AuthController extends MainController {
     final id = await _getStorage.read('userId');
     return id;
   }
+  /*
+  Future<void> signin() async {
+    try {
+      isLoading.value = true;
+      final response = await dio.post(
+        '$APP_API_ENDPOINT/auth/login',
+        data: {'email': email.value, 'password': password.value},
+      ).timeout(const Duration(seconds: 30));
 
+      if (response.statusCode == 200) {
+        final authResponse = AuthResponse.fromJson(response.data);
+        await _saveSessionData(authResponse);
+        
+        // Store the tokens and user data
+        await _sessionManager.saveSession(
+          accessToken: authResponse.access_token,
+          refreshToken: authResponse.refresh_token,
+          userId: authResponse.user?.id ?? '',
+        );
+        
+        await _handleSuccessfulLogin(
+          accountType: response.data['user']['account_type'],
+          userId: response.data['user']['id'],
+        );
+      }
+    } catch (e) {
+      // Handle errors
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  */
+
+  
   Future<void> signin() async {
     try {
       isLoading.value = true;

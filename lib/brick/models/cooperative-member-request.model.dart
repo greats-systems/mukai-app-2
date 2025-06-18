@@ -4,13 +4,14 @@ class CooperativeMemberRequest {
   final String? coopId;
   final String? memberId;
   final String? requestType;
-  final String? status;
+  String? status;
   final String? resolvedBy;
   final String? message;
   final String? profileFirstName;
   final String? profileLastName;
   final String? mostRecentContent;
   final String? mostRecentContentFormat;
+  final String? groupId;
 
   CooperativeMemberRequest({
     this.id,
@@ -25,6 +26,7 @@ class CooperativeMemberRequest {
     this.profileLastName,
     this.mostRecentContent,
     this.mostRecentContentFormat,
+    this.groupId,
   });
 
   Map<String, dynamic> toJson() => {
@@ -40,6 +42,7 @@ class CooperativeMemberRequest {
         'profile_last_name': profileLastName,
         'most_recent_content': mostRecentContent,
         'most_recent_content_format': mostRecentContentFormat,
+        'group_id': groupId,
       };
 
   factory CooperativeMemberRequest.fromJson(Map<String, dynamic> json) =>
@@ -56,5 +59,6 @@ class CooperativeMemberRequest {
         profileLastName: json['profile_last_name'] as String?,
         mostRecentContent: json['most_recent_content'] as String?,
         mostRecentContentFormat: json['most_recent_content_format'] as String?,
+        groupId: json['group_id'] as String?,
       );
 }

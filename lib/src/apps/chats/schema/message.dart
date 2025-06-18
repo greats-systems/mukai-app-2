@@ -1,5 +1,4 @@
 // Flutter Equivalent for Django Message model
-import 'dart:convert';
 
 import 'package:isar/isar.dart';
 import 'package:mukai/utils/utilities.dart';
