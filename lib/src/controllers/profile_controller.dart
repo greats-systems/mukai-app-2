@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
@@ -13,6 +15,7 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'dart:developer';
 
 class ProfileController extends MainController {
   ProfileController();
@@ -40,15 +43,17 @@ class ProfileController extends MainController {
   final GetStorage _getStorage = GetStorage();
 
   AuthController get authController => Get.put(AuthController());
+  final dio = Dio();
 
   Future<Map<String, dynamic>?> getUserDetails(String id) async {
     try {
-      final profileJson = await supabase
-          .from('profiles')
-          .select()
-          .eq('id', id)
-          .single();
-      return profileJson;
+      final profileJson = await dio.get('$APP_API_ENDPOINT/wallets/$id');
+      /*
+      final profileJson =
+          await supabase.from('profiles').select().eq('id', id).single();
+          */
+      log('getUserDetails profileJson: $profileJson');
+      return profileJson.data['data'];
     } catch (error) {
       isLoading.value = false;
       Helper.errorSnackBar(
@@ -73,22 +78,58 @@ class ProfileController extends MainController {
       return null;
     }
   }
-    Future<List<Map<String, dynamic>>?> getProfileWallets(String id) async {
-      List<Map<String, dynamic>> profileWallets = [];
+
+  Future<List<dynamic>?> getProfileWallets(String id) async {
+    List<dynamic>? profileWallets = [];
+    log('getProfileWallets profile_id: $id');
     try {
-      final profileJson = await supabase
-          .from('wallets')
-          .select()
-          .eq('profile_id', id);
-         profileWallets = profileJson.map((item) => item).toList();
+      final profileJson =
+          await dio.get('$APP_API_ENDPOINT/wallets/children_wallets/$id');
+      log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
+      if (profileJson.data.isNotEmpty) {
+        final json = profileJson.data['data'];
+        /*
+      final profileJson =
+          await supabase.from('wallets').select().eq('profile_id', id);
+          */
+        profileWallets = json.map((item) => item).toList();
+        return profileWallets;
+      }
+      return null;
+    } catch (error) {
+      isLoading.value = false;
+      Helper.errorSnackBar(
+          title: 'GetProfileWallets Error',
+          message: error.toString(),
+          duration: 10);
+      return null;
+    }
+  }
+
+  /*
+  Future<List<Map<String, dynamic>>?> getProfileWallets(String id) async {
+    List<Map<String, dynamic>> profileWallets = [];
+    log('getProfileWallets profile_id: $id');
+    try {
+      final profileJson = await dio.get('$APP_API_ENDPOINT/wallets/$id');
+      log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
+      final json = profileJson.data['data'];
+      /*
+      final profileJson =
+          await supabase.from('wallets').select().eq('profile_id', id);
+          */
+      profileWallets = json.map((item) => item).toList();
       return profileWallets;
     } catch (error) {
       isLoading.value = false;
       Helper.errorSnackBar(
-          title: 'GetProfileWallets Error', message: error.toString(), duration: 5);
+          title: 'GetProfileWallets Error',
+          message: error.toString(),
+          duration: 5);
       return null;
     }
   }
+  */
 
   Future<void> updateUser() async {
     try {
@@ -148,7 +189,8 @@ class ProfileController extends MainController {
       return profiles;
     }
   }
-    Future<Map<String, dynamic>?> getAcceptedMemberProfileByID(String id) async {
+
+  Future<Map<String, dynamic>?> getAcceptedMemberProfileByID(String id) async {
     // Profile? profile;
     try {
       isLoading.value = true;
@@ -173,16 +215,12 @@ class ProfileController extends MainController {
     }
   }
 
-
   Future<Map<String, dynamic>?> getMemberProfileByID(String id) async {
     // Profile? profile;
     try {
       isLoading.value = true;
-      final profileJson = await supabase
-          .from('profiles')
-          .select()
-          .eq('id', id)
-          .single();
+      final profileJson =
+          await supabase.from('profiles').select().eq('id', id).single();
       return profileJson;
     } catch (error) {
       isLoading.value = false;
@@ -267,29 +305,19 @@ class ProfileController extends MainController {
   }
 
   Future<Profile?> updateMemberRequest(String? request_id, status) async {
+    log('updateMemberRequest request_id: $request_id');
     if (request_id != null) {
       try {
         isLoading.value = true;
-        await supabase
+        final response = await supabase
             .from('cooperative_member_requests')
-            .update({'status': status})
-            .eq('id', request_id)
-            .then((value) async {
-              isLoading.value = false;
-              Get.back();
-              Get.to(() => GroupMembersScreen(
-                    initialselectedTab: status == 'accepted' ? 0 : 2,
-                  ));
-            })
-            .catchError((error) {
-              isLoading.value = false;
-              if (error is PostgrestException) {
-                debugPrint('PostgrestException ${error.message}');
-                Helper.errorSnackBar(
-                    title: 'Error', message: error.message, duration: 5);
-              }
-              return error;
-            });
+            .update({'status': status}).eq('member_id', request_id);
+        log(response);
+        final insertGroupMemberResponse = await supabase.from('group_members').insert({
+          'cooperative_id': null,
+          'member_id': request_id,
+          // 'group_id': group_id,
+        });
       } catch (error) {
         isLoading.value = false;
         Helper.errorSnackBar(

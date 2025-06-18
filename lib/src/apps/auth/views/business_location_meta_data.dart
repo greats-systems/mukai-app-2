@@ -18,10 +18,10 @@ class BusinessLocationMetaDataScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final province_field_key = GlobalKey<DropdownSearchState>();
-  final agritex_officer_key = GlobalKey<DropdownSearchState>();
-  final district_key = GlobalKey<DropdownSearchState>();
-  final town_city_key = GlobalKey<DropdownSearchState>();
+  // final province_field_key = GlobalKey<DropdownSearchState>();
+  // final agritex_officer_key = GlobalKey<DropdownSearchState>();
+  // final district_key = GlobalKey<DropdownSearchState>();
+  // final town_city_key = GlobalKey<DropdownSearchState>();
   late double height;
   late double width;
   @override
@@ -122,7 +122,7 @@ class BusinessLocationMetaDataScreen extends StatelessWidget {
                       authController.selected_province_town_city_options[0];
                 }
               },
-              key: province_field_key,
+              // key: province_field_key,
               selectedItem: authController.province.value,
               items: (filter, infiniteScrollProps) =>
                   authController.province_options,
@@ -175,7 +175,7 @@ class BusinessLocationMetaDataScreen extends StatelessWidget {
                 await authController
                     .getAgritexOfficers(authController.district.value)
               },
-              key: district_key,
+              // key: district_key,
               selectedItem: authController.district.value,
               items: (filter, infiniteScrollProps) =>
                   authController.selected_province_districts_options,
@@ -230,7 +230,7 @@ class BusinessLocationMetaDataScreen extends StatelessWidget {
             onChanged: (value) {
               authController.selected_agritex_officer.value = value!;
             },
-            key: agritex_officer_key,
+            // key: agritex_officer_key,
             selectedItem: selectedOfficer,
             items: (filter, infiniteScrollProps) =>
                 authController.agritex_officers,
@@ -486,7 +486,7 @@ class BusinessLocationMetaDataScreen extends StatelessWidget {
               onChanged: (value) => {
                 authController.town_city.value = value!,
               },
-              key: town_city_key,
+              // key: town_city_key,
               selectedItem: authController.town_city.value,
               items: (filter, infiniteScrollProps) =>
                   authController.selected_province_town_city_options,

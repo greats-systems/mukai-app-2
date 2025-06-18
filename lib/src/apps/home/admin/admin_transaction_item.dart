@@ -99,7 +99,7 @@ class _MarketTraderState extends State<AdminTransactionItem> {
               Column(
                 children: [
                   Text(
-                    '${transaction.category!.toUpperCase()}- ${transaction.status ?? 'initiated'}',
+                    '${transaction.category ?? 'No category'}- ${transaction.status ?? 'initiated'}',
                     style: semibold12black,
                     overflow: TextOverflow.ellipsis,
                   ),

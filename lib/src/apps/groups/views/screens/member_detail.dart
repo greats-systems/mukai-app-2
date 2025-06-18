@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/bottom_bar.dart';
@@ -27,11 +28,13 @@ import 'package:iconify_flutter_plus/icons/ph.dart';
 class MemberDetailScreen extends StatefulWidget {
   final Profile profile;
   final String? status;
+  final String? groupId;
 
   const MemberDetailScreen({
     super.key,
     required this.profile,
     this.status,
+    this.groupId,
   });
 
   @override
@@ -68,8 +71,8 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     setState(() {
       bool _isLoading = true;
     });
-    final json = await profileController
-        .getMemberProfileByID(profile.id ?? 'No ID');
+    final json =
+        await profileController.getMemberProfileByID(profile.id ?? 'No ID');
     if (json != null) {
       setState(() {
         userJson = json;
@@ -900,8 +903,8 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     onConfirm: () async {
                       if (profile.id != null) {
                         await profileController.updateMemberRequest(
-                            profile.id!, 'accepted');
-                        // Get.to(() => AdminLandingScreen(role));
+                            profile.id!, 'active');
+                        // Get.to(() => BottomBar(index: 0, role: 'admin',));
                         Get.back();
                       } else {
                         Helper.errorSnackBar(

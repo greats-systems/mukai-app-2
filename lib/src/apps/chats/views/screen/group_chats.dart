@@ -41,7 +41,7 @@ class _GroupsListState extends State<GroupsList> {
 
   void _initializeStream() {
     _groupsStream = supabase
-        .from('group')
+        .from('cooperatives')
         .stream(primaryKey: ['id'])
         .eq('admin_id', loggedInUserId ?? '')
         .order('created_at', ascending: false)
@@ -58,10 +58,11 @@ class _GroupsListState extends State<GroupsList> {
   Widget build(BuildContext context) {
     return _groupsStream != null
         ? Column(
+          mainAxisAlignment: MainAxisAlignment.center,
             children: [
               // _buildSearchField(),
               _buildGroupsList(),
-              const SizedBox(height: 10),              
+              const SizedBox(height: 10),
             ],
           )
         : Center(
@@ -134,40 +135,38 @@ class _GroupsListState extends State<GroupsList> {
           }
 
           if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return  Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('This account has no groups associated with it.'),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Navigate to search screen
-                    Get.to(() => MemberRegisterCoopScreen());
-
-                  },
-                  child: const Text('Search for Groups'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text('This account has no groups associated with it.'),
+                  const SizedBox(height: 20),
+                  ElevatedButton(
+                    onPressed: () {
+                      // TODO: Navigate to search screen
+                      Get.to(() => MemberRegisterCoopScreen());
+                    },
+                    child: const Text('Search for Groups'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Navigate to create group screen
-                            Get.to(() => CreateGroup());
-
-                  },
-                  child: const Text('Create a Group'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
+                  const SizedBox(height: 10),
+                  ElevatedButton(
+                    onPressed: () {
+                      // TODO: Navigate to create group screen
+                      Get.to(() => CreateGroup());
+                    },
+                    child: const Text('Create a Group'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: primaryColor,
+                      foregroundColor: Colors.white,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          );
+                ],
+              ),
+            );
           }
 
           final groups = snapshot.data!
@@ -204,7 +203,7 @@ class _GroupsListState extends State<GroupsList> {
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         // log('Group: ${group.name}');
-        
+
         Get.to(() => CoopLandingScreen(group: group));
         // Get.to(() => MukandoMembersLandingPage(group: group));
       },

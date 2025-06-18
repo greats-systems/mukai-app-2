@@ -34,6 +34,7 @@ Future<void> main() async {
       databaseFactory: databaseFactory,
       ignorePaths: {},
     );
+    log('SUPABASE_URL: $supabaseUrl\nSUPABASE_ROLE_KEY: $supabaseAnonKey');
     restOfflineRequestQueue = queue;
     await supabase_flutter.Supabase.initialize(
         url: supabaseUrl, anonKey: supabaseAnonKey, httpClient: client);

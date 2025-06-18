@@ -17,11 +17,11 @@ class MemberRegisterCoopScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final coops_field_key = GlobalKey<DropdownSearchState>();
-  final province_field_key = GlobalKey<DropdownSearchState>();
-  final agritex_officer_key = GlobalKey<DropdownSearchState>();
-  final district_key = GlobalKey<DropdownSearchState>();
-  final town_city_key = GlobalKey<DropdownSearchState>();
+  // final coops_field_key = GlobalKey<DropdownSearchState>();
+  // final province_field_key = GlobalKey<DropdownSearchState>();
+  // final agritex_officer_key = GlobalKey<DropdownSearchState>();
+  // final district_key = GlobalKey<DropdownSearchState>();
+  // final town_city_key = GlobalKey<DropdownSearchState>();
   late double height;
   late double width;
   final dropDownKey = GlobalKey<DropdownSearchState>();
@@ -99,7 +99,7 @@ class MemberRegisterCoopScreen extends StatelessWidget {
               authController.cooperative_category.value = value!,
               authController.filterCooperatives()
             },
-            key: dropDownKey,
+            // key: GlobalKey<FormState>(),
             selectedItem:
                 Utils.trimp(authController.cooperative_category.value),
             items: (filter, infiniteScrollProps) =>
@@ -181,7 +181,7 @@ class MemberRegisterCoopScreen extends StatelessWidget {
                   authController.filterCooperatives();
                 }
               },
-              key: province_field_key,
+              // key: GlobalKey<FormState>(),
               selectedItem: authController.province.value,
               items: (filter, infiniteScrollProps) =>
                   authController.province_options,
@@ -240,7 +240,7 @@ class MemberRegisterCoopScreen extends StatelessWidget {
               log('selected_coop.value.id ${authController.selected_coop.value.id}');
               authController.selected_coop.value = value!;
             },
-            key: coops_field_key,
+            // key: GlobalKey<FormState>(),
             selectedItem: selectedCoop,
             items: (filter, infiniteScrollProps) =>
                 authController.coops_options,
@@ -393,7 +393,7 @@ class MemberRegisterCoopScreen extends StatelessWidget {
                 authController.town_city.value = value!,
                 authController.filterCooperatives()
               },
-              key: town_city_key,
+              // key: town_city_key,
               selectedItem: authController.town_city.value,
               items: (filter, infiniteScrollProps) =>
                   authController.selected_province_town_city_options,

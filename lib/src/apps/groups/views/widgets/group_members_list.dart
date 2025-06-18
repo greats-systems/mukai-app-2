@@ -98,6 +98,7 @@ class _GroupMembersListState extends State<GroupMembersList> {
                                 profileController.selectedProfile.value =
                                     profile;
                                 Get.to(() => MemberDetailScreen(
+                                  groupId: widget.groupId,
                                       profile: profile,
                                     ));
                               },

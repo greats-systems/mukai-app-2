@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:developer';
 // import 'dart:convert';
 import 'package:dio/dio.dart';
@@ -14,7 +15,8 @@ class GroupController {
     // log(group.toJson().toString());
     // List<String?> walletIDs = [];
     try {
-      final response = await dio.post('$APP_API_ENDPOINT/groups', data: group);
+      final response =
+          await dio.patch('$APP_API_ENDPOINT/cooperatives', data: group);
       final groupCreated = Group.fromMap(response.data);
       log(groupCreated.toString());
       return {'statusCode': 200, 'message': 'Group created'};
@@ -100,7 +102,7 @@ class GroupController {
           .single()
           .timeout(const Duration(seconds: 10)); // Add timeout
       */
-      final response = await dio.get('$APP_API_ENDPOINT/groups/$groupId');
+      final response = await dio.get('$APP_API_ENDPOINT/cooperatives/$groupId');
       // 2. Validate and parse the response
       if (response.data['members'] == null) {
         log('No members found for group $groupId');
@@ -119,6 +121,58 @@ class GroupController {
       log('Fetched ${profiles.map((profile) => profile.toMap())}');
 
       return profiles;
+    } on PostgrestException catch (e) {
+      log('Supabase error fetching group members: ${e.message}', error: e);
+      return null;
+    } on TimeoutException catch (e) {
+      log('Timeout fetching group members: $e');
+      return null;
+    } catch (e, s) {
+      log('Unexpected error fetching group members', error: e, stackTrace: s);
+      return null;
+    }
+  }
+
+  Future<List<Profile>?> getPendingMukandoGroupMembers(String groupId) async {
+    try {
+      // 1. Fetch the group data with members
+      /*
+      final response = await supabase
+          .from('group')
+          .select('members')
+          .eq('id', groupId)
+          .single()
+          .timeout(const Duration(seconds: 10)); // Add timeout
+      */
+      final response = await dio.get(
+          '$APP_API_ENDPOINT/cooperative_member_requests/$groupId/unresolved');
+      log('getPendingMukandoGroupMembers response: ${JsonEncoder.withIndent(' ').convert(response.data['data'])}');
+      // 2. Validate and parse the response
+      if (response.data == null) {
+        log('No members found for group $groupId');
+        return [];
+      } else {
+        // 3. Convert members to Profile objects
+        if (response.data['data'].length > 1) {
+          final membersList = response.data['data']['profiles'] as List;
+          final profiles = membersList
+              .whereType<Map<String, dynamic>>() // Ensure each item is a Map
+              .map((item) => Profile.fromMap(item))
+              .where((profile) =>
+                  profile.id != null) // Filter out invalid profiles
+              .toList();
+
+          log('Fetched ${profiles.length} members for group $groupId');
+          log('Fetched ${profiles.map((profile) => profile.toMap())}');
+          return profiles;
+        } else if (response.data['data'].length == 1) {
+          final data = response.data['data'][0]['profiles'];
+          return [Profile.fromMap(data)];
+        } else {
+          log('No members found for group $groupId');
+          return [];
+        }
+      }
     } on PostgrestException catch (e) {
       log('Supabase error fetching group members: ${e.message}', error: e);
       return null;
@@ -200,20 +254,21 @@ class GroupController {
 
   Future<void> deleteGroup(Group group) async {
     try {
-      final response =
-          await dio.delete('$APP_API_ENDPOINT/groups/${group.id}');
+      final response = await dio.delete('$APP_API_ENDPOINT/groups/${group.id}');
       log(response.data);
     } catch (e, s) {
       log('updateGroup error: $e $s');
     }
   }
+
   Future<List<Map<String, dynamic>>?> getAcceptedUsers() async {
     // List<Profile> profiles = [];
     try {
       final response = await supabase
           .from('cooperative_member_requests')
-          .select('*, profiles(*)')
-          .eq('status', 'accepted');
+          .select()
+          .eq('status', 'unresolved');
+      log('getAcceptedUsers response: $response');
       // log(JsonEncoder.withIndent(' ').convert(response));
       return response;
     } catch (e) {

@@ -14,7 +14,7 @@ class WalletController {
     try {
       final json = await dio.get('$APP_API_ENDPOINT/wallets/get_wallet_by_profile_id/$userId');
       selectedWallet.value = Wallet.fromJson(json.data);
-      log('selectedWallet: ${selectedWallet.value.wallet_adress}');
+      log('selectedWallet: ${selectedWallet.value.address}');
       return Wallet.fromJson(json.data);
     } catch (e) {
       log('getWalletDetailsByID error: $e');

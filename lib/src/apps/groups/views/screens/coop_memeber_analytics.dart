@@ -49,7 +49,7 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
     final profileWallets = await profileController.getProfileWallets(widget.group?.id ?? userId!);
 
     if (_isDisposed) return;
-    log('profileWallets: $profileWallets');
+    log('CoopMemeberAnalytics profileWallets: $profileWallets');
     setState(() {
       userProfile = userjson;
       if (profileWallets != null && profileWallets.isNotEmpty) {
