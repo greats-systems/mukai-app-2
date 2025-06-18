@@ -1,18 +1,22 @@
 import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
+import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
+import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 
 class MemberPaySubs extends StatefulWidget {
   const MemberPaySubs({super.key});
@@ -26,7 +30,8 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
   final WalletController walletController = WalletController();
-
+  final coops_field_key = GlobalKey<DropdownSearchState>();
+  AuthController get authController => Get.put(AuthController());
   ProfileController get profileController => Get.put(ProfileController());
 
   late double height;
@@ -180,35 +185,12 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
               heightBox(30),
               Obx(() => walletController.selectedWallet.value.id != null ? SizedBox(
                 height: height * 0.5,
-                child: GridView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(
-                      left: fixPadding * 2.0,
-                      right: fixPadding * 2.0,
-                      bottom: fixPadding * 2.0,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: fixPadding * 2.0,
-                            crossAxisSpacing: fixPadding * 2.0,
-                            childAspectRatio: 1.5),
-                    itemCount: activeList.length,
-                    itemBuilder: (context, index) {
-                      return listTileWidget(
-                          activeList[index]['category'].toString(),
-                          activeList[index]['option'].toString(),
-                          activeList[index]['title'].toString(),
-                          () {});
-                    }),
-              ):Center(child: Column(
-                children: [
-                  Text('No wallet selected', style: semibold12black,),
+                child: Column(
+                  children: [
+                      Text('No wallet selected', style: semibold12black,),
                   Text('Please select a wallet first', style: semibold12black,),
-                  heightBox(10),
-
-                  // generete a FutureBuilder to fetch the wallet details
-              //  generate a button to select a wallet between usd and zig
+               Center(child: Column(
+                children: [
                  Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -224,6 +206,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                           walletController.selectedWallet.value = Wallet.fromJson(zigWallet!);
                           transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
                           transactionController.transferTransaction.refresh();
+                          authController.getAcountCooperatives(userId!);
                         });
                       },
                       child: Column(
@@ -252,6 +235,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                           walletController.selectedWallet.value = Wallet.fromJson(usdWallet!);
                           transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
                           transactionController.transferTransaction.refresh();
+                          authController.getAcountCooperatives(userId!);
                         });
                       },
                       child: Column(
@@ -270,6 +254,19 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                   ],
                 ),
                 ],
+              ))
+                  ],
+                ),
+              ): authController.isLoading.value ? const Center(child: LinearProgressIndicator(minHeight: 1, color: primaryColor,)) : authController.coops_options.isNotEmpty ? Column(children: [
+                   heightBox(10),
+                                       Text('Select Cooperative', style: semibold12black,),
+
+                    coops_field(),
+                    heightBox(10),
+              ],) : Center(child: Column(
+                children: [
+                  Text('No cooperative found', style: semibold12black,),
+                ],
               )))
               
               
@@ -279,6 +276,102 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
         ));
   }
 
+  coops_field() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Container(
+        decoration: BoxDecoration(
+          color: recWhiteColor,
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Obx(() {
+          final selectedCoop = authController.selected_coop.value;
+
+          return DropdownSearch<Cooperative>(
+            compareFn: (item1, item2) => item1 == item2,
+            onChanged: (value) {
+              log('selected_coop.value.name ${authController.selected_coop.value.name}');
+              log('selected_coop.value.id ${authController.selected_coop.value.id}');
+              authController.selected_coop.value = value!;
+            },
+            key: coops_field_key,
+            selectedItem: selectedCoop,
+            items: (filter, infiniteScrollProps) =>
+                authController.coops_options,
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                labelText: 'Select Cooperative',
+                labelStyle: const TextStyle(color: blackColor, fontSize: 22),
+                filled: true,
+                fillColor: recWhiteColor,
+              ),
+            ),
+            dropdownBuilder: (context, selectedItem) {
+              if (selectedItem == null) {
+                return const Text(
+                  'Select Cooperative',
+                  style: TextStyle(color: blackColor),
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      selectedItem.name != null
+                          ? '${Utils.trimp(selectedItem.name!)}'
+                          : 'No name',
+                      style: const TextStyle(
+                        color: blackColor,
+                        fontSize: 16.0,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              );
+            },
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.id != null
+                                ? '${Utils.trimp(item.name!)}'
+                                : 'No name',
+                            style: const TextStyle(
+                              color: blackColor,
+                              fontSize: 16.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              showSelectedItems: true,
+              fit: FlexFit.loose,
+              constraints: const BoxConstraints(),
+              menuProps: const MenuProps(
+                backgroundColor: whiteF5Color,
+                elevation: 4,
+              ),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+
   Widget divider() {
     return Container(
       width: double.maxFinite,
@@ -286,7 +379,16 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
       color: blackOrignalColor.withOpacity(0.1),
     );
   }
-
+  BoxDecoration bgBoxDecoration = BoxDecoration(
+    border: Border(
+        left: BorderSide(color: greyB5Color),
+        right: BorderSide(color: greyB5Color),
+        bottom: BorderSide(color: greyB5Color),
+        top: BorderSide(color: greyB5Color)),
+    color: whiteF5Color,
+    borderRadius: BorderRadius.circular(10.0),
+    boxShadow: recShadow,
+  );
   listTileWidget(String category, String option, String title, Function() onTap,
       {Color color = blackOrignalColor}) {
     return InkWell(

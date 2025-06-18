@@ -513,7 +513,7 @@ class AuthController extends MainController {
     }
   }
 
-  Future<List<dynamic>?> filterCooperatives() async {
+    Future<List<dynamic>?> filterCooperatives() async {
     // List<dynamic> productList = [];
     try {
       coops_options.clear();
@@ -554,6 +554,36 @@ class AuthController extends MainController {
             title: 'Error', message: error.response.toString(), duration: 10);
       }
       return filteredCooperatives;
+    }
+  }
+
+
+  Future<void> getAcountCooperatives(String userId) async {
+    log('getAcountCooperatives profileID userId: $userId');
+    try {
+      isLoading.value = true;
+      final response = await dio.get('$APP_API_ENDPOINT/cooperatives/${userId}/cooperatives/');
+      if (response.statusCode == 200) {
+        var data = response.data['data'];
+            final List<dynamic> json = data;
+            isLoading.value = false;
+            log('getAcountCooperatives data: $json');
+            if (json.isNotEmpty) {
+              coops_options.value =
+                  json.map((item) => Cooperative.fromMap(item)).toList();
+              update();
+            } else {
+              isLoading.value = false;
+              log('No cooperatives found');
+            }
+            isLoading.value = false;
+      }
+    } catch (e) {
+      isLoading.value = false;
+      log('getWalletDetailsByID error: $e');
+      isLoading.value = false;
+      Helper.errorSnackBar(
+            title: 'Error', message: e.toString(), duration: 10);
     }
   }
 
@@ -1359,7 +1389,7 @@ class AuthController extends MainController {
         'member_id': userId.value,
         'request_type': 'new account',
         'status': 'unresolved',
-        'coop_id': selected_coop.value.id,
+        'cooperative_id': selected_coop.value.id,
         'city': town_city.value,
         'country': city.value.country,
         'province_state': province.value,
@@ -1367,50 +1397,43 @@ class AuthController extends MainController {
       };
       log('req_data: $req_data');
       log('${APP_API_ENDPOINT}/cooperative_member_requests');
-      await dio.post(
+      var response = await dio.post(
         '$APP_API_ENDPOINT/cooperative_member_requests',
         data: req_data,
       );
-      Helper.successSnackBar(
+      log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
+      if (response.statusCode == 200) {
+              Helper.successSnackBar(
           title: 'Well Done',
           message:
               'Your request to join ${selected_coop.value.name} successfully sent',
           duration: 5);
-      Get.to(() => BottomBar(
-            role: 'member',
-          ));
-      /*
-      var response = await dio.post(
-        '${APP_API_ENDPOINT}/cooperative-member-requests',
-        data: req_data,
-        options: Options(
-          validateStatus: (status) {
-            return status! < 500;
-          },
-        ),
-      );
-      log('memberCoopRequest response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
-      if (response.statusCode == 200) {
-        Helper.successSnackBar(
-            title: 'Well Done',
-            message:
-                'Your request to join ${selected_coop.value.name} successfully sent',
-            duration: 5);
-        Get.to(() => BottomBar());
-      } else {
-        isLoading.value = false;
-        final errorData = response.data;
-        final errorMessage = errorData['message'] ?? 'Registration failed';
-        throw Exception(errorMessage);
+        Get.to(() => BottomBar(
+              role: 'member',
+            ));
       }
-      */
+  
     } on DioException catch (e) {
       isLoading.value = false;
       log('Dio error: ${e.message}');
       if (e.response != null) {
         log('Error response data: ${e.response?.data}');
+        if (e.response?.data['message'] == 'A request for this member already exists') {
+        isLoading.value = false;
+                Helper.successSnackBar(
+          title: 'Well Done',
+          message:
+             'A request for this member already exists',
+          duration: 5);
+        Get.to(() => BottomBar(
+              role: 'member',
+            ));
+      }else {
         final errorMessage = e.response?.data['message'] ?? e.message;
-        throw Exception(errorMessage);
+        Helper.errorSnackBar(
+            title: 'Error', message: errorMessage, duration: 5);
+      }
+        
       } else {
         throw Exception('Network error occurred');
       }
