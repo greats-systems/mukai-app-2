@@ -873,12 +873,10 @@ class AuthController extends MainController {
       ).timeout(const Duration(seconds: 30)); // Add timeout
 
       log('Response received: ${JsonEncoder.withIndent(' ').convert(response.data)}');
-
-      if (response.statusCode == 200) {
+      log('response.statusCode ${response.statusCode}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
         log('Successful login response');
         final authResponse = AuthResponse.fromJson(response.data);
-        // log('Session: ${JsonEncoder.withIndent(' ').convert(authResponse)}');
-
         if (authResponse.session == null || authResponse.user == null) {
           log('Session or user data missing in response');
           // throw Exception('Invalid authentication response');
@@ -914,6 +912,8 @@ class AuthController extends MainController {
           accountType: response.data['user']['account_type'],
           userId: response.data['user']['id'],
         );
+      } else if (response.statusCode == 401) {
+        _handleFailedLogin(response);
       } else {
         _handleFailedLogin(response);
       }
