@@ -101,6 +101,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     final userjson = await profileController.getUserDetails(userId!);
     // final walletJson = await profileController.getWalletDetails(userId!);
     final profileWallets = await profileController.getProfileWallets(userId!);
+    await authController.getAcountCooperatives(userId!);
 
     if (_isDisposed) return;
     log('profileWallets: $profileWallets');
@@ -203,6 +204,9 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                       ),
                       onPressed: () {
                         setState(() {
+                          authController.coops_options.clear();
+                          authController.coops_options.refresh();
+
                           walletController.selectedWallet.value = Wallet.fromJson(zigWallet!);
                           transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
                           transactionController.transferTransaction.refresh();
@@ -232,6 +236,8 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                       ),
                       onPressed: () {
                         setState(() {
+                                     authController.coops_options.clear();
+                          authController.coops_options.refresh();
                           walletController.selectedWallet.value = Wallet.fromJson(usdWallet!);
                           transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
                           transactionController.transferTransaction.refresh();
@@ -263,6 +269,22 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
 
                     coops_field(),
                     heightBox(10),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      onPressed: () {
+                        transactionController.transferTransaction.value.amount = authController.selected_coop.value.monthly_sub??0.0;
+                        transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
+                        transactionController.transferTransaction.value.receiving_wallet = authController.selected_coop.value.wallet_id;
+                        transactionController.transferTransaction.value.transferCategory = 'transfer';
+                        transactionController.transferTransaction.value.transferMode = 'WALLETPLUS';
+                        transactionController.transferTransaction.value.transactionType = 'subscription';
+                        transactionController.initiateTransfer();
+                      }, child: Text('Pay Subscription', style: semibold12White,))
               ],) : Center(child: Column(
                 children: [
                   Text('No cooperative found', style: semibold12black,),
@@ -292,8 +314,10 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
           return DropdownSearch<Cooperative>(
             compareFn: (item1, item2) => item1 == item2,
             onChanged: (value) {
-              log('selected_coop.value.name ${authController.selected_coop.value.name}');
               log('selected_coop.value.id ${authController.selected_coop.value.id}');
+              log('selected_coop.value.monthly_sub ${authController.selected_coop.value.monthly_sub}');
+              log('selected_coop.value.wallet_id ${authController.selected_coop.value.wallet_id}');
+              log('selected_coop.value.name ${authController.selected_coop.value.name}');
               authController.selected_coop.value = value!;
             },
             key: coops_field_key,
