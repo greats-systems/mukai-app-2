@@ -162,55 +162,14 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
           width: width,
           child: Column(
             children: [
- Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+              SizedBox(
+                height: 10,
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.end,
                 children: [
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Implement download functionality
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Download Report'),
-                          content: Text('Choose download format'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                // Download as PDF
-                              },
-                              child: Text('PDF'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                // Download as Excel
-                              },
-                              child: Text('Excel'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: primaryColor.withAlpha(100),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.download, color: Colors.black, size: 16),
-                          SizedBox(width: 4),
-                          Text(
-                            'Download Report',
-                            style: TextStyle(fontSize: 14, color: Colors.black),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                   DropdownButton<String>(
+                                     DropdownButton<String>(
                     underline: SizedBox(),
                     dropdownColor: primaryColor.withValues(alpha: 100),
                     value: selectedCurrencyValue ??
@@ -245,11 +204,8 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
                 ],
               ),
               SizedBox(
-                height: 25,
-              ),
-              SizedBox(
                 width: width*0.85,
-                height: height*0.2,
+                height: height*0.25,
                 child: MyBarGraph(
                   periodicDeposits: selectedDropdownValue == 'Weekly'
                       ? weeklyDeposits

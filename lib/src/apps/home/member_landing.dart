@@ -48,7 +48,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
     height = size.height;
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(325.0), // Match the toolbarHeight
+        preferredSize: const Size.fromHeight(340.0), // Match the toolbarHeight
         child: Container(
           decoration: BoxDecoration(
             boxShadow: [
@@ -70,7 +70,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
             automaticallyImplyLeading: false,
             centerTitle: false,
             titleSpacing: -1.0,
-            toolbarHeight: 325.0,
+            toolbarHeight: 350.0,
             elevation: 0,
             title: Column(
               children: [const AppHeaderWidget(),WalletBalancesWidget(),  heightBox(30), tabBar()],

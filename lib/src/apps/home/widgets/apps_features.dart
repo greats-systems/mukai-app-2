@@ -26,7 +26,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
   late double height;
   late double width;
   final accountList = [
-    {"image": "assets/icons/Buy stocks.png", "title": "Pay Subs"},
+    // {"image": "assets/icons/Buy stocks.png", "title": "Pay Subs"},
     {"image": "assets/icons/vaadin_money-withdraw.png", "title": "Withdraw"},
     {"image": "assets/icons/bx_transfer.png", "title": "Transfer"},
     {
@@ -92,9 +92,9 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
         Get.to(() => MemberAssetsList());
         break;
   
-      case 'Pay Subs':
-        Get.to(() => MemberPaySubs());
-        break;
+      // case 'Pay Subs':
+      //   Get.to(() => MemberPaySubs());
+      //   break;
         
         /*
       case 'Pay Subs':

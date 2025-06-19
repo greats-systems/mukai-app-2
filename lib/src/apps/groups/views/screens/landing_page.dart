@@ -11,6 +11,7 @@ import 'package:mukai/src/apps/groups/views/screens/coop_assets.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_memeber_analytics.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_reports.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_wallet_balances.dart';
+import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
@@ -51,7 +52,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       userId = _getStorage.read('userId');
       role = _getStorage.read('account_type');
     });
-
+    log('account_type role: $role');
     // final userjson = await profileController.getUserDetails(userId!);
 
     if (_isDisposed) return;
@@ -336,10 +337,13 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                 children: [
                   Column(
                     children: [
+                      downloadReports(context),
                       SizedBox(
-                          height: height * 0.33, child: CoopReportsWidget()),
-                      CoopMemeberAnalytics(group: widget.group),
-                      CoopWalletBalancesWidget(group: widget.group),
+                          height: height * 0.35, child: CoopReportsWidget()),
+                      if (role == 'coop-manager')
+                        CoopMemeberAnalytics(group: widget.group),
+                      // if (role == 'coop-manager')
+                        CoopWalletBalancesWidget(group: widget.group),
                     ],
                   ),
                   //  GroupMembersList(groupId: widget.group.id!, category: 'accepted',),
@@ -401,6 +405,83 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
           },
         ),
       ),
+    );
+  }
+  downloadReports(BuildContext context) {
+    return  Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    GestureDetector(
+                      onTap: () {
+                     Get.to(() => MemberPaySubs(group: widget.group));
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: tertiaryColor.withAlpha(100),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                   
+                            Text(
+                              'Pay Subscription',
+                              style: TextStyle(fontSize: 14, color: Colors.black, fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                                      GestureDetector(
+                      onTap: () {
+                        // TODO: Implement download functionality
+                        showDialog(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: Text('Download Report'),
+                            content: Text('Choose download format'),
+                            actions: [
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  // Download as PDF
+                                },
+                                child: Text('PDF'),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(context);
+                                  // Download as Excel
+                                },
+                                child: Text('Excel'),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                      child: Container(
+                        padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: primaryColor.withAlpha(100),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Row(
+                          children: [
+                            Icon(Icons.download, color: Colors.black, size: 16),
+                            SizedBox(width: 4),
+                            Text(
+                              'Download Report',
+                              style: TextStyle(fontSize: 14, color: Colors.black),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+      
+                  ],
+                ),
     );
   }
 }

@@ -14,6 +14,7 @@ class Group extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   final String? id;
   final String? admin_id;
+  final String? wallet_id;
   final String? name;
   final String? city;
   final String? country;
@@ -23,6 +24,7 @@ class Group extends OfflineFirstWithSupabaseModel {
   Group({
     this.id,
     this.admin_id,
+    this.wallet_id,
     this.name,
     this.members,
     this.city,
@@ -81,6 +83,7 @@ class Group extends OfflineFirstWithSupabaseModel {
       id: json["id"],
       name: json['name'],
       country: json['country'],
+      wallet_id: json['wallet_id'],
       city: json['city'],
       monthly_sub: (json['monthly_sub'] as num?)?.toDouble() ?? 0.0,
       members: members,
@@ -97,6 +100,7 @@ class Group extends OfflineFirstWithSupabaseModel {
       'id': id,
       'name': name,
       'country': country,
+      'wallet_id': wallet_id,
       'city': city,
       'monthly_sub': monthly_sub,
       'members': members,
