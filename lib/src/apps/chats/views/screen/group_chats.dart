@@ -67,14 +67,19 @@ class _GroupsListState extends State<GroupsList> {
         .select('member_id, cooperatives(*)')
         .eq('member_id', loggedInUserId ?? '')
         .order('created_at', ascending: false);
-    log('_initializeMembers memberData: ${memberData[0]}');
+    log('_initializeMembers memberData: ${memberData}');
     setState(() {
-    if (memberData[0]['cooperatives'] is Map) {
-      _memberGroups = [Group.fromMap(memberData[0]['cooperatives'])];
-    } else {
-      _memberGroups = memberData.map((item) => Group.fromMap(item)).toList();
-    }
-  });
+      if (memberData.isNotEmpty) {
+        if (memberData[0]['cooperatives'] is Map) {
+          _memberGroups = [Group.fromMap(memberData[0]['cooperatives'])];
+        } else {
+          _memberGroups =
+              memberData.map((item) => Group.fromMap(item)).toList();
+        }
+      } else {
+        log('User $loggedInUserId has no groups');
+      }
+    });
     log('_memberGroups: $_memberGroups');
   }
 
@@ -84,25 +89,25 @@ class _GroupsListState extends State<GroupsList> {
     super.dispose();
   }
 
-@override
-Widget build(BuildContext context) {
-  if (_isLoading) {
-    return Center(child: CircularProgressIndicator());
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(child: CircularProgressIndicator());
+    }
+
+    // Determine which list to show based on role
+    final isCoopMember = role == 'coop-member';
+    final mainContent = isCoopMember ? _buildMembersList() : _buildGroupsList();
+
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        if (!isCoopMember) _buildSearchField(),
+        Expanded(child: mainContent),
+        const SizedBox(height: 10),
+      ],
+    );
   }
-
-  // Determine which list to show based on role
-  final isCoopMember = role == 'coop-member';
-  final mainContent = isCoopMember ? _buildMembersList() : _buildGroupsList();
-
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      if (!isCoopMember) _buildSearchField(),
-      Expanded(child: mainContent),
-      const SizedBox(height: 10),
-    ],
-  );
-}
 
   Widget _buildSearchField() {
     return Padding(
