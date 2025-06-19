@@ -29,6 +29,7 @@ class TransfersScreen extends StatelessWidget {
   late double width;
   final dropDownKey = GlobalKey<DropdownSearchState>();
 
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -111,6 +112,11 @@ class TransfersScreen extends StatelessWidget {
           children: [
             Text(
               'Sending Wallet: ${transactionController.transferTransaction.value.sending_wallet?.substring(28,36)}',
+              style: semibold12black,
+            ),
+            SizedBox(width: 30,),
+            Text(
+              'Receiving Wallet: ${transactionController.transferTransaction.value.receiving_wallet?.substring(28,36)}',
               style: semibold12black,
             ),
 

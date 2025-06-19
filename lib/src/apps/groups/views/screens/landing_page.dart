@@ -43,6 +43,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   String? userId;
   String? role;
   bool _isLoading = false;
+
   void fetchProfile() async {
     if (_isDisposed) return;
     setState(() {
@@ -62,6 +63,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
 
   @override
   void initState() {
+    log('CoopLandingScreen group.id: ${widget.group.id}');
     pageController = PageController(initialPage: selectedTab);
     walletId = _getStorage.read('walletId');
     fetchProfile();
@@ -83,13 +85,15 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-      floatingActionButton: selectedTab == 2 ? FloatingActionButton(
-        onPressed: () {
-          Get.to(() => AddAssetWidget(group: widget.group));
-        },
-        backgroundColor: primaryColor,
-        child: const Icon(Icons.add),
-      ) : null,
+      floatingActionButton: selectedTab == 2
+          ? FloatingActionButton(
+              onPressed: () {
+                Get.to(() => AddAssetWidget(group: widget.group));
+              },
+              backgroundColor: primaryColor,
+              child: const Icon(Icons.add),
+            )
+          : null,
       backgroundColor: primaryColor,
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(150.0), // Match the toolbarHeight
@@ -111,32 +115,31 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
             titleSpacing: 0.0,
             toolbarHeight: 150.0,
             elevation: 0,
-            title:   _isLoading
-        ? Center(
-            child: CircularProgressIndicator(),
-          )
-        : Column(
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        profileButton(),
-                        logoButton(),
-                      ],
-                    ),
-                    heightBox(20),
-                     tabBar(),
-                     heightBox(20),
-                  ],
-                ),
-              ),
-        
-            ],
-          ),
+            title: _isLoading
+                ? Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Column(
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.all(20.0),
+                        child: Column(
+                          children: [
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                profileButton(),
+                                logoButton(),
+                              ],
+                            ),
+                            heightBox(20),
+                            tabBar(),
+                            heightBox(20),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
           ),
         ),
       ),
@@ -150,11 +153,11 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
             ),
           ),
           child: ListView(
-            children: [adminOptions()
-            ],
+            children: [adminOptions()],
           )),
     );
   }
+
   logoButton() {
     return GestureDetector(
       onTap: () {
@@ -217,6 +220,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       ),
     );
   }
+
   adminInitiateTrans() {
     return Column(
       children: [
@@ -304,13 +308,11 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   adminOptions() {
     return Column(
       children: [
-         
-      // heightBox(20), 
-      tabPreviews()],
+        // heightBox(20),
+        tabPreviews()
+      ],
     );
   }
-
-
 
   tabPreviews() {
     return SizedBox(
@@ -332,15 +334,18 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                   });
                 },
                 children: [
-                 Column(
-                   children: [
-                     SizedBox(height: height*0.33,child: CoopReportsWidget()),
-                     CoopMemeberAnalytics(group: widget.group),
-                     CoopWalletBalancesWidget(group: widget.group),
-                   ],
-                 ),
-                //  GroupMembersList(groupId: widget.group.id!, category: 'accepted',),
-                  MukandoMembersList(group: widget.group,),
+                  Column(
+                    children: [
+                      SizedBox(
+                          height: height * 0.33, child: CoopReportsWidget()),
+                      CoopMemeberAnalytics(group: widget.group),
+                      CoopWalletBalancesWidget(group: widget.group),
+                    ],
+                  ),
+                  //  GroupMembersList(groupId: widget.group.id!, category: 'accepted',),
+                  MukandoMembersList(
+                    group: widget.group,
+                  ),
                   CoopAssetsWidget(
                     group: widget.group,
                   ),

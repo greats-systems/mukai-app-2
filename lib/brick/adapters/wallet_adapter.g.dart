@@ -55,8 +55,8 @@ Future<Wallet> _$WalletFromSupabase(
     is_active: data['is_active'] == null ? null : data['is_active'] as bool?,
     is_sub_wallet:
         data['is_sub_wallet'] == null ? null : data['is_sub_wallet'] as bool?,
-    profile_id: data['profile_id'] == null ? null : data['profile_id'] as Uuid?,
-    coop_id: data['coop_id'] == null ? null : data['coop_id'] as Uuid?,
+    profile_id: data['profile_id'] == null ? null : data['profile_id'],
+    coop_id: data['coop_id'] == null ? null : data['coop_id'],
     is_group_wallet: data['is_group_wallet'] == null
         ? null
         : data['is_group_wallet'] as bool?,
@@ -166,8 +166,8 @@ Future<Wallet> _$WalletFromSqlite(
     is_active: data['is_active'] == null ? null : data['is_active'] as bool?,
     is_sub_wallet:
         data['is_sub_wallet'] == null ? null : data['is_sub_wallet'] as bool?,
-    profile_id: data['profile_id'] == null ? null : data['profile_id'] as Uuid?,
-    coop_id: data['coop_id'] == null ? null : data['coop_id'] as Uuid?,
+    profile_id: data['profile_id'] == null ? null : data['profile_id'],
+    coop_id: data['coop_id'] == null ? null : data['coop_id'],
     is_group_wallet: data['is_group_wallet'] == null
         ? null
         : data['is_group_wallet'] as bool?,

@@ -9,10 +9,10 @@ import 'package:mukai/constants.dart';
 class WalletController {
   final dio = Dio();
   var selectedWallet = Wallet().obs;
-  Future<Wallet?> getWalletDetailsByID(String userId) async {
-    log('getWalletDetailsByID userId: $userId');
+  Future<Wallet?> getWallet(String userId) async {
+    log('getWallet userId: $userId');
     try {
-      final json = await dio.get('$APP_API_ENDPOINT/wallets/get_wallet_by_profile_id/$userId');
+      final json = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
       selectedWallet.value = Wallet.fromJson(json.data);
       log('selectedWallet: ${selectedWallet.value.address}');
       return Wallet.fromJson(json.data);

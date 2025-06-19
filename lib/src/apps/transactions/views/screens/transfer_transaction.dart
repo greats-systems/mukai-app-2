@@ -15,7 +15,9 @@ import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 
 class TransferTransactionScreen extends StatefulWidget {
-  const TransferTransactionScreen({super.key});
+  final String? purpose;
+  final String? receivingWalletId;
+  const TransferTransactionScreen({super.key, this.purpose, this.receivingWalletId});
 
   @override
   State<TransferTransactionScreen> createState() =>
@@ -81,7 +83,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
   Map<String, dynamic>? zigWallet = {};
   Map<String, dynamic>? usdWallet = {};
   bool _isLoading = false;
-    Wallet? wallet;
+  Wallet? wallet;
   Future? _fetchDataFuture;
 
   void fetchId() async {
@@ -95,7 +97,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
 
     final userjson = await profileController.getUserDetails(userId!);
     // final walletJson = await profileController.getWalletDetails(userId!);
-    final profileWallets = await profileController.getProfileWallets(userId!);
+    final profileWallets = await profileController.getProfileWallet(userId!);
 
     if (_isDisposed) return;
     log('profileWallets: $profileWallets');
@@ -139,6 +141,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
     _isDisposed = true;
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -178,102 +181,122 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
           child: Column(
             children: [
               heightBox(30),
-              Obx(() => walletController.selectedWallet.value.id != null ? SizedBox(
-                height: height * 0.5,
-                child: GridView.builder(
-                    physics: const BouncingScrollPhysics(),
-                    padding: const EdgeInsets.only(
-                      left: fixPadding * 2.0,
-                      right: fixPadding * 2.0,
-                      bottom: fixPadding * 2.0,
-                    ),
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            mainAxisSpacing: fixPadding * 2.0,
-                            crossAxisSpacing: fixPadding * 2.0,
-                            childAspectRatio: 1.5),
-                    itemCount: activeList.length,
-                    itemBuilder: (context, index) {
-                      return listTileWidget(
-                          activeList[index]['category'].toString(),
-                          activeList[index]['option'].toString(),
-                          activeList[index]['title'].toString(),
-                          () {});
-                    }),
-              ):Center(child: Column(
-                children: [
-                  Text('No wallet selected', style: semibold12black,),
-                  Text('Please select a wallet first', style: semibold12black,),
-                  heightBox(10),
+              Obx(() => walletController.selectedWallet.value.id != null
+                  ? SizedBox(
+                      height: height * 0.5,
+                      child: GridView.builder(
+                          physics: const BouncingScrollPhysics(),
+                          padding: const EdgeInsets.only(
+                            left: fixPadding * 2.0,
+                            right: fixPadding * 2.0,
+                            bottom: fixPadding * 2.0,
+                          ),
+                          gridDelegate:
+                              const SliverGridDelegateWithFixedCrossAxisCount(
+                                  crossAxisCount: 2,
+                                  mainAxisSpacing: fixPadding * 2.0,
+                                  crossAxisSpacing: fixPadding * 2.0,
+                                  childAspectRatio: 1.5),
+                          itemCount: activeList.length,
+                          itemBuilder: (context, index) {
+                            return listTileWidget(
+                                activeList[index]['category'].toString(),
+                                activeList[index]['option'].toString(),
+                                activeList[index]['title'].toString(),
+                                () {});
+                          }),
+                    )
+                  : Center(
+                      child: Column(
+                      children: [
+                        Text(
+                          'No wallet selected',
+                          style: semibold12black,
+                        ),
+                        Text(
+                          'Please select a wallet first',
+                          style: semibold12black,
+                        ),
+                        heightBox(10),
 
-                  // generete a FutureBuilder to fetch the wallet details
-              //  generate a button to select a wallet between usd and zig
-                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: zigWallet?['default_currency'] == 'ZIG' ? primaryColor : tertiaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
+                        // generete a FutureBuilder to fetch the wallet details
+                        //  generate a button to select a wallet between usd and zig
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    zigWallet?['default_currency'] == 'ZIG'
+                                        ? primaryColor
+                                        : tertiaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  walletController.selectedWallet.value =
+                                      Wallet.fromJson(zigWallet!);
+                                  transactionController.transferTransaction
+                                          .value.sending_wallet =
+                                      walletController.selectedWallet.value.id;
+                                  transactionController.transferTransaction
+                                      .refresh();
+                                });
+                              },
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Select ZIG Wallet',
+                                    style: semibold12White,
+                                  ),
+                                  Text(
+                                    '${zigWallet?['balance']} ZIG',
+                                    style: semibold12White,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            widthBox(10),
+                            ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor:
+                                    usdWallet?['default_currency'] == 'USD'
+                                        ? primaryColor
+                                        : tertiaryColor,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  walletController.selectedWallet.value =
+                                      Wallet.fromJson(usdWallet!);
+                                  transactionController.transferTransaction
+                                          .value.sending_wallet =
+                                      walletController.selectedWallet.value.id;
+                                  transactionController.transferTransaction
+                                      .refresh();
+                                });
+                              },
+                              child: Column(
+                                children: [
+                                  Text(
+                                    'Select USD Wallet ',
+                                    style: semibold12black,
+                                  ),
+                                  Text(
+                                    '${usdWallet?['balance']} USD',
+                                    style: semibold12black,
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
                         ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          walletController.selectedWallet.value = Wallet.fromJson(zigWallet!);
-                          transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
-                          transactionController.transferTransaction.refresh();
-                        });
-                      },
-                      child: Column(
-                        children: [
-                          Text(
-                            'Select ZIG Wallet',
-                            style: semibold12White,
-                          ),
-                          Text(
-                            '${zigWallet?['balance']} ZIG',
-                            style: semibold12White,
-                          ),
-                        ],
-                      ),
-                    ),
-                    widthBox(10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: usdWallet?['default_currency'] == 'USD' ? primaryColor : tertiaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          walletController.selectedWallet.value = Wallet.fromJson(usdWallet!);
-                          transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
-                          transactionController.transferTransaction.refresh();
-                        });
-                      },
-                      child: Column(
-                        children: [
-                          Text(
-                            'Select USD Wallet ',
-                            style: semibold12black,
-                          ),
-                          Text(
-                            '${usdWallet?['balance']} USD',
-                            style: semibold12black,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                ],
-              )))
-              
-              
-               ,
+                      ],
+                    ))),
             ],
           ),
         ));

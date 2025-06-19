@@ -47,7 +47,7 @@ class ProfileController extends MainController {
 
   Future<Map<String, dynamic>?> getUserDetails(String id) async {
     try {
-      final profileJson = await dio.get('$APP_API_ENDPOINT/wallets/$id');
+      final profileJson = await dio.get('$APP_API_ENDPOINT/auth/profiles/$id');
       /*
       final profileJson =
           await supabase.from('profiles').select().eq('id', id).single();
@@ -79,12 +79,40 @@ class ProfileController extends MainController {
     }
   }
 
+  Future<List<dynamic>?> getProfileWallet(String id) async {
+    List<dynamic>? profileWallet = [];
+    log('getProfileWallets profile_id: $id');
+    try {
+      final walletJson = await dio.get('$APP_API_ENDPOINT/wallets/$id');
+      log('getProfileWallets walletJson: ${JsonEncoder.withIndent(' ').convert(walletJson.data['data'])}');
+      if (walletJson.data.isNotEmpty) {
+        final json = [walletJson.data['data'][0]];
+        profileWallet= json.map((item) => item).toList();
+        /*
+      final profileJson =
+          await supabase.from('wallets').select().eq('profile_id', id);
+          */
+        // profileWallets = json.map((item) => item).toList();
+        // return profileWallets;
+        // log(json);
+      }
+      return profileWallet;
+    } catch (error) {
+      isLoading.value = false;
+      Helper.errorSnackBar(
+          title: 'GetProfileWallet Error',
+          message: error.toString(),
+          duration: 10);
+      return null;
+    }
+  }
+
   Future<List<dynamic>?> getProfileWallets(String id) async {
     List<dynamic>? profileWallets = [];
     log('getProfileWallets profile_id: $id');
     try {
       final profileJson =
-          await dio.get('$APP_API_ENDPOINT/wallets/children_wallets/$id');
+          await dio.get('$APP_API_ENDPOINT/wallets/$id');
       log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
       if (profileJson.data.isNotEmpty) {
         final json = profileJson.data['data'];
@@ -313,7 +341,8 @@ class ProfileController extends MainController {
             .from('cooperative_member_requests')
             .update({'status': status}).eq('member_id', request_id);
         log(response);
-        final insertGroupMemberResponse = await supabase.from('group_members').insert({
+        final insertGroupMemberResponse =
+            await supabase.from('group_members').insert({
           'cooperative_id': null,
           'member_id': request_id,
           // 'group_id': group_id,

@@ -91,9 +91,16 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
       case 'Assets':
         Get.to(() => MemberAssetsList());
         break;
+  
       case 'Pay Subs':
         Get.to(() => MemberPaySubs());
         break;
+        
+        /*
+      case 'Pay Subs':
+      Get.to(() => TransferTransactionScreen(purpose: 'subscription'));
+      break;
+      */
       case 'Transfer Wallet':
 
         // Get.to(() => TransferWalletScreen());

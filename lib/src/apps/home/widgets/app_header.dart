@@ -47,7 +47,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
       final userId = await _getStorage.read('userId');
       if (!mounted) return;
       
-      final walletData = await _walletController.getWalletDetailsByID(userId);
+      final walletData = await _walletController.getWallet(userId);
       if (!mounted) return;
       
       setState(() => wallet = walletData);

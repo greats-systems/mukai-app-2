@@ -53,12 +53,13 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
       });
     } catch (e) {
       setState(() => _isLoading = false);
-      log('Error fetching members: $e');
+      log('Error fetching memberUnexpected error fetching group memberss: $e');
     }
   }
 
   @override
   void initState() {
+    log('MukandoMembersList group.id: ${widget.group.id}');
     super.initState();
     loggedInUserId = _getStorage.read('userId');
     _fetchGroupMembers();
@@ -121,7 +122,10 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
           child: GestureDetector(
             onTap: () {
               profileController.selectedProfile.value = profile;
-              Get.to(() => MemberDetailScreen(profile: profile,));
+              Get.to(() => MemberDetailScreen(
+                groupId: widget.group.id,
+                    profile: profile,
+                  ));
             },
             child: Container(
               width: double.maxFinite,

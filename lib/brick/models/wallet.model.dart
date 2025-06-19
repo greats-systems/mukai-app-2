@@ -23,8 +23,8 @@ class Wallet extends OfflineFirstWithSupabaseModel {
   bool? is_shared;
   bool? is_active;
   bool? is_sub_wallet;
-  Uuid? profile_id;
-  Uuid? coop_id;
+  String? profile_id;
+  String? coop_id;
   bool? is_group_wallet;
   List<dynamic>? children_wallets;
   String? group_id;
@@ -66,6 +66,7 @@ class Wallet extends OfflineFirstWithSupabaseModel {
   // Factory method to create an Wallet from a JSON map
   factory Wallet.fromJson(Map<String, dynamic> json) {
     // log('Wallet.fromJson raw data $json');
+    // final uuid = Uuid();
     double parseDouble(dynamic value, double defaultValue) {
       if (value == null) {
         return defaultValue;
