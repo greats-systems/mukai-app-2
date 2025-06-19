@@ -57,10 +57,15 @@ String truncateDate(String interval) {
 
 const ENV = 'production';
 const API_ENV = 'localhost';
+const DEVICE_ENV = 'physical';
 const APP_API_ENDPOINT = API_ENV == 'localhost'
-    ? 'http://10.0.2.2:3001'
+    ? DEVICE_ENV == 'physical'
+        ? 'http://172.16.32.87:3001'
+        : 'http://10.0.2.2:3001'
     : 'https://supabasekong-w0skgw8swgwcocwowokscokk.freetrader.africa';
-const CMS_ENDPOINT = 'http://10.0.2.2:54321/graphql/v1';
+const CMS_ENDPOINT = DEVICE_ENV == 'physical'
+    ? 'http://172.16.32.87:54321/graphql/v1'
+    : 'http://172.16.32.87:54321/graphql/v1';
 const GRAPH_API_TOKEN =
     'Bearer EAAUavcvJKVgBO8nrNqlcy5p5K7Sv7XZAudraZC5PpwMWhFupmm8hED7SqH7RQKZATPu4HI3drryZAn8AzqOpSobT2trLOgwIGLJZBPk9kASXckuKRZCfrYZBeNdRbqSnygiIBGZBEWHUmgWUAg5XmKJZB6N9m0roNxsCFjWuAJ8MlaUy1h7U2ArpBDMJglQ9I9xa1OMrtX31RE1YUZAdaZCuhYD';
 const WEBHOOK_VERIFY_TOKEN = 'simplyledgers_hook';
