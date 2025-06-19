@@ -104,7 +104,7 @@ class _MarketTraderState extends State<AdminTransactionItem> {
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    '\$${transaction.amount}',
+                    '\$${transaction.amount?.toStringAsFixed(2) ?? '0.00'}',
                     style: semibold16Primary,
                     overflow: TextOverflow.ellipsis,
                   ),

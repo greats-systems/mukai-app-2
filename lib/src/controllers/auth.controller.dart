@@ -597,7 +597,7 @@ class AuthController extends MainController {
     try {
       isLoading.value = true;
       final response = await dio
-          .get('$APP_API_ENDPOINT/cooperatives/${userId}/cooperatives/');
+          .get('$APP_API_ENDPOINT/cooperatives/${userId}');
       if (response.statusCode == 200) {
         var data = response.data['data'];
         final List<dynamic> json = data;
@@ -906,9 +906,11 @@ class AuthController extends MainController {
         }
         // if (response.data['user']['account_type'] == 'coop-member') {
         //   final groupMemberJson =
-        //       await dio.get('$APP_API_ENDPOINT/group_member/${userId.value}');
-        //   log()
-        // } else {}
+        //       await dio.get('$APP_API_ENDPOINT/group_members/${userId.value}');
+        //   log('groupMemberJson: $groupMemberJson');
+        // } else {
+        //   final adminMemberJson = await dio.get('$APP_API_ENDPOINT/cooperatives/${userId.value}');
+        // }
         await _handleSuccessfulLogin(
           accountType: response.data['user']['account_type'],
           userId: response.data['user']['id'],

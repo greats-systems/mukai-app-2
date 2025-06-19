@@ -1,10 +1,12 @@
 import 'dart:developer';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
@@ -19,6 +21,7 @@ class CoopMemeberAnalytics extends StatefulWidget {
 
 class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
   ProfileController get profileController => Get.put(ProfileController());
+
   final GetStorage _getStorage = GetStorage();
   var totalCartItems = 0;
   var cartTotalAmount = 0.0;
@@ -35,7 +38,10 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
   Map<String, dynamic>? zigWallet = {};
   Map<String, dynamic>? usdWallet = {};
   bool _isLoading = false;
-  void fetchId() async {
+  int numberOfMembers = -10;
+  final dio = Dio();
+
+  void _fetchData() async {
     if (_isDisposed) return;
 
     setState(() {
@@ -43,10 +49,18 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
       userId = _getStorage.read('userId');
       role = _getStorage.read('account_type');
     });
+    final response = await dio
+        .get('$APP_API_ENDPOINT/group_members/${widget.group!.id}/members');
+    log('CoopMemeberAnalytics cooperative response: $response');
+    setState(() {
+      numberOfMembers = response.data.length;
+    });
+    log('Number of group members: $numberOfMembers');
 
     final userjson = await profileController.getUserDetails(userId!);
     // final walletJson = await profileController.getWalletDetails(userId!);
-    final profileWallets = await profileController.getProfileWallets(widget.group?.id ?? userId!);
+    final profileWallets =
+        await profileController.getProfileWallets(widget.group?.id ?? userId!);
 
     if (_isDisposed) return;
     log('CoopMemeberAnalytics profileWallets: $profileWallets');
@@ -80,7 +94,7 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
   @override
   void initState() {
     super.initState();
-    fetchId();
+    _fetchData();
   }
 
   bool _isDisposed = false;
@@ -95,7 +109,7 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
   Widget build(BuildContext context) {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    return Padding(
+    return _isLoading? CircularProgressIndicator() : Padding(
       padding: const EdgeInsets.only(top: 10.0, left: 10, right: 10),
       child: Container(
         height: height * 0.1,
@@ -118,17 +132,16 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: LinearProgressIndicator(
-                  value: 0.95,
+                  value: 2/numberOfMembers.toDouble(),
                   minHeight: 10,
                   borderRadius: BorderRadius.circular(5),
-                  valueColor:
-                      AlwaysStoppedAnimation<Color>(tertiaryColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(tertiaryColor),
                   backgroundColor: Colors.grey[200],
                 ),
               ),
               Center(
                 child: Text(
-                  '75 Of ${widget.group?.members?.length ?? 0} members paid their subscriptions',
+                  '67% Of $numberOfMembers members paid their subscriptions',
                   style: TextStyle(
                     color: whiteColor,
                     fontSize: 14,

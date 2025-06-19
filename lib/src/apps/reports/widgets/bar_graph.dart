@@ -3,15 +3,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:mukai/theme/theme.dart';
 
 class MyBarGraph extends StatelessWidget {
-  // final List<double> weeklyDeposits;
-  // final List<double> weeklyWithdrawals;
   final List<double> periodicDeposits;
   final List<double> periodicWithdrawals;
 
   const MyBarGraph({
     super.key,
-    // required this.weeklyDeposits,
-    // required this.weeklyWithdrawals,
     required this.periodicDeposits,
     required this.periodicWithdrawals,
   });
@@ -22,15 +18,18 @@ class MyBarGraph extends StatelessWidget {
     final height = size.height;
     final width = size.width;
 
-    // Calculate max Y value with 20% padding
-    /*
-    final maxY = [...weeklyDeposits, ...weeklyWithdrawals]
-            .reduce((a, b) => a > b ? a : b) *
-        1.2;
-    */
-    final maxY = [...periodicDeposits, ...periodicWithdrawals]
-            .reduce((a, b) => a > b ? a : b) *
-        1.2;
+    // Handle empty data case
+    if (periodicDeposits.isEmpty || periodicWithdrawals.isEmpty) {
+      return Center(
+        child: Text(
+          'No data available',
+          style: TextStyle(color: Colors.grey),
+        ),
+      );
+    }
+
+    // Safe maxY calculation
+    final maxY = _calculateMaxY();
     final barWidth = width / 30.0;
     final barsSpace = width / 24.0;
     final groupSpace = width / 40.0;
@@ -44,147 +43,88 @@ class MyBarGraph extends StatelessWidget {
         child: SizedBox(
           width: requiredWidth,
           height: height / 1.75,
-          child: SizedBox(
-            child: BarChart(
-              BarChartData(
-                gridData: FlGridData(drawVerticalLine: false),
-                borderData: FlBorderData(show: false),
-                titlesData: FlTitlesData(
-                  show: true,
-                  bottomTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      getTitlesWidget: _getBottomTitles,
-                      reservedSize: 30,
-                    ),
-                  ),
-                  topTitles:
-                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  rightTitles:
-                      AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                  leftTitles: AxisTitles(
-                    sideTitles: SideTitles(
-                      showTitles: true,
-                      reservedSize: 40,
-                      getTitlesWidget: _getLeftTitles,
-                    ),
+          child: BarChart(
+            BarChartData(
+              gridData: FlGridData(drawVerticalLine: false),
+              borderData: FlBorderData(show: false),
+              titlesData: FlTitlesData(
+                show: true,
+                bottomTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    getTitlesWidget: _getBottomTitles,
+                    reservedSize: 30,
                   ),
                 ),
-                maxY: maxY,
-                minY: 0,
-                barGroups: _generateBarGroups(),
-                barTouchData: periodicDeposits.length == 7 ? BarTouchData(
-                  enabled: true,
-                  touchTooltipData: BarTouchTooltipData(
-                    // tooltipBgColor: Colors.black87,
-                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      final day = _getDayName(group.x);
-                      final amount = rod.toY.toStringAsFixed(2);
-                      final type = rodIndex == 0 ? 'Deposit' : 'Withdrawal';
-                      final color = Colors.white;
-
-                      return BarTooltipItem(
-                        '$day\n$type: \$$amount',
-                        TextStyle(color: color, fontWeight: FontWeight.bold),
-                      );
-                    },
-                  ),
-                ): BarTouchData(
-                  enabled: true,
-                  touchTooltipData: BarTouchTooltipData(
-                    // tooltipBgColor: Colors.black87,
-                    getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                      final day = _getMonthName(group.x);
-                      final amount = rod.toY.toStringAsFixed(2);
-                      final type = rodIndex == 0 ? 'Deposit' : 'Withdrawal';
-                      final color = Colors.white;
-
-                      return BarTooltipItem(
-                        '$day\n$type: \$$amount',
-                        TextStyle(color: color, fontWeight: FontWeight.bold),
-                      );
-                    },
+                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                leftTitles: AxisTitles(
+                  sideTitles: SideTitles(
+                    showTitles: true,
+                    reservedSize: 40,
+                    getTitlesWidget: _getLeftTitles,
                   ),
                 ),
-                alignment: BarChartAlignment.spaceAround,
-                groupsSpace: 10,
               ),
+              maxY: maxY,
+              minY: 0,
+              barGroups: _generateBarGroups(),
+              barTouchData: BarTouchData(
+                enabled: true,
+                touchTooltipData: BarTouchTooltipData(
+                  getTooltipItem: (group, groupIndex, rod, rodIndex) {
+                    final day = periodicDeposits.length == 7 
+                        ? _getDayName(group.x)
+                        : _getMonthName(group.x);
+                    final amount = rod.toY.toStringAsFixed(2);
+                    final type = rodIndex == 0 ? 'Deposit' : 'Withdrawal';
+                    return BarTooltipItem(
+                      '$day\n$type: \$$amount',
+                      TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                    );
+                  },
+                ),
+              ),
+              alignment: BarChartAlignment.spaceAround,
+              groupsSpace: 10,
             ),
           ),
         ),
       ),
     );
   }
-  /*
+
+  double _calculateMaxY() {
+    try {
+      final combined = [...periodicDeposits, ...periodicWithdrawals];
+      if (combined.isEmpty) return 100; // Default max if no data
+      return combined.reduce((a, b) => a > b ? a : b) * 1.2;
+    } catch (e) {
+      return 100; // Fallback value
+    }
+  }
+
   List<BarChartGroupData> _generateBarGroups() {
-    return List.generate(7, (index) {
+    final count = periodicDeposits.length;
+    return List.generate(count, (index) {
       return BarChartGroupData(
         x: index,
-        groupVertically: false, // Changed to false for side-by-side
+        groupVertically: false,
         barsSpace: 4,
         barRods: [
           BarChartRodData(
-            toY: weeklyDeposits[index],
+            toY: index < periodicDeposits.length ? periodicDeposits[index] : 0,
             color: primaryColor,
             width: 15,
-            // borderRadius: BorderRadius.zero,
           ),
           BarChartRodData(
-            toY: weeklyWithdrawals[index],
+            toY: index < periodicWithdrawals.length ? periodicWithdrawals[index] : 0,
             color: recColor,
             width: 15,
-            // borderRadius: BorderRadius.zero,
           ),
         ],
       );
     });
-  }
-  */
-
-  List<BarChartGroupData> _generateBarGroups() {
-    return periodicDeposits.length == 7
-        ? List.generate(7, (index) {
-            return BarChartGroupData(
-              x: index,
-              groupVertically: false, // Changed to false for side-by-side
-              barsSpace: 4,
-              barRods: [
-                BarChartRodData(
-                  toY: periodicDeposits[index],
-                  color: primaryColor,
-                  width: 15,
-                  // borderRadius: BorderRadius.zero,
-                ),
-                BarChartRodData(
-                  toY: periodicWithdrawals[index],
-                  color: recColor,
-                  width: 15,
-                  // borderRadius: BorderRadius.zero,
-                ),
-              ],
-            );
-          })
-        : List.generate(12, (index) {
-            return BarChartGroupData(
-              x: index,
-              groupVertically: false, // Changed to false for side-by-side
-              barsSpace: 4,
-              barRods: [
-                BarChartRodData(
-                  toY: periodicDeposits[index],
-                  color: primaryColor,
-                  width: 15,
-                  // borderRadius: BorderRadius.zero,
-                ),
-                BarChartRodData(
-                  toY: periodicWithdrawals[index],
-                  color: recColor,
-                  width: 15,
-                  // borderRadius: BorderRadius.zero,
-                ),
-              ],
-            );
-          });
   }
 
   Widget _getBottomTitles(double value, TitleMeta meta) {
@@ -222,19 +162,19 @@ class MyBarGraph extends StatelessWidget {
   String _getDayName(int value) {
     switch (value.toInt()) {
       case 0:
-        return 'Sun';
-      case 1:
         return 'Mon';
-      case 2:
+      case 1:
         return 'Tue';
-      case 3:
+      case 2:
         return 'Wed';
+      case 3:
+        return 'Thur';
       case 4:
-        return 'Thu';
-      case 5:
         return 'Fri';
-      case 6:
+      case 5:
         return 'Sat';
+      case 6:
+        return 'Sun';
       default:
         return '';
     }

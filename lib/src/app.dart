@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:mukai/src/apps/settings/settings_controller.dart';
-import 'package:mukai/src/apps/settings/settings_view.dart';
-import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/localization/app_localizations.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 

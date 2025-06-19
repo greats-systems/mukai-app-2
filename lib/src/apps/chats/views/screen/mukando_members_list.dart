@@ -2,23 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
-import 'package:mukai/src/apps/chats/views/widgets/mukando_members_list_tile.dart';
-import 'package:mukai/src/components/my_app_bar.dart';
 // import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
 // import 'package:mukai/theme/theme.dart';
 // import 'package:mukai/utils/utils.dart';
 import 'dart:developer';
-import 'dart:developer';
 
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mukai/brick/models/profile.model.dart';
-import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/groups/views/screens/member_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/member_item.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
-import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/theme/theme.dart';
 
 class MukandoMembersList extends StatefulWidget {
@@ -37,23 +30,34 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
   List<Profile>? mukandoMembers = [];
   List<Profile>? pendingMukandoMembers = [];
   bool _isLoading = true;
-  bool _showActiveMembers = true; // Toggle state
+  bool _showActiveMembers = true;
+  bool _isDisposed = false; // Add disposal flag
+
+  @override
+  void dispose() {
+    _isDisposed = true; // Set flag when widget is disposed
+    super.dispose();
+  }
 
   void _fetchGroupMembers() async {
+    if (!mounted) return; // Check if widget is still mounted
+    
     setState(() => _isLoading = true);
     try {
-      final members =
-          await _groupController.getMukandoGroupMembers(widget.group.id ?? '');
-      final pendingMembers = await _groupController
-          .getPendingMukandoGroupMembers(widget.group.id ?? '');
+      final members = await _groupController.getMukandoGroupMembers(widget.group.id ?? '');
+      final pendingMembers = await _groupController.getPendingMukandoGroupMembers(widget.group.id ?? '');
+      
+      if (!mounted) return; // Check again after async operations
+      
       setState(() {
         mukandoMembers = members;
         pendingMukandoMembers = pendingMembers;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
-      log('Error fetching memberUnexpected error fetching group memberss: $e');
+      log('Error fetching members: $e');
     }
   }
 
@@ -125,6 +129,7 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
               Get.to(() => MemberDetailScreen(
                 groupId: widget.group.id,
                     profile: profile,
+                    isActive: _showActiveMembers,
                   ));
             },
             child: Container(

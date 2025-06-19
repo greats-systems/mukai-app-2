@@ -35,23 +35,35 @@ class _GroupsListState extends State<GroupsList> {
   String? role;
   String searchQuery = '';
 
-  bool _isLoading = false;
+  bool _isLoading = true; // Start with loading true
+  bool _dataLoaded = false; // Track if data loading is complete
 
   @override
   void initState() {
-    setState(() {
-      _isLoading = true;
-    });
     super.initState();
-    setState(() {
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    try {
       loggedInUserId = _getStorage.read('userId');
       role = _getStorage.read('account_type');
-      log('GroupsList userId: $loggedInUserId\trole: $role');
-      _initializeStream();
-      _initializeMembers();
-      _isLoading = false;
-    });
-    log('GroupsList userId: $loggedInUserId\trole: $role\n groups: $_memberGroups');
+
+      await Future.wait([
+        _initializeStream(),
+        _initializeMembers(),
+      ]);
+
+      setState(() {
+        _dataLoaded = true;
+        _isLoading = false;
+      });
+    } catch (e) {
+      log('Error initializing data: $e');
+      setState(() {
+        _isLoading = false;
+      });
+    }
   }
 
   Future<void> _initializeStream() async {
@@ -69,26 +81,14 @@ class _GroupsListState extends State<GroupsList> {
         .select('member_id, cooperatives(*)')
         .eq('member_id', loggedInUserId ?? '')
         .order('created_at', ascending: false);
-    log('_initializeMembers memberData: ${memberData}');
-    setState(() {
-      if (memberData.isNotEmpty) {
-        if (memberData[0]['cooperatives'] is Map) {
-          _memberGroups = [Group.fromMap(memberData[0]['cooperatives'])];
-        } else {
-          _memberGroups =
-              memberData.map((item) => Group.fromMap(item)).toList();
-        }
-      } else {
-        log('User $loggedInUserId has no groups');
-      }
-    });
-    log('_memberGroups: $_memberGroups');
-  }
 
-  @override
-  void dispose() {
-    searchController.dispose();
-    super.dispose();
+    if (memberData.isNotEmpty) {
+      setState(() {
+        _memberGroups = memberData[0]['cooperatives'] is Map
+            ? [Group.fromMap(memberData[0]['cooperatives'])]
+            : memberData.map((item) => Group.fromMap(item)).toList();
+      });
+    }
   }
 
   @override
@@ -97,16 +97,60 @@ class _GroupsListState extends State<GroupsList> {
       return Center(child: LoadingShimmerWidget());
     }
 
-    // Determine which list to show based on role
+    // Show empty state if no data loaded
+    if (!_dataLoaded) {
+      return Center(child: Text('Failed to load data'));
+    }
+
     final isCoopMember = role == 'coop-member';
+    final hasGroups = isCoopMember
+        ? _memberGroups?.isNotEmpty ?? false
+        : _groupsStream != null;
+
     return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (!isCoopMember) _buildSearchField(),
-        // Expanded(child: mainContent),
-        isCoopMember ? _buildMembersList(): _buildGroupsList(),
-        const SizedBox(height: 10),
+        Expanded(
+          child: hasGroups
+              ? isCoopMember
+                  ? _buildMembersList()
+                  : _buildGroupsList()
+              : _buildEmptyState(isCoopMember),
+        )
       ],
+    );
+  }
+
+  Widget _buildEmptyState(bool isCoopMember) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(isCoopMember
+              ? 'You are not part of any groups yet'
+              : 'No groups found'),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () => Get.to(() => MemberRegisterCoopScreen()),
+            child: const Text('Search for Groups'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (!isCoopMember) ...[
+            ElevatedButton(
+              onPressed: () => Get.to(() => CreateGroup()),
+              child: const Text('Create a Group'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 

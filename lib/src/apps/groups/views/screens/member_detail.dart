@@ -30,12 +30,13 @@ class MemberDetailScreen extends StatefulWidget {
   final Profile profile;
   final String? status;
   final String? groupId;
+  final bool? isActive;
 
   const MemberDetailScreen({
     super.key,
     required this.profile,
     this.status,
-    this.groupId,
+    this.groupId, this.isActive,
   });
 
   @override
@@ -90,6 +91,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
 
   @override
   void initState() {
+    log('MemberDetailScreen member status: ${widget.profile.status}');
     profile = widget.profile;
     fetchData();
     // getProfile().then((value) {});
@@ -871,24 +873,28 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
   }
 
   requestSummary(Profile profile) {
-    return Container(
-      width: double.maxFinite,
-      margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
-          fixPadding * 2.0, fixPadding * 3.0),
-      padding: const EdgeInsets.symmetric(
-          horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-      decoration: BoxDecoration(
-        color: whiteF5Color,
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: buttonShadow,
-      ),
-      child: Padding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-        child: Row(
-          spacing: 10,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
+  final isActiveMember = widget.isActive ?? false;
+  final isDeclinedStatus = profileController.selectedProfile.value.status == 'declined';
+
+  return Container(
+    width: double.maxFinite,
+    margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
+        fixPadding * 2.0, fixPadding * 3.0),
+    padding: const EdgeInsets.symmetric(
+        horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
+    decoration: BoxDecoration(
+      color: whiteF5Color,
+      borderRadius: BorderRadius.circular(10.0),
+      boxShadow: buttonShadow,
+    ),
+    child: Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: Row(
+        spacing: 10,
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // Show Accept button only if member is not active and not declined
+          if (!isActiveMember && !isDeclinedStatus) ...[
             GestureDetector(
               onTap: () {
                 Get.defaultDialog(
@@ -903,12 +909,6 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     confirmTextColor: whiteColor,
                     onConfirm: () async {
                       if (profile.id != null) {
-                        /*
-                        await profileController.updateMemberRequest(
-                            profile.id!, 'active');
-                        // Get.to(() => BottomBar(index: 0, role: 'admin',));
-                        Get.back();
-                        */
                         await updateMemberRequest(
                             profile.id!, widget.groupId!, 'active');
                       } else {
@@ -929,7 +929,6 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                   alignment: Alignment(0, 0),
                   height: height * 0.04,
                   width: width * 0.25,
-                  // padding: EdgeInsets.all(5),
                   decoration: BoxDecoration(
                     color: primaryColor,
                     borderRadius: BorderRadius.circular(10),
@@ -945,81 +944,79 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     ],
                   )),
             ),
-            if (profileController.selectedProfile.value.status == 'declined')
-              SizedBox()
-            else
-              GestureDetector(
-                onTap: () {
-                  Get.defaultDialog(
-                      middleTextStyle:
-                          TextStyle(color: blackColor, fontSize: 14),
-                      buttonColor: primaryColor,
-                      backgroundColor: tertiaryColor,
-                      title: 'Membership Request',
-                      middleText:
-                          'Are you sure you want to decline ${profile.first_name!.toUpperCase()} ${profile.last_name!.toUpperCase()} Request ID ${profile.id!.substring(0, 8)}?',
-                      textConfirm: 'Yes, Decline',
-                      confirmTextColor: whiteColor,
-                      onConfirm: () async {
-                        await updateMemberRequest(
-                            profile.id!, widget.groupId!, 'declined');
-                        /*
-                        await profileController.updateMemberRequest(
-                            profile.id!, 'declined');
-                        Navigator.pop(context);
-                        */
-                      },
-                      cancelTextColor: redColor,
-                      onCancel: () {
-                        if (Get.isDialogOpen!) {
-                          Get.back();
-                        }
-                      });
-                },
-                child: Container(
-                    alignment: Alignment(0, 0),
-                    height: height * 0.04,
-                    width: width * 0.25,
-                    // padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: redColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 1,
-                      children: [
-                        Text(
-                          'Decline',
-                          style: bold16White,
-                        ),
-                      ],
-                    )),
-              ),
-            Container(
-                alignment: Alignment(0, 0),
-                height: height * 0.04,
-                width: width * 0.25,
-                padding: EdgeInsets.all(5),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  spacing: 5,
-                  children: [
-                    Text(
-                      'Message',
-                      style: bold16White,
-                    ),
-                  ],
-                )),
           ],
-        ),
+          
+          // Show Decline button only if member is not active and not declined
+          if (!isActiveMember && !isDeclinedStatus) ...[
+            GestureDetector(
+              onTap: () {
+                Get.defaultDialog(
+                    middleTextStyle:
+                        TextStyle(color: blackColor, fontSize: 14),
+                    buttonColor: primaryColor,
+                    backgroundColor: tertiaryColor,
+                    title: 'Membership Request',
+                    middleText:
+                        'Are you sure you want to decline ${profile.first_name!.toUpperCase()} ${profile.last_name!.toUpperCase()} Request ID ${profile.id!.substring(0, 8)}?',
+                    textConfirm: 'Yes, Decline',
+                    confirmTextColor: whiteColor,
+                    onConfirm: () async {
+                      await updateMemberRequest(
+                          profile.id!, widget.groupId!, 'declined');
+                    },
+                    cancelTextColor: redColor,
+                    onCancel: () {
+                      if (Get.isDialogOpen!) {
+                        Get.back();
+                      }
+                    });
+              },
+              child: Container(
+                  alignment: Alignment(0, 0),
+                  height: height * 0.04,
+                  width: width * 0.25,
+                  decoration: BoxDecoration(
+                    color: redColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 1,
+                    children: [
+                      Text(
+                        'Decline',
+                        style: bold16White,
+                      ),
+                    ],
+                  )),
+            ),
+          ],
+          
+          // Always show Message button
+          Container(
+              alignment: Alignment(0, 0),
+              height: height * 0.04,
+              width: isActiveMember || isDeclinedStatus ? width * 0.7 : width * 0.25,
+              padding: EdgeInsets.all(5),
+              decoration: BoxDecoration(
+                color: primaryColor,
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                spacing: 5,
+                children: [
+                  Text(
+                    'Message',
+                    style: bold16White,
+                  ),
+                ],
+              )),
+        ],
       ),
-    );
-  }
+    ),
+  );
+}
 
   imageChangeOption(String icon, String title) {
     return InkWell(
@@ -1074,7 +1071,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
   Future<void> updateMemberRequest(
       String member_id, String group_id, String status) async {
     // log(DateTime.timestamp().toIso8601String());
-    
+
     final dio = Dio();
     log('updateMemberRequest member_id: $member_id');
     var coopRequestUpdateParams = {
@@ -1121,7 +1118,6 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       log('User ID is null');
       return null;
     }
-    
   }
 
   BoxDecoration bgBoxDecoration = BoxDecoration(
