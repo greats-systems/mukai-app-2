@@ -57,7 +57,8 @@ String truncateDate(String interval) {
 
 const ENV = 'production';
 const API_ENV = 'localhost';
-const DEVICE_ENV = 'virtual';
+const DEVICE_ENV = 'physical';
+// const DEVICE_ENV = 'virtual';
 const APP_API_ENDPOINT = API_ENV == 'localhost'
     ? DEVICE_ENV == 'physical'
         ? 'http://172.16.32.87:3001'
