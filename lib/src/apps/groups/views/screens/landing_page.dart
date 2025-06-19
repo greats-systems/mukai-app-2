@@ -49,19 +49,22 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   final dio = Dio();
 
   void fetchProfile() async {
-    if (_isDisposed) return;
+    if (_isDisposed) return;    
+    setState(() {
+      _isLoading = true;
+      userId = _getStorage.read('userId');
+      role = _getStorage.read('account_type');
+      
+    });
     final walletJson = await supabase
         .from('wallets')
         .select('id')
         .eq('profile_id', userId!)
         .single();
     setState(() {
-      _isLoading = true;
-      userId = _getStorage.read('userId');
-      role = _getStorage.read('account_type');
       walletId = walletJson['id'];
     });
-    log('walletId: $walletId');
+    log('CoopLandingScreen walletId: $walletId');
 
     // final userjson = await profileController.getUserDetails(userId!);
 
