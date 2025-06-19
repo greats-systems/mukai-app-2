@@ -906,6 +906,10 @@ class AuthController extends MainController {
         if (walletJson.data != null) {
           await _getStorage.write('walletId', walletJson.data['id']);
         }
+        if (response.data['user']['account_type'] == 'coop-member') {
+          final groupMemberJson =
+              await dio.get('$APP_API_ENDPOINT/group_member');
+        } else {}
         await _handleSuccessfulLogin(
           accountType: response.data['user']['account_type'],
           userId: response.data['user']['id'],

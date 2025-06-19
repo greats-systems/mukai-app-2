@@ -505,7 +505,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                         children: [
                           Text(
                             item.id != null
-                                ? '${Utils.trimp(item.name!)}'
+                                ? '${Utils.trimp(item.name ?? 'No name')}'
                                 : 'No name',
                             style: const TextStyle(
                               color: blackColor,
