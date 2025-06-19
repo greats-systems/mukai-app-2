@@ -21,12 +21,15 @@ class ChatController {
 
   Future<Map<String, dynamic>> getPendingRequestDetails(String memberId) async {
     try {
+      final response = await dio.get('$APP_API_ENDPOINT/pendng/$memberId');
+      /*
       final response = await supabase
           .from('cooperative_member_requests')
           .select('member_id, profiles(*)')
           .eq('member_id', memberId)
           .single();
-      return response;
+          */
+      return response.data;
     } catch (e) {
       log('getPendingRequestDetails error: $e');
       return {};
@@ -34,17 +37,21 @@ class ChatController {
   }
 
   Future<void> updateRequest(CooperativeMemberRequest request) async {
+    request.status = 'approved';
     try {
       if (request.memberId == null) {
         throw Exception('Member ID is required');
       }
-
+      final response = await dio.patch(
+          '$APP_API_ENDPOINT/cooperative_member_requests/${request.memberId}');
+      /*
       final response =
           await supabase.from('cooperative_member_requests').update({
-        'status': 'approved',
+        'status': request.status,
         'resolved_by': request.resolvedBy,
       }).eq('member_id', request.memberId!);
-      log(response);
+      */
+      log('updateRequest data: ${response.data}');
     } catch (e) {
       log('updateRequest error: $e');
     }

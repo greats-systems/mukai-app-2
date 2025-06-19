@@ -1,6 +1,6 @@
 // GENERATED CODE DO NOT EDIT
 part of '../brick.g.dart';
-
+/*
 Future<Wallet> _$WalletFromSupabase(
   Map<String, dynamic> data, {
   required SupabaseProvider provider,
@@ -27,7 +27,47 @@ Future<Wallet> _$WalletFromSupabase(
             : data['balance'] as double?,
   );
 }
+*/
 
+Future<Wallet> _$WalletFromSupabase(
+  Map<String, dynamic> data, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
+  return Wallet(
+    id: data['id'] == null ? null : data['id'] as String?,
+    holding_account: data['holding_account'] == null
+        ? null
+        : data['holding_account'] as String?,
+    address: data['address'] == null ? null : data['address'] as String?,
+    status: data['status'] == null ? null : data['status'] as String?,
+    balance: data['balance'] == null ? null : data['balance'] as double?,
+    parent_wallet_id: data['parent_wallet_id'] == null
+        ? null
+        : data['parent_wallet_id'] as String?,
+    provider: data['provider'] == null ? null : data['provider'] as String?,
+    default_currency: data['default_currency'] == null
+        ? null
+        : data['default_currency'] as String?,
+    business_id:
+        data['business_id'] == null ? null : data['business_id'] as String?,
+    is_shared: data['is_shared'] == null ? null : data['is_shared'] as bool?,
+    is_active: data['is_active'] == null ? null : data['is_active'] as bool?,
+    is_sub_wallet:
+        data['is_sub_wallet'] == null ? null : data['is_sub_wallet'] as bool?,
+    profile_id: data['profile_id'] == null ? null : data['profile_id'] as Uuid?,
+    coop_id: data['coop_id'] == null ? null : data['coop_id'] as Uuid?,
+    is_group_wallet: data['is_group_wallet'] == null
+        ? null
+        : data['is_group_wallet'] as bool?,
+    children_wallets: data['business_id'] == null
+        ? null
+        : data['business_id'] as List<dynamic>?,
+    group_id: data['group_id'] == null ? null : data['group_id'] as String?,
+  );
+}
+
+/*
 Future<Map<String, dynamic>> _$WalletToSupabase(
   Wallet instance, {
   required SupabaseProvider provider,
@@ -46,7 +86,35 @@ Future<Map<String, dynamic>> _$WalletToSupabase(
     'balance': instance.balance,
   };
 }
+*/
 
+Future<Map<String, dynamic>> _$WalletToSupabase(
+  Wallet instance, {
+  required SupabaseProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
+  return {
+    'id': instance.id,
+    'holding_account': instance.holding_account,
+    'address': instance.address,
+    'status': instance.status,
+    'balance': instance.balance,
+    'parent_wallet_id': instance.parent_wallet_id,
+    'provider': instance.provider,
+    'default_currency': instance.default_currency,
+    'business_id': instance.business_id,
+    'is_shared': instance.is_shared,
+    'is_active': instance.is_active,
+    'is_sub_wallet': instance.is_sub_wallet,
+    'profile_id': instance.profile_id,
+    'coop_id': instance.coop_id,
+    'is_group_wallet': instance.is_group_wallet,
+    'children_wallets': instance.children_wallets,
+    'group_id': instance.group_id
+  };
+}
+
+/*
 Future<Wallet> _$WalletFromSqlite(
   Map<String, dynamic> data, {
   required SqliteProvider provider,
@@ -67,13 +135,49 @@ Future<Wallet> _$WalletFromSqlite(
         data['created_at'] == null ? null : data['created_at'] as String?,
     updatedAt:
         data['updated_at'] == null ? null : data['updated_at'] as String?,
-    balance:
-        data['balance'] == null
-            ? null
-            : data['balance'] as double?,
+    balance: data['balance'] == null ? null : data['balance'] as double?,
   )..primaryKey = data['_brick_id'] as int;
 }
+*/
 
+Future<Wallet> _$WalletFromSqlite(
+  Map<String, dynamic> data, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
+  return Wallet(
+    id: data['id'] == null ? null : data['id'] as String?,
+    holding_account: data['holding_account'] == null
+        ? null
+        : data['holding_account'] as String?,
+    address: data['address'] == null ? null : data['address'] as String?,
+    status: data['status'] == null ? null : data['status'] as String?,
+    balance: data['balance'] == null ? null : data['balance'] as double?,
+    parent_wallet_id: data['parent_wallet_id'] == null
+        ? null
+        : data['parent_wallet_id'] as String?,
+    provider: data['provider'] == null ? null : data['provider'] as String?,
+    default_currency: data['default_currency'] == null
+        ? null
+        : data['default_currency'] as String?,
+    business_id:
+        data['business_id'] == null ? null : data['business_id'] as String?,
+    is_shared: data['is_shared'] == null ? null : data['is_shared'] as bool?,
+    is_active: data['is_active'] == null ? null : data['is_active'] as bool?,
+    is_sub_wallet:
+        data['is_sub_wallet'] == null ? null : data['is_sub_wallet'] as bool?,
+    profile_id: data['profile_id'] == null ? null : data['profile_id'] as Uuid?,
+    coop_id: data['coop_id'] == null ? null : data['coop_id'] as Uuid?,
+    is_group_wallet: data['is_group_wallet'] == null
+        ? null
+        : data['is_group_wallet'] as bool?,
+    children_wallets: data['business_id'] == null
+        ? null
+        : data['business_id'] as List<dynamic>?,
+    group_id: data['group_id'] == null ? null : data['group_id'] as String?,)..primaryKey = data['_brick_id'] as int;
+}
+
+/*
 Future<Map<String, dynamic>> _$WalletToSqlite(
   Wallet instance, {
   required SqliteProvider provider,
@@ -90,6 +194,33 @@ Future<Map<String, dynamic>> _$WalletToSqlite(
     'created_at': instance.createdAt,
     'updated_at': instance.updatedAt,
     'balance': instance.balance,
+  };
+}
+*/
+
+Future<Map<String, dynamic>> _$WalletToSqlite(
+  Wallet instance, {
+  required SqliteProvider provider,
+  OfflineFirstWithSupabaseRepository? repository,
+}) async {
+  return {
+    'id': instance.id,
+    'holding_account': instance.holding_account,
+    'address': instance.address,
+    'status': instance.status,
+    'balance': instance.balance,
+    'parent_wallet_id': instance.parent_wallet_id,
+    'provider': instance.provider,
+    'default_currency': instance.default_currency,
+    'business_id': instance.business_id,
+    'is_shared': instance.is_shared,
+    'is_active': instance.is_active,
+    'is_sub_wallet': instance.is_sub_wallet,
+    'profile_id': instance.profile_id,
+    'coop_id': instance.coop_id,
+    'is_group_wallet': instance.is_group_wallet,
+    'children_wallets': instance.children_wallets,
+    'group_id': instance.group_id
   };
 }
 
@@ -221,7 +352,8 @@ class WalletAdapter extends OfflineFirstWithSupabaseAdapter<Wallet> {
   Future<int?> primaryKeyByUniqueColumns(
     Wallet instance,
     DatabaseExecutor executor,
-  ) async => instance.primaryKey;
+  ) async =>
+      instance.primaryKey;
   @override
   final String tableName = 'Wallet';
 
@@ -230,31 +362,34 @@ class WalletAdapter extends OfflineFirstWithSupabaseAdapter<Wallet> {
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$WalletFromSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$WalletFromSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSupabase(
     Wallet input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$WalletToSupabase(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$WalletToSupabase(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Wallet> fromSqlite(
     Map<String, dynamic> input, {
     required provider,
     covariant OfflineFirstWithSupabaseRepository? repository,
-  }) async => await _$WalletFromSqlite(
-    input,
-    provider: provider,
-    repository: repository,
-  );
+  }) async =>
+      await _$WalletFromSqlite(
+        input,
+        provider: provider,
+        repository: repository,
+      );
   @override
   Future<Map<String, dynamic>> toSqlite(
     Wallet input, {

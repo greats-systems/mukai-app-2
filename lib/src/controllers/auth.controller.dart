@@ -1,3 +1,5 @@
+// ignore_for_file: non_constant_identifier_names
+
 import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
@@ -6,16 +8,14 @@ import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/auth.model.dart';
 import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/firebase_api.dart';
 import 'package:mukai/network_service.dart';
 import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
 import 'package:mukai/src/apps/auth/views/login.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
-import 'package:mukai/src/apps/home/admin_landing.dart';
-import 'package:mukai/src/apps/home/member_landing.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
-import 'package:mukai/src/apps/profile/controllers/profile_provider.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/main.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
@@ -29,8 +29,6 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/constants.dart';
-import 'package:google_sign_in/google_sign_in.dart';
 
 // 1048336443350-aongaja6tp71ggdrodjau92u2o73frb4.apps.googleusercontent.com
 class AuthBind extends Bindings {
@@ -43,6 +41,38 @@ class AuthBind extends Bindings {
 class AuthController extends MainController {
   var uuid = const Uuid();
   final dio = Dio();
+  final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
+
+  @override
+  void onInit() {
+    super.onInit();
+    _initializeAuth();
+  }
+
+  Future<void> _initializeAuth() async {
+    try {
+      await _sessionManager.restoreSession();
+      if (await _sessionManager.isLoggedIn()) {
+        // Get user data if needed
+        final userId = _getStorage.read('userId');
+        if (userId != null) {
+          await _loadUserData(userId);
+        }
+      }
+    } catch (e) {
+      log('Auth initialization error: $e');
+    }
+  }
+
+  Future<void> _loadUserData(String userId) async {
+    try {
+      final response = await dio.get('$APP_API_ENDPOINT/users/$userId');
+      // Update your profile controller with the user data
+      profileController.profile.value = Profile.fromMap(response.data);
+    } catch (e) {
+      log('Failed to load user data: $e');
+    }
+  }
 
   ProfileController get profileController => Get.put(ProfileController());
   var isSessionLogged = true.obs;
@@ -128,6 +158,7 @@ class AuthController extends MainController {
   ).obs;
   var xImageFiles = <XFile>[].obs;
   var imageFiles = <File>[].obs;
+  var subscription = 0.obs;
 
   var nIDFileUrl = ''.obs;
   var passportFileUrl = ''.obs;
@@ -234,6 +265,7 @@ class AuthController extends MainController {
   ];
   var selected_coop = Cooperative().obs;
   var coops_options = <Cooperative>[].obs;
+  var subsOptions = [1, 5, 10, 20, 25];
   var province_options_with_districts = [
     {
       "Bulawayo": ["Bulawayo"]
@@ -427,7 +459,9 @@ class AuthController extends MainController {
       ["Harare", "Chitungwiza", "Epworth", "Norton"].obs;
   var selected_district_ward_options =
       ["Harare", "Chitungwiza", "Epworth", "Norton"].obs;
+  var selected_subs_options = [1, 5, 10, 20, 25].obs;
 
+  /*
   @override
   onInit() {
     super.onInit();
@@ -438,6 +472,7 @@ class AuthController extends MainController {
     //       )
     //     });
   }
+  */
 
   initialize() {
     isLoading.value = false;
@@ -513,7 +548,7 @@ class AuthController extends MainController {
     }
   }
 
-    Future<List<dynamic>?> filterCooperatives() async {
+  Future<List<dynamic>?> filterCooperatives() async {
     // List<dynamic> productList = [];
     try {
       coops_options.clear();
@@ -557,33 +592,32 @@ class AuthController extends MainController {
     }
   }
 
-
   Future<void> getAcountCooperatives(String userId) async {
     log('getAcountCooperatives profileID userId: $userId');
     try {
       isLoading.value = true;
-      final response = await dio.get('$APP_API_ENDPOINT/cooperatives/${userId}/cooperatives/');
+      final response = await dio
+          .get('$APP_API_ENDPOINT/cooperatives/${userId}/cooperatives/');
       if (response.statusCode == 200) {
         var data = response.data['data'];
-            final List<dynamic> json = data;
-            isLoading.value = false;
-            log('getAcountCooperatives data: $json');
-            if (json.isNotEmpty) {
-              coops_options.value =
-                  json.map((item) => Cooperative.fromMap(item)).toList();
-              update();
-            } else {
-              isLoading.value = false;
-              log('No cooperatives found');
-            }
-            isLoading.value = false;
+        final List<dynamic> json = data;
+        isLoading.value = false;
+        log('getAcountCooperatives data: $json');
+        if (json.isNotEmpty) {
+          coops_options.value =
+              json.map((item) => Cooperative.fromMap(item)).toList();
+          update();
+        } else {
+          isLoading.value = false;
+          log('No cooperatives found');
+        }
+        isLoading.value = false;
       }
     } catch (e) {
       isLoading.value = false;
       log('getWalletDetailsByID error: $e');
       isLoading.value = false;
-      Helper.errorSnackBar(
-            title: 'Error', message: e.toString(), duration: 10);
+      Helper.errorSnackBar(title: 'Error', message: e.toString(), duration: 10);
     }
   }
 
@@ -792,6 +826,38 @@ class AuthController extends MainController {
     final id = await _getStorage.read('userId');
     return id;
   }
+  /*
+  Future<void> signin() async {
+    try {
+      isLoading.value = true;
+      final response = await dio.post(
+        '$APP_API_ENDPOINT/auth/login',
+        data: {'email': email.value, 'password': password.value},
+      ).timeout(const Duration(seconds: 30));
+
+      if (response.statusCode == 200) {
+        final authResponse = AuthResponse.fromJson(response.data);
+        await _saveSessionData(authResponse);
+        
+        // Store the tokens and user data
+        await _sessionManager.saveSession(
+          accessToken: authResponse.access_token,
+          refreshToken: authResponse.refresh_token,
+          userId: authResponse.user?.id ?? '',
+        );
+        
+        await _handleSuccessfulLogin(
+          accountType: response.data['user']['account_type'],
+          userId: response.data['user']['id'],
+        );
+      }
+    } catch (e) {
+      // Handle errors
+    } finally {
+      isLoading.value = false;
+    }
+  }
+  */
 
   Future<void> signin() async {
     try {
@@ -835,9 +901,11 @@ class AuthController extends MainController {
             'account_type', response.data['user']['account_type']);
         log('Wrote account_type to storage');
         await _getStorage.read('account_type');
-        // final walletJson = await dio
-        //     .get('$APP_API_ENDPOINT/wallets/${response.data['user']['id']}');
-        // await _getStorage.write('walletId', walletJson.data['id']);
+        final walletJson = await dio
+            .get('$APP_API_ENDPOINT/wallets/${response.data['user']['id']}');
+        if (walletJson.data != null) {
+          await _getStorage.write('walletId', walletJson.data['id']);
+        }
         await _handleSuccessfulLogin(
           accountType: response.data['user']['account_type'],
           userId: response.data['user']['id'],
@@ -1333,7 +1401,8 @@ class AuthController extends MainController {
         "logo": null,
         "vision_statement": null,
         "mission_statement": null,
-        "wallet_id": null,
+        "monthly_sub": subscription.value,
+        // "wallet_id": null,
       };
 
       log('req_data: $req_data');
@@ -1346,7 +1415,7 @@ class AuthController extends MainController {
           },
         ),
       );
-      log(response.statusCode.toString());
+      log(response.toString());
       if (response.statusCode == 201) {
         Helper.successSnackBar(
             title: 'Well Done',
@@ -1367,7 +1436,7 @@ class AuthController extends MainController {
       if (e.response != null) {
         log('Error response data: ${e.response?.data}');
         final errorMessage = e.message;
-        throw Exception(errorMessage);
+        log('registerCoop error: ${e.response}');
       } else {
         throw Exception('Network error occurred');
       }
@@ -1402,38 +1471,36 @@ class AuthController extends MainController {
         data: req_data,
       );
       log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
-      if (response.statusCode == 200) {
-              Helper.successSnackBar(
-          title: 'Well Done',
-          message:
-              'Your request to join ${selected_coop.value.name} successfully sent',
-          duration: 5);
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Helper.successSnackBar(
+            title: 'Well Done',
+            message:
+                'Your request to join ${selected_coop.value.name} successfully sent',
+            duration: 5);
         Get.to(() => BottomBar(
               role: 'member',
             ));
       }
-  
     } on DioException catch (e) {
       isLoading.value = false;
       log('Dio error: ${e.message}');
       if (e.response != null) {
         log('Error response data: ${e.response?.data}');
-        if (e.response?.data['message'] == 'A request for this member already exists') {
-        isLoading.value = false;
-                Helper.successSnackBar(
-          title: 'Well Done',
-          message:
-             'A request for this member already exists',
-          duration: 5);
-        Get.to(() => BottomBar(
-              role: 'member',
-            ));
-      }else {
-        final errorMessage = e.response?.data['message'] ?? e.message;
-        Helper.errorSnackBar(
-            title: 'Error', message: errorMessage, duration: 5);
-      }
-        
+        if (e.response?.data['message'] ==
+            'A request for this member already exists') {
+          isLoading.value = false;
+          Helper.successSnackBar(
+              title: 'Well Done',
+              message: 'A request for this member already exists',
+              duration: 5);
+          Get.to(() => BottomBar(
+                role: 'member',
+              ));
+        } else {
+          final errorMessage = e.response?.data['message'] ?? e.message;
+          Helper.errorSnackBar(
+              title: 'Error', message: errorMessage, duration: 5);
+        }
       } else {
         throw Exception('Network error occurred');
       }

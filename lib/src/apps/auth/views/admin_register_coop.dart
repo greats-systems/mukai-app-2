@@ -1,17 +1,14 @@
+import 'dart:developer';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
-import 'package:iconify_flutter_plus/icons/bx.dart';
 import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:get/get.dart';
-import 'package:intl_phone_field/country_picker_dialog.dart';
-import 'package:intl_phone_field/intl_phone_field.dart';
-import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
-import 'package:mukai/widget/render_supabase_image.dart';
 
 class AdminRegisterCoopScreen extends StatelessWidget {
   AdminRegisterCoopScreen({super.key});
@@ -19,10 +16,10 @@ class AdminRegisterCoopScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final province_field_key = GlobalKey<DropdownSearchState>();
-  final agritex_officer_key = GlobalKey<DropdownSearchState>();
-  final district_key = GlobalKey<DropdownSearchState>();
-  final town_city_key = GlobalKey<DropdownSearchState>();
+  // final province_field_key = GlobalKey<DropdownSearchState>();
+  // final agritex_officer_key = GlobalKey<DropdownSearchState>();
+  // final district_key = GlobalKey<DropdownSearchState>();
+  // final town_city_key = GlobalKey<DropdownSearchState>();
   late double height;
   late double width;
   final dropDownKey = GlobalKey<DropdownSearchState>();
@@ -82,6 +79,8 @@ class AdminRegisterCoopScreen extends StatelessWidget {
                   height20Space,
                   town_cityField(),
                   heightSpace,
+                  subscriptions(),
+                  heightSpace,
                 ],
               ),
             ),
@@ -100,7 +99,7 @@ class AdminRegisterCoopScreen extends StatelessWidget {
             onChanged: (value) => {
               authController.cooperative_category.value = value!,
             },
-            key: dropDownKey,
+            // key: GlobalKey<DropdownSearchState>(),
             selectedItem:
                 Utils.trimp(authController.cooperative_category.value),
             items: (filter, infiniteScrollProps) =>
@@ -180,7 +179,7 @@ class AdminRegisterCoopScreen extends StatelessWidget {
                       authController.selected_province_town_city_options[0];
                 }
               },
-              key: province_field_key,
+              // key: GlobalKey<DropdownSearchState>(),
               selectedItem: authController.province.value,
               items: (filter, infiniteScrollProps) =>
                   authController.province_options,
@@ -255,7 +254,7 @@ class AdminRegisterCoopScreen extends StatelessWidget {
                       authController.selected_province_town_city_options[0];
                 }
               },
-              key: province_field_key,
+              // key: GlobalKey<DropdownSearchState>(),
               selectedItem: authController.province.value,
               items: (filter, infiniteScrollProps) =>
                   authController.province_options,
@@ -279,6 +278,84 @@ class AdminRegisterCoopScreen extends StatelessWidget {
                 itemBuilder: (context, item, isDisabled, isSelected) => Padding(
                   padding: const EdgeInsets.all(8.0),
                   child: Text(item,
+                      style: const TextStyle(
+                          color: blackOrignalColor, fontSize: 18)),
+                ),
+                fit: FlexFit.loose,
+                constraints: const BoxConstraints(),
+                menuProps: const MenuProps(
+                  backgroundColor: whiteF5Color,
+                  elevation: 4,
+                ),
+              ),
+            )),
+      ),
+    );
+  }
+
+  Widget subscriptions() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Container(
+        decoration: BoxDecoration(
+          color: recWhiteColor,
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Obx(() => DropdownSearch<int>(
+              onChanged: (value) {
+                if (value != null) {
+                  authController.subscription.value = value;
+                  log(authController.subscription.value.toString());
+                  /*
+                  // Find the province in the list and get its districts
+                  var selectedSub =
+                      authController.province_options_with_districts.firstWhere(
+                    (item) => item.keys.first == value,
+                    orElse: () => {value: []},
+                  );
+                  // var selectedProvinceCityData =
+                  //     authController.province_options_with_districts.firstWhere(
+                  //   (item) => item.keys.first == value,
+                  //   orElse: () => {value: []},
+                  // );
+                  authController.selected_subs_options.value = value;
+                  // selectedSub[value]!;
+                  authController.district.value =
+                      authController.selected_province_districts_options[0];
+                  // // //
+                  authController.selected_province_town_city_options.value =
+                      selectedProvinceCityData[value]!;
+                  authController.town_city.value =
+                      authController.selected_province_town_city_options[0];
+                      */
+                }
+              },
+              // key: GlobalKey<DropdownSearchState>(),
+              selectedItem: authController.subscription.value,
+              items: (filter, infiniteScrollProps) =>
+                  authController.subsOptions,
+              decoratorProps: DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+
+                  labelText: 'Choose your subscription amount',
+                  labelStyle: const TextStyle(
+                      color: blackOrignalColor,
+                      fontSize: 22), // Black label text
+                  // border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: recWhiteColor, // White background for input field
+                ),
+                baseStyle: const TextStyle(
+                    color: blackOrignalColor,
+                    fontSize: 18), // Black text for selected item
+              ),
+              popupProps: PopupProps.menu(
+                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(item.toString(),
                       style: const TextStyle(
                           color: blackOrignalColor, fontSize: 18)),
                 ),
@@ -370,7 +447,7 @@ class AdminRegisterCoopScreen extends StatelessWidget {
               onChanged: (value) => {
                 authController.town_city.value = value!,
               },
-              key: town_city_key,
+              // key: GlobalKey<DropdownSearchState>(),
               selectedItem: authController.town_city.value,
               items: (filter, infiniteScrollProps) =>
                   authController.selected_province_town_city_options,

@@ -20,9 +20,10 @@ import 'package:brick_supabase/brick_supabase.dart' show SupabaseProvider, Supab
 import 'package:brick_offline_first/brick_offline_first.dart' show RuntimeOfflineFirstDefinition;
 // ignore: unused_import, unused_shown_name
 import 'package:sqflite_common/sqlite_api.dart' show DatabaseExecutor;
+import 'package:uuid/uuid.dart';
 
 import '../brick/models/coop.model.dart';
-import '../brick/models/profile.model.dart';
+// import '../brick/models/profile.model.dart';
 import '../brick/models/transaction.model.dart';
 import '../brick/models/wallet.model.dart';
 

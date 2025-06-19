@@ -22,7 +22,7 @@ class TransferToWalletWidget extends StatefulWidget {
 }
 
 class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
-  final walletProfileWidget_key = GlobalKey<DropdownSearchState>();
+  // final walletProfileWidget_key = GlobalKey<DropdownSearchState>();
   TransactionController get transactionController =>
       Get.put(TransactionController());
   final TextEditingController accountNumberController = TextEditingController();
@@ -30,7 +30,7 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
   final GetStorage _getStorage = GetStorage();
   late double height;
   late double width;
-  final dropDownKey = GlobalKey<DropdownSearchState>();
+  // final dropDownKey = GlobalKey<DropdownSearchState>();
   String? userId;
   String? walletId;
 
@@ -380,7 +380,7 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
               log('selectedProfile.value.id ${transactionController.selectedProfile.value.id}');
               transactionController.selectedProfile.value = value!;
             },
-            key: walletProfileWidget_key,
+            // key: walletProfileWidget_key,
             selectedItem: selectedCoop,
             items: (filter, infiniteScrollProps) =>
                 transactionController.membersQueried,

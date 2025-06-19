@@ -109,6 +109,7 @@ class _AdmingSetttingsLandingScreenState
         child: Column(
           spacing: 5,
           children: [
+            /*
             GestureDetector(
               onTap: () {
                 Get.to(() => GroupMembersScreen(
@@ -149,6 +150,7 @@ class _AdmingSetttingsLandingScreenState
             Divider(
               color: greyColor.withValues(alpha: 0.2),
             ),
+            */
             Row(
               spacing: 10,
               children: [

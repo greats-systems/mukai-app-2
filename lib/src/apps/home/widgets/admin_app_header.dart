@@ -30,6 +30,7 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
   String? role;
   Map<String, dynamic>? userProfile = {};
   bool _isLoading = false;
+  
   void fetchProfile() async {
     if (_isDisposed) return;
     setState(() {

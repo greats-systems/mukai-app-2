@@ -18,8 +18,8 @@ class RegisterScreen extends StatelessWidget {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
-  final dropDownKey = GlobalKey<DropdownSearchState>();
-  final serviceProviderDropDownKey = GlobalKey<DropdownSearchState>();
+  // final dropDownKey = GlobalKey<DropdownSearchState>();
+  // final serviceProviderDropDownKey = GlobalKey<DropdownSearchState>();
   late double height;
   late double width;
   @override
@@ -263,7 +263,7 @@ class RegisterScreen extends StatelessWidget {
             onChanged: (value) => {
               authController.account_type.value = value!,
             },
-            key: dropDownKey,
+            // key: dropDownKey,
             selectedItem: Utils.trimp(authController.account_type.value),
             items: (filter, infiniteScrollProps) =>
                 authController.account_type_options,
@@ -320,7 +320,7 @@ class RegisterScreen extends StatelessWidget {
               onChanged: (value) => {
                 authController.specialization.value = value!,
               },
-              key: serviceProviderDropDownKey,
+              // key: serviceProviderDropDownKey,
               selectedItem: authController.specialization.value,
               items: (filter, infiniteScrollProps) =>
                   authController.specialization_options,

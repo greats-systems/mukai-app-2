@@ -146,7 +146,7 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                           Container(
                             color: whiteF5Color,
                             child: GroupMembersList(
-                              groupId: widget.groupId!,
+                              groupId: widget.groupId?? 'no ID',
                               category: 'accepted',
                             ),
                           ),
@@ -160,14 +160,14 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                     Container(
                       color: whiteF5Color,
                       child: GroupMembersList(
-                        groupId: widget.groupId!,
+                        groupId: widget.groupId ?? 'No ID',
                         category: 'unresolved',
                       ),
                     ),
                     Container(
                       color: whiteF5Color,
                       child: GroupMembersList(
-                        groupId: widget.groupId!,
+                        groupId: widget.groupId?? 'No ID',
                         category: 'declined',
                       ),
                     ),

@@ -35,15 +35,20 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
   ProfileController get profileController => Get.put(ProfileController());
   String? loggedInUserId;
   List<Profile>? mukandoMembers = [];
+  List<Profile>? pendingMukandoMembers = [];
   bool _isLoading = true;
+  bool _showActiveMembers = true; // Toggle state
 
   void _fetchGroupMembers() async {
     setState(() => _isLoading = true);
     try {
       final members =
           await _groupController.getMukandoGroupMembers(widget.group.id ?? '');
+      final pendingMembers = await _groupController
+          .getPendingMukandoGroupMembers(widget.group.id ?? '');
       setState(() {
         mukandoMembers = members;
+        pendingMukandoMembers = pendingMembers;
         _isLoading = false;
       });
     } catch (e) {
@@ -60,14 +65,29 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
   }
 
   @override
-  void dispose() {
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: MyAppBar(title: 'Group members'),
+      appBar: AppBar(
+        actions: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: Row(
+              children: [
+                const Text('Pending'),
+                Switch(
+                  value: _showActiveMembers,
+                  onChanged: (value) {
+                    setState(() {
+                      _showActiveMembers = value;
+                    });
+                  },
+                ),
+                const Text('Active'),
+              ],
+            ),
+          ),
+        ],
+      ),
       body: _buildBody(),
     );
   }
@@ -81,23 +101,27 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (mukandoMembers == null || mukandoMembers!.isEmpty) {
-      return const Center(child: Text('No members found'));
+    final membersToShow =
+        _showActiveMembers ? mukandoMembers : pendingMukandoMembers;
+
+    if (membersToShow == null || membersToShow.isEmpty) {
+      return Center(
+        child: Text(_showActiveMembers
+            ? 'No active members found'
+            : 'No pending members found'),
+      );
     }
 
     return ListView.builder(
-      itemCount: mukandoMembers!.length,
+      itemCount: membersToShow.length,
       itemBuilder: (context, index) {
-        Profile profile = mukandoMembers![index];
+        Profile profile = membersToShow[index];
         return Padding(
           padding: const EdgeInsets.all(8.0),
           child: GestureDetector(
             onTap: () {
               profileController.selectedProfile.value = profile;
-              log('Profile ID: ${profile.id}');
-              Get.to(() => MemberDetailScreen(
-                    profile: profile,
-                  ));
+              Get.to(() => MemberDetailScreen(profile: profile,));
             },
             child: Container(
               width: double.maxFinite,
@@ -114,14 +138,11 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
                   borderRadius: BorderRadius.circular(10.0),
                   color: whiteColor.withOpacity(0.1),
                 ),
-                child: MemberItemWidget(
-                  profile: profile,
-                ),
+                child: MemberItemWidget(profile: profile),
               ),
             ),
           ),
         );
-        // MukandoMembersListTile(groupMember: member);
       },
     );
   }

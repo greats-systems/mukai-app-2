@@ -4,10 +4,10 @@ import 'brick.g.dart';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_sqlite/memory_cache_provider.dart';
-import 'package:brick_supabase/brick_supabase.dart';
+// import 'package:brick_supabase/brick_supabase.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 // ignore: depend_on_referenced_packages
-import 'package:supabase/supabase.dart';
+// import 'package:supabase/supabase.dart';
 
 class MyRepository extends OfflineFirstWithSupabaseRepository {
   static late MyRepository? _singleton;

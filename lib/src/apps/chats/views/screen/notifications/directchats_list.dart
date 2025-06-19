@@ -1,14 +1,11 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/schema/chat.dart';
-import 'package:mukai/src/apps/chats/views/widgets/conversation_tile.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 // import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:rxdart/rxdart.dart';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -34,7 +31,6 @@ class _GroupConversationsListState extends State<GroupConversationsList>
   final RxList<Map<String, String?>> names = <Map<String, String?>>[].obs;
   final RxBool isLoading = true.obs;
   final GetStorage _getStorage = GetStorage();
-  late final Stream<List<Chat>> _chatsStream;
   late final Stream<List<Chat>> profileIdStream;
   late final Stream<List<Chat>> receiverIdStream;
 
@@ -80,16 +76,6 @@ class _GroupConversationsListState extends State<GroupConversationsList>
         .map((maps) =>
             maps.map((map) => Chat.fromMap(map: map, userId: userId)).toList());
             */
-    _chatsStream = CombineLatestStream.list([
-      profileIdStream,
-      receiverIdStream,
-    ]).map((listOfLists) {
-      final allChats = listOfLists.expand((list) => list).toList();
-      final uniqueChats = allChats.toSet().toList();
-      return uniqueChats.map((chat) {
-        return chat;
-      }).toList();
-    });
 
     /*
     _chatsStream = supabase

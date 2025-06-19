@@ -6,7 +6,6 @@ import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/auth/views/register.dart';
 import 'package:mukai/src/apps/auth/views/widgets/emailpass.dart';
 import 'package:mukai/src/apps/auth/views/widgets/phone_auth_widget.dart';
-import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';

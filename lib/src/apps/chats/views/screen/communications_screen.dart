@@ -32,7 +32,7 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
   late PageController pageController = PageController();
-  final tabList = [ "My Coops", "Messages", "Notifications"];
+  final tabList = ["My Coops", "Messages", "Notifications"];
   int selectedTab = 0;
   bool refresh = false;
   late double height;
@@ -66,8 +66,9 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
         toolbarHeight: 100.0,
         title: Column(
           children: [
-            // const AdminAppHeaderLogoWidget(), 
-          tabBar()],
+            // const AdminAppHeaderLogoWidget(),
+            tabBar()
+          ],
         ),
       ),
       body: Column(
@@ -88,7 +89,7 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
               child: ListView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(fixPadding * 2.0),
-                children: [ tabPreviews()],
+                children: [tabPreviews()],
               ),
             ),
           )
@@ -146,12 +147,13 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
                 });
               },
               children: [
-
                 Container(
                   color: whiteF5Color,
-                  child: GroupsList(index: 0,),
+                  child: GroupsList(
+                    index: 0,
+                  ),
                 ),
-                                Container(
+                Container(
                     color: whiteF5Color,
                     child: RealTimeConversationsList(
                       index: 0,
@@ -202,9 +204,9 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
                     children: [
                       Iconify(
                         index == 0
-                                ? Ri.group_line
+                            ? Ri.group_line
                             : index == 1
-                            ? Ri.chat_3_line
+                                ? Ri.chat_3_line
                                 : Ri.notification_2_fill,
                         color: selectedTab == index
                             ? secondaryColor

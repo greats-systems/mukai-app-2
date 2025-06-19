@@ -30,7 +30,7 @@ class Group extends OfflineFirstWithSupabaseModel {
     this.monthly_sub = 0.0,
   });
 
-  
+  /*
   factory Group.fromGroupMap(Map<String, dynamic> json) {
     try {
       var group = Group(
@@ -48,6 +48,7 @@ class Group extends OfflineFirstWithSupabaseModel {
       return Group(id: null);
     }
   }
+  */
   
 
   factory Group.fromMap(Map<String, dynamic> json) {

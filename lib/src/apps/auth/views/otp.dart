@@ -6,7 +6,6 @@ import 'package:mukai/theme/theme.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:pinput/pinput.dart';
 
 class OTPScreen extends StatelessWidget {
@@ -14,7 +13,6 @@ class OTPScreen extends StatelessWidget {
   Timer? countdownTimer;
   Duration myDuration = const Duration(minutes: 1);
   AuthController get authController => Get.put(AuthController());
-  final GetStorage _getStorage = GetStorage();
 
   @override
   Widget build(BuildContext context) {

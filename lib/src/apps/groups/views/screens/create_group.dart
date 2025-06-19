@@ -1,11 +1,15 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
+import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/constants.dart';
 import 'package:mukai/src/bottom_bar.dart';
+import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:mukai/utils/utils.dart';
@@ -23,7 +27,12 @@ class CreateGroup extends StatefulWidget {
 }
 
 class _CreateGroupState extends State<CreateGroup> {
-  final _formKey = GlobalKey<FormState>();
+  AuthController get authController => Get.put(AuthController());
+  // final createGroupCategoryKey = GlobalKey<DropdownSearchState>();
+  // final createGroupProvinceKey = GlobalKey<DropdownSearchState>();
+  // final createGroupTownCityKey = GlobalKey<DropdownSearchState>();
+  // final createGroupCoopsFieldKey = GlobalKey<DropdownSearchState>();
+  // final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _cityController = TextEditingController();
   final _countryController = TextEditingController();
@@ -41,7 +50,7 @@ class _CreateGroupState extends State<CreateGroup> {
       setState(() {
         acceptedProfiles = data!;
         profiles = acceptedProfiles
-            .map((profile) => Profile.fromMap(profile['profiles']))
+            .map((profile) => Profile.fromMap(profile))
             .toList();
       });
     } catch (e, s) {
@@ -66,20 +75,20 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
   Future<void> _createGroup() async {
-    if (!_formKey.currentState!.validate()) return;
+    // if (!_formKey.currentState!.validate()) return;
 
     setState(() => _isLoading = true);
 
     try {
       final group = Group(
-        name: _nameController.text.trim(),
+        name: authController.cooperative_category.value,
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
         members: profiles,
         monthly_sub: double.parse(_subscriptionController.text.trim()),
         admin_id: _storage.read('userId'),
       );
-
+      log(group.name!);
       final response = await _groupController.createGroup(group);
       log('_createGroup response: $response');
       if (response['statusCode'] == 200) {
@@ -89,7 +98,9 @@ class _CreateGroupState extends State<CreateGroup> {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        Get.to(() => BottomBar(role: 'admin',));
+        Get.to(() => BottomBar(
+              role: 'admin',
+            ));
       } else {
         Helper.errorSnackBar(
             title: 'Error', message: response['message'], duration: 5);
@@ -144,44 +155,157 @@ class _CreateGroupState extends State<CreateGroup> {
           style: bold18WhiteF5,
         ),
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(20.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            children: [
-              groupNameField(),
-              const SizedBox(height: 20),
-              cityField(),
-              const SizedBox(height: 20),
-              countryField(),
-              const SizedBox(height: 20),
-              subscriptionField(),
-              const SizedBox(height: 30),
-              acceptedUsersListTile(),
-              const SizedBox(height: 30),
-              SizedBox(
-                width: double.infinity,
-                height: 50,
-                child: ElevatedButton(
-                  onPressed: _isLoading ? null : _createGroup,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
+      body: Column(
+        children: [
+          Expanded(
+            child: Container(
+              width: double.maxFinite,
+              decoration: BoxDecoration(
+                color: whiteF5Color,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(0.0),
+                ),
+                border: Border.all(
+                  color: whiteF5Color,
+                ),
+                boxShadow: boxShadow,
+              ),
+              child: ListView(
+                physics: const BouncingScrollPhysics(),
+                padding: const EdgeInsets.all(fixPadding * 2.0),
+                children: [
+                  const SizedBox(height: 20),
+                  category(),
+                  const SizedBox(height: 20),
+                  province_field(),
+                  const SizedBox(height: 20),
+                  town_cityField(),
+                  const SizedBox(height: 20),
+                  cooperativeName(),
+                  const SizedBox(height: 20),
+                  subscriptionField(),
+                  const SizedBox(height: 20),
+                  acceptedUsersListTile(),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: ElevatedButton(
+                      onPressed: _isLoading ? null : _createGroup,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: primaryColor,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                      ),
+                      child: _isLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Text(
+                              'Create Group',
+                              style: bold16White,
+                            ),
                     ),
                   ),
-                  child: _isLoading
-                      ? const CircularProgressIndicator(color: Colors.white)
-                      : Text(
-                          'Create Group',
-                          style: bold16White,
-                        ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget cooperativeName() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Container(
+        decoration: BoxDecoration(
+          color: recWhiteColor,
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Obx(() {
+          final selectedCoop = authController.selected_coop.value;
+
+          return DropdownSearch<Cooperative>(
+            compareFn: (item1, item2) => item1 == item2,
+            onChanged: (value) {
+              log('selected_coop.value.name ${authController.selected_coop.value.name}');
+              log('selected_coop.value.id ${authController.selected_coop.value.id}');
+              authController.selected_coop.value = value!;
+            },
+            // key: createGroupCoopsFieldKey,
+            selectedItem: selectedCoop,
+            items: (filter, infiniteScrollProps) =>
+                authController.coops_options,
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                labelText: 'Select Cooperative',
+                labelStyle: const TextStyle(color: blackColor, fontSize: 22),
+                filled: true,
+                fillColor: recWhiteColor,
+              ),
+            ),
+            dropdownBuilder: (context, selectedItem) {
+              if (selectedItem == null) {
+                return const Text(
+                  'Select Cooperative',
+                  style: TextStyle(color: blackColor),
+                );
+              }
+              return Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      selectedItem.name != null
+                          ? '${Utils.trimp(selectedItem.name!)}'
+                          : 'No name',
+                      style: const TextStyle(
+                        color: blackColor,
+                        fontSize: 16.0,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
+              );
+            },
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            item.id != null
+                                ? '${Utils.trimp(item.name!)}'
+                                : 'No name',
+                            style: const TextStyle(
+                              color: blackColor,
+                              fontSize: 16.0,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
+              showSelectedItems: true,
+              fit: FlexFit.loose,
+              constraints: const BoxConstraints(),
+              menuProps: const MenuProps(
+                backgroundColor: whiteF5Color,
+                elevation: 4,
+              ),
+            ),
+          );
+        }),
       ),
     );
   }
@@ -224,6 +348,180 @@ class _CreateGroupState extends State<CreateGroup> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget category() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Obx(() => DropdownSearch<String>(
+            onChanged: (value) => {
+              authController.cooperative_category.value = value!,
+              authController.filterCooperatives()
+            },
+            selectedItem:
+                Utils.trimp(authController.cooperative_category.value),
+            items: (filter, infiniteScrollProps) =>
+                authController.cooperative_category_options,
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: primaryColor),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                labelText: 'Select Cooperative Category',
+                labelStyle: const TextStyle(
+                    height: 10, color: blackColor, fontSize: 22),
+                filled: true,
+                fillColor: recWhiteColor,
+              ),
+              baseStyle: const TextStyle(color: blackColor, fontSize: 18),
+            ),
+            popupProps: PopupProps.menu(
+              menuProps: const MenuProps(
+                backgroundColor: Colors.white, // White background
+                elevation: 4,
+              ),
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                  Utils.trimp(item),
+                  style: const TextStyle(color: Colors.black, fontSize: 18),
+                ),
+              ),
+            ),
+          )),
+    );
+  }
+
+  Widget province_field() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Container(
+        decoration: BoxDecoration(
+          color: recWhiteColor,
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Obx(() => DropdownSearch<String>(
+              onChanged: (value) {
+                if (value != null) {
+                  authController.province.value = value;
+                  // Find the province in the list and get its districts
+                  var selectedProvinceData =
+                      authController.province_options_with_districts.firstWhere(
+                    (item) => item.keys.first == value,
+                    orElse: () => {value: []},
+                  );
+                  var selectedProvinceCityData =
+                      authController.province_options_with_districts.firstWhere(
+                    (item) => item.keys.first == value,
+                    orElse: () => {value: []},
+                  );
+                  authController.selected_province_districts_options.value =
+                      selectedProvinceData[value]!;
+                  authController.district.value =
+                      authController.selected_province_districts_options[0];
+                  // // //
+                  authController.selected_province_town_city_options.value =
+                      selectedProvinceCityData[value]!;
+                  authController.town_city.value =
+                      authController.selected_province_town_city_options[0];
+                }
+              },
+              // key: createGroupProvinceKey,
+              selectedItem: authController.province.value,
+              items: (filter, infiniteScrollProps) =>
+                  authController.province_options,
+              decoratorProps: DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+
+                  labelText: 'Select Province',
+                  labelStyle: const TextStyle(
+                      color: blackOrignalColor,
+                      fontSize: 22), // Black label text
+                  // border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: recWhiteColor, // White background for input field
+                ),
+                baseStyle: const TextStyle(
+                    color: blackOrignalColor,
+                    fontSize: 18), // Black text for selected item
+              ),
+              popupProps: PopupProps.menu(
+                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(item,
+                      style: const TextStyle(
+                          color: blackOrignalColor, fontSize: 18)),
+                ),
+                fit: FlexFit.loose,
+                constraints: const BoxConstraints(),
+                menuProps: const MenuProps(
+                  backgroundColor: whiteF5Color,
+                  elevation: 4,
+                ),
+              ),
+            )),
+      ),
+    );
+  }
+
+  town_cityField() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Container(
+        decoration: BoxDecoration(
+          color: recWhiteColor,
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Obx(() => DropdownSearch<String>(
+              onChanged: (value) => {
+                authController.town_city.value = value!,
+              },
+              // key: createGroupTownCityKey,
+              selectedItem: authController.town_city.value,
+              items: (filter, infiniteScrollProps) =>
+                  authController.selected_province_town_city_options,
+              decoratorProps: DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+
+                  labelText: 'Select Town/City',
+                  labelStyle: const TextStyle(
+                      color: blackOrignalColor,
+                      fontSize: 22), // Black label text
+                  // border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: recWhiteColor, // White background for input field
+                ),
+                baseStyle: const TextStyle(
+                    color: blackOrignalColor,
+                    fontSize: 18), // Black text for selected item
+              ),
+              popupProps: PopupProps.menu(
+                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(item,
+                      style: const TextStyle(
+                          color: blackOrignalColor, fontSize: 18)),
+                ),
+                fit: FlexFit.loose,
+                constraints: const BoxConstraints(),
+                menuProps: const MenuProps(
+                  backgroundColor: whiteF5Color,
+                  elevation: 4,
+                ),
+              ),
+            )),
       ),
     );
   }
