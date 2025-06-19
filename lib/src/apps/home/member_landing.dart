@@ -1,7 +1,10 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/apps/home/widgets/apps_features.dart';
@@ -24,8 +27,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
   late PageController pageController = PageController();
   AuthController get authController => Get.put(AuthController());
   final GetStorage _getStorage = GetStorage();
-  TransactionController get transactionController =>
-      Get.put(TransactionController());
+  TransactionController get transactionController => Get.put(TransactionController());
   final tabList = ["Account", "Wallets", "Assets"];
   int selectedTab = 0;
   bool refresh = false;
@@ -33,12 +35,54 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
   late double width;
 
   String? walletId;
+  String? userId;
+  bool _isDisposed = false;
+  bool _isLoading = false;
+
+  void fetchProfile() async {
+    if (_isDisposed) return;
+    
+    setState(() {
+      _isLoading = true;
+      userId = _getStorage.read('userId');
+    });
+    
+    try {
+      final walletJson = await supabase
+          .from('wallets')
+          .select('id')
+          .eq('profile_id', userId!)
+          .single();
+
+      if (!_isDisposed && mounted) {
+        setState(() {
+          walletId = walletJson['id'];
+          _isLoading = false;
+        });
+        log('MemberLandingScreen walletId: $walletId');
+      }
+    } catch (e) {
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    pageController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
+    super.initState();
     pageController = PageController(initialPage: selectedTab);
     walletId = _getStorage.read('walletId');
-    super.initState();
+    fetchProfile();
   }
 
   @override
@@ -73,7 +117,12 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
             toolbarHeight: 325.0,
             elevation: 0,
             title: Column(
-              children: [const AppHeaderWidget(),WalletBalancesWidget(),  heightBox(30), tabBar()],
+              children: [
+                const AppHeaderWidget(),
+                WalletBalancesWidget(),
+                heightBox(30),
+                tabBar()
+              ],
             ),
           ),
         ),
@@ -237,13 +286,13 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(fixPadding * 2),
                   decoration: BoxDecoration(
-                      color: selectedTab == index
-                          ? primaryColor
-                          : tertiaryColor),
+                      color:
+                          selectedTab == index ? primaryColor : tertiaryColor),
                   child: Text(
                     tabList[index].toString(),
-                    style:
-                        selectedTab == index ? semibold12White : semibold12black,
+                    style: selectedTab == index
+                        ? semibold12White
+                        : semibold12black,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                   ),

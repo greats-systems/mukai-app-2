@@ -46,3 +46,6 @@ app.*.map.json
 
 # Shell files
 *.sh
+
+# Constants
+constants.dart
