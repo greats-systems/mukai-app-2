@@ -65,21 +65,19 @@ class TransactionController extends MainController {
     email: '', full_name: '',
   ).obs;
   final GetStorage _getStorage = GetStorage();
+
   @override
   onInit() async {
     // getAllMembers().then((val) {});
     super.onInit();
   }
 
-  Future<void> updateTransaction() async {
-    try {} catch (error) {
-      Helper.errorSnackBar(title: 'Error', message: error);
-    }
-  }
-
-  Future<void> deleteTransaction(collection) async {
-    try {} catch (error) {
-      Helper.errorSnackBar(title: 'Error', message: error);
+  Future<dynamic> getFinancialReport(String walletId) async {
+    try {
+      final response = await dio.get('$APP_API_ENDPOINT/transactions/report/$walletId');
+      return response.data;
+    } catch (e, s) {
+      log('getFinancialReport error: $e $s');
     }
   }
 
@@ -237,7 +235,7 @@ class TransactionController extends MainController {
       }
 
       transferTransaction.value.account_id = userId;
-      
+
       transferTransaction.value.category = 'transfer';
 
       log('transaction ${transferTransaction.toJson()}');

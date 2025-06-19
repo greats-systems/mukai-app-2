@@ -1,10 +1,12 @@
 import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
+import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
 import 'package:mukai/src/apps/groups/views/screens/add_asset.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_assets.dart';
@@ -43,14 +45,22 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   String? userId;
   String? role;
   bool _isLoading = false;
+  final dio = Dio();
 
   void fetchProfile() async {
     if (_isDisposed) return;
+    final walletJson = await supabase
+        .from('wallets')
+        .select('id')
+        .eq('profile_id', userId!)
+        .single();
     setState(() {
       _isLoading = true;
       userId = _getStorage.read('userId');
       role = _getStorage.read('account_type');
+      walletId = walletJson['id'];
     });
+    log('walletId: $walletId');
 
     // final userjson = await profileController.getUserDetails(userId!);
 
@@ -65,7 +75,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   void initState() {
     log('CoopLandingScreen group.id: ${widget.group.id}');
     pageController = PageController(initialPage: selectedTab);
-    walletId = _getStorage.read('walletId');
+    // walletId = _getStorage.read('walletId');
     fetchProfile();
 
     super.initState();
