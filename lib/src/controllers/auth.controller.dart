@@ -874,7 +874,7 @@ class AuthController extends MainController {
 
       log('Response received: ${JsonEncoder.withIndent(' ').convert(response.data)}');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         log('Successful login response');
         final authResponse = AuthResponse.fromJson(response.data);
         // log('Session: ${JsonEncoder.withIndent(' ').convert(authResponse)}');
@@ -906,10 +906,11 @@ class AuthController extends MainController {
         if (walletJson.data != null) {
           await _getStorage.write('walletId', walletJson.data['id']);
         }
-        if (response.data['user']['account_type'] == 'coop-member') {
-          final groupMemberJson =
-              await dio.get('$APP_API_ENDPOINT/group_member');
-        } else {}
+        // if (response.data['user']['account_type'] == 'coop-member') {
+        //   final groupMemberJson =
+        //       await dio.get('$APP_API_ENDPOINT/group_member/${userId.value}');
+        //   log()
+        // } else {}
         await _handleSuccessfulLogin(
           accountType: response.data['user']['account_type'],
           userId: response.data['user']['id'],
