@@ -22,15 +22,14 @@ class MemberPaySubs extends StatefulWidget {
   const MemberPaySubs({super.key});
 
   @override
-  State<MemberPaySubs> createState() =>
-      _TransferTransactionScreenState();
+  State<MemberPaySubs> createState() => _TransferTransactionScreenState();
 }
 
 class _TransferTransactionScreenState extends State<MemberPaySubs> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
   final WalletController walletController = WalletController();
-  final coops_field_key = GlobalKey<DropdownSearchState>();
+  // final coops_field_key = GlobalKey<DropdownSearchState>();
   AuthController get authController => Get.put(AuthController());
   ProfileController get profileController => Get.put(ProfileController());
 
@@ -86,7 +85,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
   Map<String, dynamic>? zigWallet = {};
   Map<String, dynamic>? usdWallet = {};
   bool _isLoading = false;
-    Wallet? wallet;
+  Wallet? wallet;
   Future? _fetchDataFuture;
 
   void fetchId() async {
@@ -102,6 +101,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     // final walletJson = await profileController.getWalletDetails(userId!);
     final profileWallets = await profileController.getProfileWallets(userId!);
     await authController.getAcountCooperatives(userId!);
+    // final profileWallets = await profileController.getProfileWallet(userId!);
 
     if (_isDisposed) return;
     log('profileWallets: $profileWallets');
@@ -110,11 +110,11 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
       if (profileWallets != null && profileWallets.isNotEmpty) {
         try {
           zigWallet = profileWallets.firstWhere(
-            (element) => element['default_currency']?.toLowerCase() == 'zig',
+            (element) => element!['default_currency']?.toLowerCase() == 'zig',
             orElse: () => {'balance': '0.00', 'default_currency': 'ZIG'},
           );
           usdWallet = profileWallets.firstWhere(
-            (element) => element['default_currency']?.toLowerCase() == 'usd',
+            (element) => element!['default_currency']?.toLowerCase() == 'usd',
             orElse: () => {'balance': '0.00', 'default_currency': 'USD'},
           );
           log('zigWallet: $zigWallet');
@@ -145,6 +145,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     _isDisposed = true;
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -293,6 +294,142 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
               
               
                ,
+              Obx(() => walletController.selectedWallet.value.id != null
+                  ? SizedBox(
+                      height: height * 0.5,
+                      child: Column(
+                        children: [
+                          Text(
+                            'No wallet selected',
+                            style: semibold12black,
+                          ),
+                          Text(
+                            'Please select a wallet first',
+                            style: semibold12black,
+                          ),
+                          Center(
+                              child: Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          zigWallet?['default_currency'] ==
+                                                  'ZIG'
+                                              ? primaryColor
+                                              : tertiaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        walletController.selectedWallet.value =
+                                            Wallet.fromJson(zigWallet!);
+                                        transactionController
+                                                .transferTransaction
+                                                .value
+                                                .sending_wallet =
+                                            walletController
+                                                .selectedWallet.value.id;
+                                        transactionController
+                                            .transferTransaction
+                                            .refresh();
+                                        authController
+                                            .getAcountCooperatives(userId!);
+                                      });
+                                    },
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          'Select ZIG Wallet',
+                                          style: semibold12White,
+                                        ),
+                                        Text(
+                                          '${zigWallet?['balance']} ZIG',
+                                          style: semibold12White,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  widthBox(10),
+                                  ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor:
+                                          usdWallet?['default_currency'] ==
+                                                  'usd'
+                                              ? primaryColor
+                                              : tertiaryColor,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      setState(() {
+                                        walletController.selectedWallet.value =
+                                            Wallet.fromJson(usdWallet!);
+                                        transactionController
+                                                .transferTransaction
+                                                .value
+                                                .sending_wallet =
+                                            walletController
+                                                .selectedWallet.value.id;
+                                        transactionController
+                                            .transferTransaction
+                                            .refresh();
+                                        authController
+                                            .getAcountCooperatives(userId!);
+                                      });
+                                    },
+                                    child: Column(
+                                      children: [
+                                        Text(
+                                          'Select USD Wallet ',
+                                          style: semibold12black,
+                                        ),
+                                        Text(
+                                          '${usdWallet?['balance']} USD',
+                                          style: semibold12black,
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ))
+                        ],
+                      ),
+                    )
+                  : authController.isLoading.value
+                      ? const Center(
+                          child: LinearProgressIndicator(
+                          minHeight: 1,
+                          color: primaryColor,
+                        ))
+                      : authController.coops_options.isNotEmpty
+                          ? Column(
+                              children: [
+                                heightBox(10),
+                                Text(
+                                  'Select Cooperative',
+                                  style: semibold12black,
+                                ),
+                                coops_field(),
+                                heightBox(10),
+                              ],
+                            )
+                          : Center(
+                              child: Column(
+                              children: [
+                                Text(
+                                  'No cooperative found',
+                                  style: semibold12black,
+                                ),
+                              ],
+                            ))),
             ],
           ),
         ));
@@ -320,7 +457,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
               log('selected_coop.value.name ${authController.selected_coop.value.name}');
               authController.selected_coop.value = value!;
             },
-            key: coops_field_key,
+            // key: coops_field_key,
             selectedItem: selectedCoop,
             items: (filter, infiniteScrollProps) =>
                 authController.coops_options,
@@ -395,7 +532,6 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     );
   }
 
-
   Widget divider() {
     return Container(
       width: double.maxFinite,
@@ -403,6 +539,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
       color: blackOrignalColor.withOpacity(0.1),
     );
   }
+
   BoxDecoration bgBoxDecoration = BoxDecoration(
     border: Border(
         left: BorderSide(color: greyB5Color),

@@ -102,7 +102,16 @@ class GroupController {
           .single()
           .timeout(const Duration(seconds: 10)); // Add timeout
       */
-      final response = await dio.get('$APP_API_ENDPOINT/cooperatives/$groupId');
+      log('$APP_API_ENDPOINT/cooperatives/$groupId/members');
+      final response =
+          await dio.get('$APP_API_ENDPOINT/cooperatives/$groupId/members');
+      log(response.data.toString());
+      if (response.data is Map) {
+        return [Profile.fromMap(response.data)];
+      } else {
+        return response.data.map((item) => Profile.fromMap(item)).toList();
+      }
+      /*
       // 2. Validate and parse the response
       if (response.data['members'] == null) {
         log('No members found for group $groupId');
@@ -119,16 +128,22 @@ class GroupController {
 
       log('Fetched ${profiles.length} members for group $groupId');
       log('Fetched ${profiles.map((profile) => profile.toMap())}');
+      */
 
-      return profiles;
+      // return profiles;
     } on PostgrestException catch (e) {
       log('Supabase error fetching group members: ${e.message}', error: e);
       return null;
     } on TimeoutException catch (e) {
       log('Timeout fetching group members: $e');
       return null;
+    } on DioException catch (e, s) {
+      log('DioException fetching active group members',
+          error: e.message, stackTrace: s);
+      return null;
     } catch (e, s) {
-      log('Unexpected error fetching group members', error: e, stackTrace: s);
+      log('Unexpected error fetching active group members',
+          error: e, stackTrace: s);
       return null;
     }
   }
@@ -180,7 +195,8 @@ class GroupController {
       log('Timeout fetching group members: $e');
       return null;
     } catch (e, s) {
-      log('Unexpected error fetching group members', error: e, stackTrace: s);
+      log('Unexpected error fetching pending group members',
+          error: e, stackTrace: s);
       return null;
     }
   }

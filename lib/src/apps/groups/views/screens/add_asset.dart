@@ -847,6 +847,7 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
     );
   }
 
+
   BoxDecoration bgBoxDecoration = BoxDecoration(
     color: recColor,
     borderRadius: BorderRadius.circular(10.0),

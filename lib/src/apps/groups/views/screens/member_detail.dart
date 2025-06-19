@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 
+import 'package:dio/dio.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
@@ -902,10 +903,14 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                     confirmTextColor: whiteColor,
                     onConfirm: () async {
                       if (profile.id != null) {
+                        /*
                         await profileController.updateMemberRequest(
                             profile.id!, 'active');
                         // Get.to(() => BottomBar(index: 0, role: 'admin',));
                         Get.back();
+                        */
+                        await updateMemberRequest(
+                            profile.id!, widget.groupId!, 'active');
                       } else {
                         Helper.errorSnackBar(
                             title: 'Blank ID',
@@ -956,9 +961,13 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                       textConfirm: 'Yes, Decline',
                       confirmTextColor: whiteColor,
                       onConfirm: () async {
+                        await updateMemberRequest(
+                            profile.id!, widget.groupId!, 'declined');
+                        /*
                         await profileController.updateMemberRequest(
                             profile.id!, 'declined');
-                        // Navigator.pop(context);
+                        Navigator.pop(context);
+                        */
                       },
                       cancelTextColor: redColor,
                       onCancel: () {
@@ -1060,6 +1069,59 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> updateMemberRequest(
+      String member_id, String group_id, String status) async {
+    // log(DateTime.timestamp().toIso8601String());
+    
+    final dio = Dio();
+    log('updateMemberRequest member_id: $member_id');
+    var coopRequestUpdateParams = {
+      'status': status,
+      'member_id': member_id,
+      'group_id': group_id,
+      'updated_at': DateTime.now().toIso8601String(),
+    };
+    var groupMemberParams = {
+      'cooperative_id': group_id,
+      'member_id': member_id,
+    };
+    if (member_id != null) {
+      try {
+        _isLoading = true;
+        log('Updating member request');
+        final cmrResponse = await dio.patch(
+            '$APP_API_ENDPOINT/cooperative_member_requests/${widget.groupId}',
+            data: coopRequestUpdateParams);
+        log('Inserting into group_members');
+        final insertGroupMemberResponse = await dio
+            .post('$APP_API_ENDPOINT/group_members', data: groupMemberParams);
+        /*
+        final response = await supabase
+            .from('cooperative_member_requests')
+            .update({'status': status}).eq('member_id', member_id);
+        log(response);
+        
+        final insertGroupMemberResponse =
+            await supabase.from('group_members').insert({
+          'cooperative_id': null,
+          'member_id': member_id,
+          // 'group_id': group_id,
+        });
+        */
+        log('cmrResponse: $cmrResponse\ninsertGroupMemberResponse: $insertGroupMemberResponse');
+      } catch (error) {
+        _isLoading = false;
+        Helper.errorSnackBar(
+            title: 'Error', message: error.toString(), duration: 5);
+      }
+      return null;
+    } else {
+      log('User ID is null');
+      return null;
+    }
+    
   }
 
   BoxDecoration bgBoxDecoration = BoxDecoration(
