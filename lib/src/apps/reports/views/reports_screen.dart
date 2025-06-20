@@ -2,9 +2,12 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
+import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/apps/reports/widgets/bar_graph.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 // import 'package:mukai/src/controllers/wallet.controller.dart';
@@ -261,148 +264,159 @@ class _CoopReportsWidgetState extends State<ReportsScreen> {
 
   @override
   @override
-Widget build(BuildContext context) {
-  final size = MediaQuery.of(context).size;
-  return Scaffold(
-    appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            automaticallyImplyLeading: false,
-            centerTitle: false,
-            titleSpacing: 0.0,
-            toolbarHeight: 100.0,
-            elevation: 0,
+  Widget build(BuildContext context) {
+    final size = MediaQuery.of(context).size;
+    return Scaffold(
+      appBar: AppBar(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20.0), // Adjust the radius as needed
           ),
-    body: Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min, // Prevent column from expanding
-        children: [
-          // Header Row with controls
-          _buildControlsRow(size.width),
-          const SizedBox(height: 16),
-          // Graph Container with fixed height
-          Container(
-            height: size.height * 0.35, // Reduced from 0.5 to 0.35
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: MyBarGraph(
-              periodicDeposits: selectedDropdownValue == 'Daily'
-                  ? (selectedCurrencyValue == 'USD'
-                      ? dailyDepositsUSD_
-                      : dailyDepositsZIG_)
-                  : (selectedCurrencyValue == 'USD'
-                      ? monthlyDepositsUSD_
-                      : monthlyDepositsZIG_),
-              periodicWithdrawals: selectedDropdownValue == 'Daily'
-                  ? (selectedCurrencyValue == 'USD'
-                      ? dailyWithdrawalsUSD_
-                      : dailyWithdrawalsZIG_)
-                  : (selectedCurrencyValue == 'USD'
-                      ? monthlyWithdrawalsUSD_
-                      : monthlyWithdrawalsZIG_),
-            ),
-          ),
-          // Add other content here if needed
-        ],
+        ),
+        backgroundColor: secondaryColor.withAlpha(50),
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        titleSpacing: 0.0,
+        toolbarHeight: 80.0,
+        elevation: 0,
+        title: Column(
+          children: [
+            const AppHeaderWidget(),
+            // WalletBalancesWidget(),
+          ],
+        ),
       ),
-    ),
-  );
-}
-
-Widget _buildControlsRow(double width) {
-  return Row(
-    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-    children: [
-      _buildDownloadButton(),
-      _buildCurrencyDropdown(),
-      _buildPeriodDropdown(),
-    ],
-  );
-}
-
-Widget _buildDownloadButton() {
-  return GestureDetector(
-    onTap: () {
-      showDialog(
-        context: context,
-        builder: (context) => AlertDialog(
-          title: const Text('Download Report'),
-          content: const Text('Choose download format'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                downloadReport();
-              },
-              child: const Text('CSV'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // Prevent column from expanding
+          children: [
+            // Header Row with controls
+            _buildControlsRow(size.width),
+            const SizedBox(height: 16),
+            // Graph Container with fixed height
+            Container(
+              height: size.height * 0.35, // Reduced from 0.5 to 0.35
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: MyBarGraph(
+                periodicDeposits: selectedDropdownValue == 'Daily'
+                    ? (selectedCurrencyValue == 'USD'
+                        ? dailyDepositsUSD_
+                        : dailyDepositsZIG_)
+                    : (selectedCurrencyValue == 'USD'
+                        ? monthlyDepositsUSD_
+                        : monthlyDepositsZIG_),
+                periodicWithdrawals: selectedDropdownValue == 'Daily'
+                    ? (selectedCurrencyValue == 'USD'
+                        ? dailyWithdrawalsUSD_
+                        : dailyWithdrawalsZIG_)
+                    : (selectedCurrencyValue == 'USD'
+                        ? monthlyWithdrawalsUSD_
+                        : monthlyWithdrawalsZIG_),
+              ),
             ),
-            TextButton(
-              onPressed: () {
-                Navigator.pop(context);
-                // Implement PDF download
-              },
-              child: const Text('PDF'),
+            // Add other content here if needed
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControlsRow(double width) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildDownloadButton(),
+        _buildCurrencyDropdown(),
+        _buildPeriodDropdown(),
+      ],
+    );
+  }
+
+  Widget _buildDownloadButton() {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Download Report'),
+            content: const Text('Choose download format'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  downloadReport();
+                },
+                child: const Text('CSV'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Implement PDF download
+                },
+                child: const Text('PDF'),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: primaryColor.withAlpha(100),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.download, color: Colors.black, size: 16),
+            SizedBox(width: 4),
+            Text(
+              'Download',
+              style: TextStyle(fontSize: 14, color: Colors.black),
             ),
           ],
         ),
-      );
-    },
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: primaryColor.withAlpha(100),
-        borderRadius: BorderRadius.circular(8),
       ),
-      child: const Row(
-        children: [
-          Icon(Icons.download, color: Colors.black, size: 16),
-          SizedBox(width: 4),
-          Text(
-            'Download',
-            style: TextStyle(fontSize: 14, color: Colors.black),
+    );
+  }
+
+  Widget _buildCurrencyDropdown() {
+    return DropdownButton<String>(
+      underline: const SizedBox(),
+      dropdownColor: primaryColor.withAlpha(100),
+      value: selectedCurrencyValue ?? currencyList[0],
+      items: currencyList.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+            style: const TextStyle(color: Colors.black),
           ),
-        ],
-      ),
-    ),
-  );
-}
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() => selectedCurrencyValue = newValue);
+      },
+    );
+  }
 
-Widget _buildCurrencyDropdown() {
-  return DropdownButton<String>(
-    underline: const SizedBox(),
-    dropdownColor: primaryColor.withAlpha(100),
-    value: selectedCurrencyValue ?? currencyList[0],
-    items: currencyList.map<DropdownMenuItem<String>>((String value) {
-      return DropdownMenuItem<String>(
-        value: value,
-        child: Text(
-          value,
-          style: const TextStyle(color: Colors.black),
-        ),
-      );
-    }).toList(),
-    onChanged: (String? newValue) {
-      setState(() => selectedCurrencyValue = newValue);
-    },
-  );
-}
-
-Widget _buildPeriodDropdown() {
-  return DropdownButton<String>(
-    underline: const SizedBox(),
-    dropdownColor: primaryColor.withAlpha(100),
-    value: selectedDropdownValue ?? periodList[0],
-    items: periodList.map<DropdownMenuItem<String>>((String value) {
-      return DropdownMenuItem<String>(
-        value: value,
-        child: Text(
-          value,
-          style: const TextStyle(color: Colors.black),
-        ),
-      );
-    }).toList(),
-    onChanged: (String? newValue) {
-      setState(() => selectedDropdownValue = newValue);
-    },
-  );
-}
+  Widget _buildPeriodDropdown() {
+    return DropdownButton<String>(
+      underline: const SizedBox(),
+      dropdownColor: primaryColor.withAlpha(100),
+      value: selectedDropdownValue ?? periodList[0],
+      items: periodList.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+            style: const TextStyle(color: Colors.black),
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() => selectedDropdownValue = newValue);
+      },
+    );
+  }
 }

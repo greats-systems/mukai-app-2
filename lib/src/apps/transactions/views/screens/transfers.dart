@@ -56,13 +56,10 @@ class TransfersScreen extends StatelessWidget {
         centerTitle: false,
         titleSpacing: 20.0,
         toolbarHeight: 70.0,
-        title: Obx(() => SizedBox(
-              child: Text(
-                Utils.trimp(
-                    'Transfer to ${transactionController.selectedTransferOption.value}'),
-                style: medium18WhiteF5,
-              ),
-            )),
+        title: Text(
+          Utils.trimp('${Utils.trimp(category)} Transfer'),
+          style: medium18WhiteF5,
+        ),
       ),
       body: Column(
         children: [

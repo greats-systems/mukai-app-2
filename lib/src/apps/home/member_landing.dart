@@ -15,11 +15,7 @@ import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'dart:developer';
 import 'dart:io';
-
-import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class MemberLandingScreen extends StatefulWidget {
@@ -136,7 +132,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                 bottom: Radius.circular(20.0), // Adjust the radius as needed
               ),
             ),
-            backgroundColor: whiteF5Color,
+            backgroundColor: whiteColor,
             automaticallyImplyLeading: false,
             centerTitle: false,
             titleSpacing: -1.0,
@@ -303,7 +299,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                   transactionController.selectedTransferOption.refresh();
                   transactionController.selectedProfile.value = Profile();
                   Get.to(() => TransfersScreen(
-                        category: 'manual_wallet',
+                        category: 'Direct Wallet',
                       ));
                 },
                 child: Container(

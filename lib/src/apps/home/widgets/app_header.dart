@@ -13,6 +13,7 @@ import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 
 class AppHeaderWidget extends StatefulWidget {
   final String? title;
@@ -46,10 +47,10 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
     try {
       final userId = await _getStorage.read('userId');
       if (!mounted) return;
-      
+
       final walletData = await _walletController.getWallet(userId);
       if (!mounted) return;
-      
+
       setState(() => wallet = walletData);
     } catch (e) {
       if (!mounted) return;
@@ -171,14 +172,15 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  '${profileController.profile.value.first_name ?? 'No name' } ${profileController.profile.value.last_name!}',
+                  '${Utils.trimp(profileController.profile.value.first_name! ?? 'No name')} ${Utils.trimp(profileController.profile.value.last_name!)}',
                   style: medium14Black,
                 ),
               ),
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  profileController.profile.value.account_type ?? 'No account type',
+                  Utils.trimp(profileController.profile.value.account_type ??
+                      'No account type'),
                   style: medium14Black,
                 ),
               ),
