@@ -1221,14 +1221,22 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.3.4"
+  ndef_record:
+    dependency: transitive
+    description:
+      name: ndef_record
+      sha256: "0c72dfac0d5c16fc264846d103ee5d8249cd3858261a5a537b455a24c1bd5857"
+      url: "https://pub.dev"
+    source: hosted
+    version: "1.2.1"
   nfc_manager:
     dependency: "direct main"
     description:
       name: nfc_manager
-      sha256: f5be75e90f8f2bff3ee49fbd7ef65bdd4a86ee679c2412e71ab2846a8cff8c59
+      sha256: "164cc0223dee528d4d05a542da921f0b3a31ca0312400701c93ebf4ce757f676"
       url: "https://pub.dev"
     source: hosted
-    version: "3.5.0"
+    version: "4.0.2"
   nm:
     dependency: transitive
     description:
@@ -1413,6 +1421,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "3.0.2"
+  qr_code_scanner_plus:
+    dependency: "direct main"
+    description:
+      name: qr_code_scanner_plus
+      sha256: "39696b50d277097ee4d90d4292de36f38c66213a4f5216a06b2bdd2b63117859"
+      url: "https://pub.dev"
+    source: hosted
+    version: "2.0.10+1"
   qr_flutter:
     dependency: "direct main"
     description:
@@ -1955,5 +1971,5 @@ packages:
     source: hosted
     version: "2.1.0"
 sdks:
-  dart: ">=3.7.0-0 <4.0.0"
+  dart: ">=3.7.2 <4.0.0"
   flutter: ">=3.27.4"

@@ -4,8 +4,6 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
-import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
@@ -17,7 +15,8 @@ import 'package:mukai/theme/theme.dart';
 class TransferTransactionScreen extends StatefulWidget {
   final String? purpose;
   final String? receivingWalletId;
-  const TransferTransactionScreen({super.key, this.purpose, this.receivingWalletId});
+  const TransferTransactionScreen(
+      {super.key, this.purpose, this.receivingWalletId});
 
   @override
   State<TransferTransactionScreen> createState() =>

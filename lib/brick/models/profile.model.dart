@@ -31,6 +31,7 @@ class Profile extends OfflineFirstWithSupabaseModel {
     this.province_state,
     this.push_token,
     this.wallet_address,
+    this.wallet_id,
     this.wallet_balance,
     this.createdAt,
     this.last_access,
@@ -56,6 +57,7 @@ class Profile extends OfflineFirstWithSupabaseModel {
   String? id;
   double? wallet_balance;
   String? wallet_address;
+  String? wallet_id;
   String? push_token;
   List<String>? business;
   DateTime? last_access;
@@ -79,6 +81,7 @@ class Profile extends OfflineFirstWithSupabaseModel {
           ? double.parse(json["wallet_balance"].toString())
           : 0.0,
       wallet_address: json["wallet_address"] ?? 'No wallet address',
+      wallet_id: json["wallet_id"],
       account_type: json["account_type"] ?? 'No account type',
       email: json["email"] ?? 'No email',
       push_token: json["push_token"] ?? 'No push token',

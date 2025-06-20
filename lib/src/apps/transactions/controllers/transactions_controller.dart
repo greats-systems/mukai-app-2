@@ -61,7 +61,7 @@ class TransactionController extends MainController {
     phone: '',
     city: '', country: '',
     // location: Location(city: 'name', country: 'country', collectionId: 0),
-    id: '',
+    id: null,
     email: '', full_name: '',
   ).obs;
   final GetStorage _getStorage = GetStorage();
@@ -74,7 +74,8 @@ class TransactionController extends MainController {
 
   Future<dynamic> getFinancialReport(String walletId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/transactions/report/$walletId');
+      final response =
+          await dio.get('$APP_API_ENDPOINT/transactions/report/$walletId');
       return response.data;
     } catch (e, s) {
       log('getFinancialReport error: $e $s');
@@ -109,6 +110,61 @@ class TransactionController extends MainController {
     } catch (e, s) {
       log('getMemberLikeID error: $e $s');
       return [];
+    }
+  }
+
+  Future<Profile?> getProfileByIDSearch(String id) async {
+    membersQueried.clear();
+    isLoading.value = true;
+    selectedProfile.value = Profile();
+    Profile profile = Profile();
+    log('--------- get profile wallet id $id ----------');
+    try {
+      final response =
+          await dio.get('$APP_API_ENDPOINT/auth/profiles/like/$id');
+      final List<dynamic> jsonList = response.data;
+
+      if (jsonList.isNotEmpty) {
+        var data = jsonList.first;
+        log('data ${data}');
+        profile = Profile.fromMap(data);
+        selectedProfile.value = profile;
+        selectedProfile.refresh();
+        transferTransaction.value.receiving_wallet = profile.wallet_id;
+        isLoading.value = false;
+        return profile;
+      } else {
+        log('No profile data');
+      }
+      isLoading.value = false;
+
+      return null;
+    } catch (e, s) {
+      isLoading.value = false;
+      log('getMemberLikeID error: $e $s');
+      return null;
+    }
+  }
+
+  Future<Profile?> getProfileByWalletID(String id) async {
+    Profile profile = Profile();
+    log('--------- get profile wallet id $id ----------');
+    try {
+      final response = await dio
+          .get('$APP_API_ENDPOINT/wallets/get_profile_by_wallet_id/$id');
+      var data = response.data['data'];
+      log('data ${data}');
+      if (data != null) {
+        profile = Profile.fromMap(data);
+        isLoading.value = false;
+        return profile;
+      } else {
+        log('No profile data');
+      }
+      return null;
+    } catch (e, s) {
+      log('getMemberLikeID error: $e $s');
+      return null;
     }
   }
 
