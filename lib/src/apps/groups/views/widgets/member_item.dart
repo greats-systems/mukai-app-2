@@ -119,7 +119,7 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
       final idSnippet = profile.id ?? '';
       return '$firstName $lastName';
     } else {
-      return 'No name to format';
+      return 'No name to format in member_item';
     }
   }
 
@@ -164,7 +164,7 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
                   _buildInfoColumn(
                       'Subs Balance', profile.wallet_balance.toString()),
                   _buildInfoColumn(
-                      'Account ID', profile.id ?? ''),
+                      'Account ID', profile.id != null ? profile.id!.substring(0, 8) : 'N/A'),
                 ],
               ),
               _buildChatButton(profile),

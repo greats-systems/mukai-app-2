@@ -106,33 +106,6 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     }
   }
 
-  /*
-  Future<void> getProfile() async {
-    log(profile.id ?? 'No ID');
-    log('Fetching data');
-    // final jsonData = await fetchData();
-    log('Done');
-    // log('jsonData: ${JsonEncoder.withIndent(' ').convert(jsonData)}');
-    profileController.selectedProfile.value = profile;
-    profileController.profile.value = profile;
-    profileController.profile.refresh();
-    log(JsonEncoder.withIndent(' ')
-        .convert(profileController.profile.value.toMap()));
-
-    authController.selected_province.value =
-        profile.province_state ?? 'no province';
-    authController.selected_city.value = profile.id ?? 'no city';
-    profile.country = profile.country ?? 'no country';
-
-    firstNameController.text = profile.first_name ?? 'no name';
-    lastNameController.text = profile.last_name ?? 'no name';
-    accountTypeController.text = profile.account_type ?? 'no account type';
-    emailController.text = profile.email ?? 'no email';
-    mobileNumberController.text = profile.phone ?? 'no phone';
-    cityController.text = profile.city ?? 'no city';
-  }
-  */
-
   @override
   Widget build(BuildContext context) {
     profileController.isLoading.value = false;
@@ -163,7 +136,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                 ),
               ),
               title: Text(
-                "${Utils.trimp(userJson?['first_name'] ?? 'No name')} ${Utils.trimp(userJson?['last_name'] ?? 'No name')} ",
+                "${Utils.trimp(userJson?['first_name'] ?? 'No name in member detail')} ${Utils.trimp(userJson?['last_name'] ?? 'No name in member detail')} ",
                 style: semibold18WhiteF5,
               ),
             ),
@@ -585,7 +558,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
             controller: firstNameController,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: userJson?['first_name'] ?? 'No name',
+              hintText: userJson?['first_name'] ?? 'No name in member detail',
               hintStyle: semibold14Grey,
               contentPadding: EdgeInsets.all(fixPadding * 1.5),
             ),
@@ -727,7 +700,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
             controller: lastNameController,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: userJson?['last_name'] ?? 'No name',
+              hintText: userJson?['last_name'] ?? 'No name in member detail',
               hintStyle: semibold14Grey,
               contentPadding: EdgeInsets.all(fixPadding * 1.5),
             ),
@@ -909,7 +882,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                       backgroundColor: tertiaryColor,
                       title: 'Membership Request',
                       middleText:
-                          'Are you sure you want to accept ${profile.first_name ?? 'No name'.toUpperCase()} ${profile.last_name ?? 'No name'.toUpperCase()} Membership Request ID ${profile.id ?? 'No ID'.substring(0, 8)}?',
+                          'Are you sure you want to accept ${profile.first_name ?? 'No name in member detail'.toUpperCase()} ${profile.last_name ?? 'No name in member detail'.toUpperCase()} Membership Request ID ${profile.id ?? 'No ID'.substring(0, 8)}?',
                       textConfirm: 'Yes, Accept',
                       confirmTextColor: whiteColor,
                       onConfirm: () async {
@@ -1095,6 +1068,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     var profileParams = {'cooperative_id': widget.groupId, 'id': member_id};
     try {
       _isLoading = true;
+      log('$APP_API_ENDPOINT');
       log('Updating member request');
       final cmrResponse = await dio.patch(
           '$APP_API_ENDPOINT/cooperative_member_requests/${widget.groupId}',
@@ -1106,11 +1080,12 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       final updateProfileResponse = await dio.patch(
           '$APP_API_ENDPOINT/auth/update-account/$member_id',
           data: profileParams);
-      log('cmrResponse: $cmrResponse\ninsertGroupMemberResponse: $insertGroupMemberResponse\nupdateProfileResponse: $updateProfileResponse');
-    } catch (error) {
+      log('updateProfileResponse: $updateProfileResponse');
+    } on DioException catch (error, st) {
       _isLoading = false;
-      Helper.errorSnackBar(
-          title: 'Error', message: error.toString(), duration: 5);
+      log('updateMemberRequest error: ${error.response.toString()}, ${st.toString()}');
+      // Helper.errorSnackBar(
+      //     title: 'Error', message: error.toString(), duration: 5);
     }
     return null;
   }

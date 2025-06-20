@@ -92,69 +92,60 @@ class GroupController {
   }
 
   Future<List<Profile>?> getMukandoGroupMembers(String groupId) async {
-  try {
-    log('Fetching members for group: $groupId');
-    
-    // Make the API request
-    final response = await dio.get(
-      '$APP_API_ENDPOINT/cooperatives/$groupId/members',
-      options: Options(
-        validateStatus: (status) => status! < 500, // Accept <500 status codes
-      ),
-    );
+    try {
+      log('Fetching members for group: $groupId');
 
-    log('Response data: ${response.data}');
+      // Make the API request
+      final response = await dio.get(
+        '$APP_API_ENDPOINT/cooperatives/$groupId/members',
+        options: Options(
+          validateStatus: (status) => status! < 500, // Accept <500 status codes
+        ),
+      );
 
-    // Handle different response formats
-    if (response.data == null) {
-      log('No data received in response');
+      log('Response data: ${response.data}');
+
+      // Handle different response formats
+      if (response.data == null) {
+        log('No data received in response');
+        return null;
+      }
+
+      // Process the response data
+      if (response.data is List) {
+        // Handle array response
+        final members = (response.data as List)
+            .where((item) => item != null)
+            .map((item) => Profile.fromMap(item))
+            .toList();
+        log('Successfully parsed ${members.length} members');
+        return members;
+      } else if (response.data is Map) {
+        // Handle single object response
+        log('Parsing single member response');
+        return [Profile.fromMap(response.data)];
+      } else {
+        log('Unexpected response format: ${response.data.runtimeType}');
+        return null;
+      }
+    } on DioException catch (e) {
+      log('Dio error fetching group members: ${e.message}');
+      if (e.response != null) {
+        log('Status code: ${e.response!.statusCode}');
+        log('Response data: ${e.response!.data}');
+      }
+      return null;
+    } on FormatException catch (e) {
+      log('Data format error: ${e.message}');
+      return null;
+    } catch (e, s) {
+      log('Unexpected error', error: e, stackTrace: s);
       return null;
     }
-
-    // Process the response data
-    if (response.data is List) {
-      // Handle array response
-      final members = (response.data as List)
-          .where((item) => item != null)
-          .map((item) => Profile.fromMap(item))
-          .toList();
-      log('Successfully parsed ${members.length} members');
-      return members;
-    } else if (response.data is Map) {
-      // Handle single object response
-      log('Parsing single member response');
-      return [Profile.fromMap(response.data)];
-    } else {
-      log('Unexpected response format: ${response.data.runtimeType}');
-      return null;
-    }
-  } on DioException catch (e) {
-    log('Dio error fetching group members: ${e.message}');
-    if (e.response != null) {
-      log('Status code: ${e.response!.statusCode}');
-      log('Response data: ${e.response!.data}');
-    }
-    return null;
-  } on FormatException catch (e) {
-    log('Data format error: ${e.message}');
-    return null;
-  } catch (e, s) {
-    log('Unexpected error', error: e, stackTrace: s);
-    return null;
   }
-}
 
   Future<List<Profile>?> getPendingMukandoGroupMembers(String groupId) async {
     try {
-      // 1. Fetch the group data with members
-      /*
-      final response = await supabase
-          .from('group')
-          .select('members')
-          .eq('id', groupId)
-          .single()
-          .timeout(const Duration(seconds: 10)); // Add timeout
-      */
       final response = await dio.get(
           '$APP_API_ENDPOINT/cooperative_member_requests/$groupId/unresolved');
       log('getPendingMukandoGroupMembers response: ${JsonEncoder.withIndent(' ').convert(response.data['data'])}');
@@ -165,10 +156,17 @@ class GroupController {
       } else {
         // 3. Convert members to Profile objects
         if (response.data['data'].length > 1) {
-          final membersList = response.data['data']['profiles'] as List;
+          // final json = response.data['data'][0]['profiles'];
+
+          final membersList = response.data['data'] as List;
           final profiles = membersList
-              .whereType<Map<String, dynamic>>() // Ensure each item is a Map
-              .map((item) => Profile.fromMap(item))
+              .map((item) {
+                // Access the nested "profiles" object
+                final profileData = item['profiles'] as Map<String, dynamic>;
+
+                // Create Profile from the nested data
+                return Profile.fromMap(profileData);
+              })
               .where((profile) =>
                   profile.id != null) // Filter out invalid profiles
               .toList();
@@ -176,8 +174,8 @@ class GroupController {
           log('Fetched ${profiles.length} members for group $groupId');
           log('Fetched ${profiles.map((profile) => profile.toMap())}');
           return profiles;
-        } else if (response.data['data'].length == 1) {
-          final data = response.data['data'][0]['profiles'];
+        } else if (response.data.length == 1) {
+          final data = response.data[0]['profiles'];
           return [Profile.fromMap(data)];
         } else {
           log('No members found for group $groupId');

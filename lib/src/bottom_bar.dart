@@ -37,27 +37,15 @@ class BottomBar extends StatefulWidget {
 
 class _BottomBarState extends State<BottomBar> {
   AuthController get authController => Get.put(AuthController());
-  final GetStorage _getStrorage = GetStorage();
+  final GetStorage _getStorage = GetStorage();
   final autoSizeGroup = AutoSizeGroup();
   // late List<Widget> memberPages;
   String? userId;
   String? userRole;
 
-  void _fetchData() async {
-    final id = await _getStrorage.read('userId');
-    // final role = await _getStrorage.read('account_type');
-    setState(() {
-      userId = id;
-      // userRole = role;
-      /*
-      memberPages = [
-        MemberLandingScreen(userId: userId),
-        const Text('Members Page'),
-        CommunicationsScreen(initialselectedTab: 0),
-        const AdmingSettingsLandingScreen(),
-      ];
-      */
-    });
+  Future<void> _fetchData() async {
+    userId = await _getStorage.read('userId');
+    userRole = await _getStorage.read('role');
     log('BottomBar userId: $userId, role: $userRole');
   }
 
@@ -70,7 +58,7 @@ class _BottomBarState extends State<BottomBar> {
   final iconTitleList = <String>['Home', 'Reports', 'Coops', 'Settings'];
   int selectedIndex = 0;
   DateTime? backPressTime;
-  
+
   final pages = [
     const AdminLandingScreen(),
     ReportsScreen(),
@@ -98,14 +86,6 @@ class _BottomBarState extends State<BottomBar> {
     super.initState();
     _fetchData();
     authController.getAccount();
-    /*
-    memberPages = [
-      const MemberLandingScreen(userId: null), // Handle null case in MemberLandingScreen
-      const Text('Members Page'),
-      CommunicationsScreen(initialselectedTab: 0),
-      const AdmingSettingsLandingScreen(),
-    ];
-    */
     if (widget.index != null) {
       setState(() {
         selectedIndex = widget.index!;
@@ -128,55 +108,46 @@ class _BottomBarState extends State<BottomBar> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        bool backStatus = onPopInvoked();
-        if (backStatus) {
-          exit(0);
-        }
-      },
-      child: Scaffold(
-        extendBody: true,
-        body: widget.role == 'admin'
-            ? pages.elementAt(selectedIndex)
-            : memberPages.elementAt(selectedIndex),
-        floatingActionButton: selectedIndex==2 ? addGroup() : addButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: gappedBottombar(),
-      ),
-      /*
-      child: widget.role == 'admin'
-          ? Scaffold(
-              extendBody: true,
-              body: pages.elementAt(selectedIndex),
-              floatingActionButton: addButton(),
-              floatingActionButtonLocation:
-                  FloatingActionButtonLocation.centerDocked,
-              bottomNavigationBar: gappedBottombar(),
-            )
-          : Scaffold(
-              extendBody: true,
-              body: memberPages.elementAt(selectedIndex),
-              floatingActionButton: addButton(),
-              floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-              bottomNavigationBar: gappedBottombar(),
-            ),
-            */
-      /*
-      child: Scaffold(
-        extendBody: true,
-        body: widget.role == 'admin'
-            ? pages.elementAt(selectedIndex)
-            : memberPages.elementAt(selectedIndex),
-        floatingActionButton: addButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: gappedBottombar(),
-      ),
-      */
-    );
+  void dispose() {
+    super.dispose();
   }
+
+  @override
+Widget build(BuildContext context) {
+  // Use a FutureBuilder to handle the asynchronous nature of userRole
+  return FutureBuilder(
+    future: _fetchData(), // Ensure this returns a Future
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return const Center(child: CircularProgressIndicator());
+      }
+
+      // Default to member pages if userRole is null
+      final isAdmin = userRole == 'coop-manager';
+      
+      return PopScope(
+        canPop: false,
+        onPopInvoked: (didPop) {
+          bool backStatus = onPopInvoked();
+          if (backStatus) {
+            exit(0);
+          }
+        },
+        child: Scaffold(
+          extendBody: true,
+          body: isAdmin
+              ? pages.elementAt(selectedIndex)
+              : memberPages.elementAt(selectedIndex),
+          floatingActionButton: isAdmin && selectedIndex == 2
+              ? addGroup()
+              : addButton(),
+          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+          bottomNavigationBar: gappedBottombar(),
+        ),
+      );
+    },
+  );
+}
 
   addButton() {
     return GestureDetector(

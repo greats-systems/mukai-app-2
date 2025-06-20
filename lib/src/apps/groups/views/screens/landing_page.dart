@@ -53,7 +53,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     setState(() {
       _isLoading = true;
       userId = _getStorage.read('userId');
-      role = _getStorage.read('account_type');
+      role = _getStorage.read('role');
     });
     final walletJson =
         await supabase.from('wallets').select('id').eq('profile_id', userId!);
@@ -221,7 +221,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  Utils.trimp('${widget.group.name ?? 'No name'}'),
+                  Utils.trimp(widget.group.name ?? 'No name on landing page'),
                   style: semibold18WhiteF5,
                 ),
               ),

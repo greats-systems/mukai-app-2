@@ -935,7 +935,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                       '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
                       data: params);
                   log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                  Navigator.pop(context);
+                  // Navigator.pop(context);
                   Helper.successSnackBar(
                       title: 'Success!',
                       message: 'You have cast your vote',

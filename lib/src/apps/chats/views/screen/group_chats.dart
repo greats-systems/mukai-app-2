@@ -47,48 +47,76 @@ class _GroupsListState extends State<GroupsList> {
   Future<void> _initializeData() async {
     try {
       loggedInUserId = _getStorage.read('userId');
-      role = _getStorage.read('account_type');
+      role = _getStorage.read('role');
+      log('GroupsList role: $role');
 
       await Future.wait([
         _initializeStream(),
         _initializeMembers(),
       ]);
 
-      setState(() {
-        _dataLoaded = true;
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _dataLoaded = true;
+          _isLoading = false;
+        });
+      }
     } catch (e) {
       log('Error initializing data: $e');
-      setState(() {
-        _isLoading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _initializeStream() async {
-    _groupsStream = supabase
+    if (!mounted) return;
+
+    final stream = supabase
         .from('cooperatives')
         .stream(primaryKey: ['id'])
         .eq('admin_id', loggedInUserId ?? '')
         .order('created_at', ascending: false)
         .map((maps) => maps.map((map) => Group.fromMap(map)).toList());
+
+    if (mounted) {
+      setState(() {
+        _groupsStream = stream;
+      });
+    }
   }
 
   Future<void> _initializeMembers() async {
-    final memberData = await supabase
-        .from('group_members')
-        .select('member_id, cooperatives(*)')
-        .eq('member_id', loggedInUserId ?? '')
-        .order('created_at', ascending: false);
+    try {
+      final memberData = await supabase
+          .from('group_members')
+          .select('member_id, cooperatives(*)')
+          .eq('member_id', loggedInUserId ?? '')
+          .order('created_at', ascending: false);
 
-    if (memberData.isNotEmpty) {
-      setState(() {
-        _memberGroups = memberData[0]['cooperatives'] is Map
-            ? [Group.fromMap(memberData[0]['cooperatives'])]
-            : memberData.map((item) => Group.fromMap(item)).toList();
-      });
+      if (mounted) {
+        setState(() {
+          _memberGroups = memberData[0]['cooperatives'] is Map
+              ? [Group.fromMap(memberData[0]['cooperatives'])]
+              : memberData.map((item) => Group.fromMap(item)).toList();
+        });
+      }
+    } catch (e) {
+      log('Error loading members: $e');
+      if (mounted) {
+        setState(() {
+          _memberGroups = [];
+        });
+      }
     }
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -185,11 +213,11 @@ class _GroupsListState extends State<GroupsList> {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
-    
+
         if (snapshot.hasError) {
           return Center(child: Text('Error: ${snapshot.error}'));
         }
-    
+
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Center(
             child: Column(
@@ -224,15 +252,13 @@ class _GroupsListState extends State<GroupsList> {
             ),
           );
         }
-    
+
         final groups = snapshot.data!
             .where((group) =>
-                group.name
-                    ?.toLowerCase()
-                    .contains(searchQuery.toLowerCase()) ??
+                group.name?.toLowerCase().contains(searchQuery.toLowerCase()) ??
                 false)
             .toList();
-    
+
         return ListView.builder(
           itemCount: groups.length,
           itemBuilder: (context, index) {
@@ -245,72 +271,73 @@ class _GroupsListState extends State<GroupsList> {
   }
 
   Widget _buildMembersList() {
-    return _isLoading ? const Center(child: LoadingShimmerWidget()) : StreamBuilder<List<Group>>(
-      stream: _memberGroups != null
-          ? Stream.fromIterable([_memberGroups!])
-          : Stream.empty(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: LoadingShimmerWidget());
-        }
-    
-    
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
-        }
-    
-        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return Center(
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text('This account has no groups associated with it.'),
-                const SizedBox(height: 20),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Navigate to search screen
-                    Get.to(() => MemberRegisterCoopScreen());
-                  },
-                  child: const Text('Search for Groups'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
+    return _isLoading
+        ? const Center(child: LoadingShimmerWidget())
+        : StreamBuilder<List<Group>>(
+            stream: _memberGroups != null
+                ? Stream.fromIterable([_memberGroups!])
+                : Stream.empty(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: LoadingShimmerWidget());
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('This account has no groups associated with it.'),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          // TODO: Navigate to search screen
+                          Get.to(() => MemberRegisterCoopScreen());
+                        },
+                        child: const Text('Search for Groups'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          // TODO: Navigate to create group screen
+                          Get.to(() => CreateGroup());
+                        },
+                        child: const Text('Create a Group'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    // TODO: Navigate to create group screen
-                    Get.to(() => CreateGroup());
-                  },
-                  child: const Text('Create a Group'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: primaryColor,
-                    foregroundColor: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+                );
+              }
+
+              final groups = snapshot.data!
+                  .where((group) =>
+                      group.name
+                          ?.toLowerCase()
+                          .contains(searchQuery.toLowerCase()) ??
+                      false)
+                  .toList();
+
+              return ListView.builder(
+                itemCount: groups.length,
+                itemBuilder: (context, index) {
+                  final group = groups[index];
+                  return _buildMemberTile(group);
+                },
+              );
+            },
           );
-        }
-    
-        final groups = snapshot.data!
-            .where((group) =>
-                group.name
-                    ?.toLowerCase()
-                    .contains(searchQuery.toLowerCase()) ??
-                false)
-            .toList();
-    
-        return ListView.builder(
-          itemCount: groups.length,
-          itemBuilder: (context, index) {
-            final group = groups[index];
-            return _buildMemberTile(group);
-          },
-        );
-      },
-    );
   }
 
   Widget _buildGroupTile(Group group) {

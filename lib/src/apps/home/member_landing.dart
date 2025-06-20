@@ -220,7 +220,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                 child: Column(
                   children: [
                     QrImageView(
-                      data: walletId ?? 'No wallet ID',
+                      data: walletId ?? 'No wallet ID 3',
                       version: QrVersions.auto,
                       size: 160.0,
                     ),
