@@ -171,7 +171,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  '${profileController.profile.value.first_name ?? 'No name' } ${profileController.profile.value.last_name!}',
+                  '${profileController.profile.value.first_name ?? 'No name' } ${profileController.profile.value.last_name ?? 'No name'}',
                   style: medium14Black,
                 ),
               ),

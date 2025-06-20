@@ -7,7 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
-import 'package:mukai/src/apps/home/widgets/metric_row.dart';
+// import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
 
@@ -132,7 +132,7 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: LinearProgressIndicator(
-                  value: 2/numberOfMembers.toDouble(),
+                  value: 2/5,
                   minHeight: 10,
                   borderRadius: BorderRadius.circular(5),
                   valueColor: AlwaysStoppedAnimation<Color>(tertiaryColor),

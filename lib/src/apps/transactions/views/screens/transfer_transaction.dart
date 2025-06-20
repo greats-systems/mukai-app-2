@@ -226,7 +226,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
-                                    zigWallet?['default_currency'] == 'ZIG'
+                                    zigWallet?['default_currency'] == 'zig'
                                         ? primaryColor
                                         : tertiaryColor,
                                 shape: RoundedRectangleBorder(
@@ -261,7 +261,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
                             ElevatedButton(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
-                                    usdWallet?['default_currency'] == 'USD'
+                                    usdWallet?['default_currency'] == 'usd'
                                         ? primaryColor
                                         : tertiaryColor,
                                 shape: RoundedRectangleBorder(
