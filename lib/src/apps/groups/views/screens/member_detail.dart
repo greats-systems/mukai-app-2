@@ -875,34 +875,44 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
               GestureDetector(
                 onTap: () {
                   Get.defaultDialog(
-                      barrierDismissible: true,
-                      middleTextStyle:
-                          TextStyle(color: blackColor, fontSize: 14),
-                      buttonColor: primaryColor,
-                      backgroundColor: tertiaryColor,
-                      title: 'Membership Request',
-                      middleText:
-                          'Are you sure you want to accept ${profile.first_name ?? 'No name in member detail'.toUpperCase()} ${profile.last_name ?? 'No name in member detail'.toUpperCase()} Membership Request ID ${profile.id ?? 'No ID'.substring(0, 8)}?',
-                      textConfirm: 'Yes, Accept',
-                      confirmTextColor: whiteColor,
-                      onConfirm: () async {
-                        if (profile.id != null) {
-                          await updateMemberRequest(
-                              profile.id!, widget.groupId!, 'active');
-                          Navigator.pop(context);
-                        } else {
-                          Helper.errorSnackBar(
-                              title: 'Blank ID',
-                              message: 'No ID was provided',
-                              duration: 5);
+                    barrierDismissible: true,
+                    middleTextStyle: TextStyle(color: blackColor, fontSize: 14),
+                    buttonColor: primaryColor,
+                    backgroundColor: tertiaryColor,
+                    title: 'Membership Request',
+                    middleText:
+                        'Are you sure you want to accept ${profile.first_name ?? 'No name in member detail'.toUpperCase()} ${profile.last_name ?? 'No name in member detail'.toUpperCase()} Membership Request ID ${profile.id ?? 'No ID'.substring(0, 8)}?',
+                    textConfirm: 'Yes, Accept',
+                    confirmTextColor: whiteColor,
+                    onConfirm: () async {
+                      if (profile.id != null) {
+                        final success = await updateMemberRequest(
+                          profile.id!,
+                          widget.groupId!,
+                          'active',
+                        );
+
+                        if (success) {
+                          Navigator.of(context, rootNavigator: true)
+                              .pop(); // Close the dialog
+                          Navigator.of(context).pop(
+                              true); // Pop the MemberDetailScreen with a result
                         }
-                      },
-                      cancelTextColor: redColor,
-                      onCancel: () {
-                        if (Get.isDialogOpen!) {
-                          Get.back();
-                        }
-                      });
+                      } else {
+                        Helper.errorSnackBar(
+                          title: 'Blank ID',
+                          message: 'No ID was provided',
+                          duration: 5,
+                        );
+                      }
+                    },
+                    cancelTextColor: redColor,
+                    onCancel: () {
+                      if (Get.isDialogOpen!) {
+                        Get.back();
+                      }
+                    },
+                  );
                 },
                 child: Container(
                     alignment: Alignment(0, 0),
@@ -930,25 +940,35 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
               GestureDetector(
                 onTap: () {
                   Get.defaultDialog(
-                      middleTextStyle:
-                          TextStyle(color: blackColor, fontSize: 14),
-                      buttonColor: primaryColor,
-                      backgroundColor: tertiaryColor,
-                      title: 'Membership Request',
-                      middleText:
-                          'Are you sure you want to decline ${profile.first_name!.toUpperCase()} ${profile.last_name!.toUpperCase()} Request ID ${profile.id!.substring(0, 8)}?',
-                      textConfirm: 'Yes, Decline',
-                      confirmTextColor: whiteColor,
-                      onConfirm: () async {
-                        await updateMemberRequest(
-                            profile.id!, widget.groupId!, 'declined');
-                      },
-                      cancelTextColor: redColor,
-                      onCancel: () {
-                        if (Get.isDialogOpen!) {
-                          Get.back();
-                        }
-                      });
+                    middleTextStyle: TextStyle(color: blackColor, fontSize: 14),
+                    buttonColor: primaryColor,
+                    backgroundColor: tertiaryColor,
+                    title: 'Membership Request',
+                    middleText:
+                        'Are you sure you want to decline ${profile.first_name!.toUpperCase()} ${profile.last_name!.toUpperCase()} Request ID ${profile.id!.substring(0, 8)}?',
+                    textConfirm: 'Yes, Decline',
+                    confirmTextColor: whiteColor,
+                    onConfirm: () async {
+                      final success = await updateMemberRequest(
+                        profile.id!,
+                        widget.groupId!,
+                        'declined',
+                      );
+
+                      if (success) {
+                        Navigator.of(context, rootNavigator: true)
+                            .pop(); // Close the dialog
+                        Navigator.of(context).pop(
+                            true); // Pop the MemberDetailScreen with a result
+                      }
+                    },
+                    cancelTextColor: redColor,
+                    onCancel: () {
+                      if (Get.isDialogOpen!) {
+                        Get.back();
+                      }
+                    },
+                  );
                 },
                 child: Container(
                     alignment: Alignment(0, 0),
@@ -1049,45 +1069,48 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     );
   }
 
-  Future<void> updateMemberRequest(
+  Future<bool> updateMemberRequest(
       String member_id, String group_id, String status) async {
-    // log(DateTime.timestamp().toIso8601String());
-
-    final dio = Dio();
-    log('updateMemberRequest member_id: $member_id');
-    var coopRequestUpdateParams = {
-      'status': status,
-      'member_id': member_id,
-      'group_id': group_id,
-      'updated_at': DateTime.now().toIso8601String(),
-    };
-    var groupMemberParams = {
-      'cooperative_id': group_id,
-      'member_id': member_id,
-    };
-    var profileParams = {'cooperative_id': widget.groupId, 'id': member_id};
     try {
       _isLoading = true;
-      log('$APP_API_ENDPOINT');
-      log('Updating member request');
-      final cmrResponse = await dio.patch(
-          '$APP_API_ENDPOINT/cooperative_member_requests/${widget.groupId}',
-          data: coopRequestUpdateParams);
-      log('Inserting into group_members');
-      final insertGroupMemberResponse = await dio
-          .post('$APP_API_ENDPOINT/group_members', data: groupMemberParams);
-      log('Updating profile');
-      final updateProfileResponse = await dio.patch(
-          '$APP_API_ENDPOINT/auth/update-account/$member_id',
-          data: profileParams);
-      log('updateProfileResponse: $updateProfileResponse');
+      final dio = Dio();
+
+      var coopRequestUpdateParams = {
+        'status': status,
+        'member_id': member_id,
+        'cooperative_id': widget.groupId,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+
+      var groupMemberParams = {
+        'cooperative_id': widget.groupId,
+        'member_id': member_id,
+      };
+
+      var profileParams = {'cooperative_id': widget.groupId, 'id': member_id};
+
+      await dio.patch(
+        '$APP_API_ENDPOINT/cooperative_member_requests/${widget.groupId}',
+        data: coopRequestUpdateParams,
+      );
+
+      await dio.post(
+        '$APP_API_ENDPOINT/group_members',
+        data: groupMemberParams,
+      );
+
+      await dio.patch(
+        '$APP_API_ENDPOINT/auth/update-account/$member_id',
+        data: profileParams,
+      );
+
+      _isLoading = false;
+      return true;
     } on DioException catch (error, st) {
       _isLoading = false;
       log('updateMemberRequest error: ${error.response.toString()}, ${st.toString()}');
-      // Helper.errorSnackBar(
-      //     title: 'Error', message: error.toString(), duration: 5);
+      return false;
     }
-    return null;
   }
 
   BoxDecoration bgBoxDecoration = BoxDecoration(

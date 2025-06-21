@@ -332,7 +332,7 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
         onTap: () {
           // log(widget.group!.id!);
           assetController.createAsset(widget.group!.id!, null, 'group');
-          // Navigator.pop(context);
+          Navigator.pop(context);
         },
         child: Obx(() => profileController.isLoading.value == true
             ? const LinearProgressIndicator(
@@ -690,7 +690,8 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
                         await profileController.updateMemberRequest(
                             asset.id!, 'accepted');
                         // Get.to(() => AdminLandingScreen(role));
-                        Get.back();
+                        // Get.back();
+                        Navigator.pop(context);
                       } else {
                         Helper.errorSnackBar(
                             title: 'Blank ID',

@@ -51,7 +51,7 @@ class _MyWidgetState extends State<CoopAssetsWidget> {
   void initState() {
     super.initState();
     loggedInUserId = GetStorage().read('userId');
-    role = GetStorage().read('account_type');
+    role = GetStorage().read('role');
     _fetchGroupMembers();
     log('CoopAssetsWidget role: $role');
   }

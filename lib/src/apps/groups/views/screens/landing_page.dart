@@ -96,13 +96,13 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-      floatingActionButton: selectedTab == 2
+      floatingActionButton: role == 'coop-manager' && selectedTab == 2
           ? FloatingActionButton(
               onPressed: () {
                 Get.to(() => AddAssetWidget(group: widget.group));
               },
               backgroundColor: primaryColor,
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.add, color: tertiaryColor, size: 36,),
             )
           : null,
       backgroundColor: primaryColor,
@@ -174,11 +174,9 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       onTap: () {
         log('CoopHeaderWidget\nuserId: $userId\nrole: $role');
         if (role == 'coop-manager') {
-          Get.to(() => BottomBar(role: 'admin'));
+          Get.to(() => BottomBar());
         } else {
-          Get.to(() => BottomBar(
-                role: 'member',
-              ));
+          Get.to(() => BottomBar());
         }
       },
       child: Container(

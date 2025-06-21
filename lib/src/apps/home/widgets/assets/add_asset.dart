@@ -694,7 +694,8 @@ GetStorage _getStorage = GetStorage();
                         await profileController.updateMemberRequest(
                             asset.id!, 'accepted');
                         // Get.to(() => AdminLandingScreen(role));
-                        Get.back();
+                        // Get.back();
+                        Navigator.pop(context);
                       } else {
                         Helper.errorSnackBar(
                             title: 'Blank ID',

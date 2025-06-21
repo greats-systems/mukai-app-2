@@ -199,6 +199,7 @@ class AssetController {
         "has_documents": false,
         "profile_id": ownershipType == 'group' ? null : profileId,
         'group_id': ownershipType == 'group' ? groupId : null,
+        "has_received_vote":false,
       };
       log('assetData: $assetData');
       final response =

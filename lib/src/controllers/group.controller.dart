@@ -145,55 +145,49 @@ class GroupController {
   }
 
   Future<List<Profile>?> getPendingMukandoGroupMembers(String groupId) async {
-    try {
-      final response = await dio.get(
-          '$APP_API_ENDPOINT/cooperative_member_requests/$groupId/unresolved');
-      log('getPendingMukandoGroupMembers response: ${JsonEncoder.withIndent(' ').convert(response.data['data'])}');
-      // 2. Validate and parse the response
-      if (response.data == null) {
-        log('No members found for group $groupId');
-        return [];
-      } else {
-        // 3. Convert members to Profile objects
-        if (response.data['data'].length > 1) {
-          // final json = response.data['data'][0]['profiles'];
+  try {
+    final response = await dio.get(
+      '$APP_API_ENDPOINT/cooperative_member_requests/$groupId/unresolved'
+    );
 
-          final membersList = response.data['data'] as List;
-          final profiles = membersList
-              .map((item) {
-                // Access the nested "profiles" object
-                final profileData = item['profiles'] as Map<String, dynamic>;
+    log('Pending members raw response: ${response.data}');
 
-                // Create Profile from the nested data
-                return Profile.fromMap(profileData);
-              })
-              .where((profile) =>
-                  profile.id != null) // Filter out invalid profiles
-              .toList();
-
-          log('Fetched ${profiles.length} members for group $groupId');
-          log('Fetched ${profiles.map((profile) => profile.toMap())}');
-          return profiles;
-        } else if (response.data.length == 1) {
-          final data = response.data[0]['profiles'];
-          return [Profile.fromMap(data)];
-        } else {
-          log('No members found for group $groupId');
-          return [];
-        }
-      }
-    } on PostgrestException catch (e) {
-      log('Supabase error fetching group members: ${e.message}', error: e);
-      return null;
-    } on TimeoutException catch (e) {
-      log('Timeout fetching group members: $e');
-      return null;
-    } catch (e, s) {
-      log('Unexpected error fetching pending group members',
-          error: e, stackTrace: s);
-      return null;
+    // 1. Check if response data exists
+    if (response.data == null || response.data['data'] == null) {
+      log('No pending members found for group $groupId');
+      return [];
     }
+
+    final responseData = response.data['data'] as List;
+    log('Found ${responseData.length} pending member records');
+
+    // 2. Process all members consistently
+    final profiles = <Profile>[];
+    
+    for (final item in responseData) {
+      try {
+        if (item['profiles'] != null) {
+          final profile = Profile.fromMap(item['profiles']);
+          if (profile.id != null) {
+            profiles.add(profile);
+          }
+        }
+      } catch (e, s) {
+        log('Error processing member record: $item', error: e, stackTrace: s);
+      }
+    }
+
+    log('Successfully parsed ${profiles.length} pending members');
+    return profiles;
+
+  } on DioException catch (e) {
+    log('API error fetching pending members: ${e.message}', error: e);
+    return null;
+  } catch (e, s) {
+    log('Unexpected error fetching pending members', error: e, stackTrace: s);
+    return null;
   }
+}
 
   Future<Wallet?> getGroupWallet(String groupId) async {
     try {
