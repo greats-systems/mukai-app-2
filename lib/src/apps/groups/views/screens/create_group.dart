@@ -245,7 +245,7 @@ class _CreateGroupState extends State<CreateGroup> {
                 labelText: 'Select Cooperative',
                 labelStyle: const TextStyle(color: blackColor, fontSize: 22),
                 filled: true,
-                fillColor: recWhiteColor,
+                fillColor: whiteColor,
               ),
             ),
             dropdownBuilder: (context, selectedItem) {
@@ -353,50 +353,53 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
   Widget category() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Obx(() => DropdownSearch<String>(
-            onChanged: (value) => {
-              authController.cooperative_category.value = value!,
-              authController.filterCooperatives()
-            },
-            selectedItem:
-                Utils.trimp(authController.cooperative_category.value),
-            items: (filter, infiniteScrollProps) =>
-                authController.cooperative_category_options,
-            decoratorProps: DropDownDecoratorProps(
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(color: primaryColor),
-                  borderRadius: BorderRadius.circular(10.0),
-                ),
-                labelText: 'Select Cooperative Category',
-                labelStyle: const TextStyle(
-                    height: 10, color: blackColor, fontSize: 22),
-                filled: true,
-                fillColor: recWhiteColor,
+  return Container(
+    width: double.maxFinite,
+    clipBehavior: Clip.hardEdge,
+    decoration: bgBoxDecoration,
+    child: Obx(() => DropdownSearch<String>(
+          onChanged: (value) => {
+            authController.cooperative_category.value = value!,
+            authController.filterCooperatives()
+          },
+          selectedItem: Utils.trimp(authController.cooperative_category.value),
+          items: (filter, infiniteScrollProps) =>
+              authController.cooperative_category_options,
+          decoratorProps: DropDownDecoratorProps(
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              focusedBorder: OutlineInputBorder(
+                borderSide: BorderSide(color: primaryColor),
+                borderRadius: BorderRadius.circular(10.0),
               ),
-              baseStyle: const TextStyle(color: blackColor, fontSize: 18),
+              labelText: 'Select Cooperative Category',
+              labelStyle: const TextStyle(
+                  height: 10,
+                  color: blackColor,  // Changed from whiteColor
+                  fontSize: 22),
+              filled: true,
+              fillColor: whiteColor,
             ),
-            popupProps: PopupProps.menu(
-              menuProps: const MenuProps(
-                backgroundColor: Colors.white, // White background
-                elevation: 4,
-              ),
-              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(
-                  Utils.trimp(item),
-                  style: const TextStyle(color: Colors.black, fontSize: 18),
-                ),
+            baseStyle: const TextStyle(
+                color: blackColor,  // Changed from whiteColor
+                fontSize: 18),
+          ),
+          popupProps: PopupProps.menu(
+            itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Text(
+                Utils.trimp(item),
+                style: const TextStyle(color: blackColor, fontSize: 18),
               ),
             ),
-          )),
-    );
-  }
+            menuProps: const MenuProps(
+              backgroundColor: whiteF5Color,  // Changed from Colors.white
+              elevation: 4,
+            ),
+          ),
+        )),
+  );
+}
 
   Widget province_field() {
     return Container(
@@ -448,7 +451,7 @@ class _CreateGroupState extends State<CreateGroup> {
                       fontSize: 22), // Black label text
                   // border: const OutlineInputBorder(),
                   filled: true,
-                  fillColor: recWhiteColor, // White background for input field
+                  fillColor: whiteColor, // White background for input field
                 ),
                 baseStyle: const TextStyle(
                     color: blackOrignalColor,
@@ -501,7 +504,7 @@ class _CreateGroupState extends State<CreateGroup> {
                       fontSize: 22), // Black label text
                   // border: const OutlineInputBorder(),
                   filled: true,
-                  fillColor: recWhiteColor, // White background for input field
+                  fillColor: whiteColor, // White background for input field
                 ),
                 baseStyle: const TextStyle(
                     color: blackOrignalColor,

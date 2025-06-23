@@ -12,8 +12,9 @@ import 'package:mukai/src/controllers/asset.controller.dart';
 import 'package:mukai/theme/theme.dart';
 
 class MemberAssetsList extends StatefulWidget {
-
-  const MemberAssetsList({super.key, });
+  const MemberAssetsList({
+    super.key,
+  });
 
   @override
   State<MemberAssetsList> createState() => _MyWidgetState();
@@ -22,11 +23,10 @@ class MemberAssetsList extends StatefulWidget {
 class _MyWidgetState extends State<MemberAssetsList> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  AssetController get assetController =>
-      Get.put(AssetController());
+  AssetController get assetController => Get.put(AssetController());
   late double height;
   late double width;
- String? loggedInUserId;
+  String? loggedInUserId;
   List<Asset>? assets = [];
   bool _isLoading = true;
 
@@ -35,8 +35,8 @@ class _MyWidgetState extends State<MemberAssetsList> {
     try {
       GetStorage _getStorage = GetStorage();
       final userId = await _getStorage.read('userId');
-      var  assets_list = await assetController.getMemberAssets(userId);
-      setState(()  {
+      var assets_list = await assetController.getMemberAssets(userId);
+      setState(() {
         assets = assets_list;
         _isLoading = false;
       });
@@ -58,70 +58,74 @@ class _MyWidgetState extends State<MemberAssetsList> {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-        return Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(20.0), // Adjust the radius as needed
-                ),
-              ),
-              elevation: 0,
-              backgroundColor: primaryColor,
-              titleSpacing: 0.0,
-              centerTitle: false,
-              title: Text(
-                "My Account Assets",
-                style: semibold18WhiteF5,
-              ),
-              leading: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: whiteF5Color,
-                ),
-              ),
- 
+    return Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          shape: const RoundedRectangleBorder(
+            borderRadius: BorderRadius.vertical(
+              bottom: Radius.circular(20.0), // Adjust the radius as needed
             ),
-            body:   _isLoading ? const Center(child: CircularProgressIndicator()) : assets!.isEmpty ? const Center(child: Text('No assets found')) : ListView.builder(
-      itemCount: assets!.length,
-      itemBuilder: (context, index) {
-        Asset asset = assets![index];
-        return Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: GestureDetector(
-            onTap: () {
-              assetController.selectedAsset.value = asset;
-              log('Profile ID: ${asset.id}');
-              Get.to(() => AssetDetailScreen(
-                    asset: asset,
-                  ));
+          ),
+          elevation: 0,
+          backgroundColor: primaryColor,
+          titleSpacing: 0.0,
+          centerTitle: false,
+          title: Text(
+            "My Account Assets",
+            style: semibold18WhiteF5,
+          ),
+          leading: IconButton(
+            onPressed: () {
+              Navigator.pop(context);
             },
-            child: Container(
-              width: double.maxFinite,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(
-                color: whiteColor,
-                borderRadius: BorderRadius.circular(10.0),
-                boxShadow: recShadow,
-              ),
-              child: Container(
-                padding: const EdgeInsets.all(fixPadding * 1.5),
-                margin: const EdgeInsets.symmetric(vertical: fixPadding),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10.0),
-                  color: whiteColor.withOpacity(0.1),
-                ),
-                child: AssetItemWidget(
-                  asset: asset,
-                ),
-              ),
+            icon: const Icon(
+              Icons.arrow_back,
+              color: whiteF5Color,
             ),
-                      ),
-                    );
-      },
-    ));
+          ),
+        ),
+        body: _isLoading
+            ? const Center(child: CircularProgressIndicator())
+            : assets!.isEmpty
+                ? const Center(child: Text('No assets found'))
+                : ListView.builder(
+                    itemCount: assets!.length,
+                    itemBuilder: (context, index) {
+                      Asset asset = assets![index];
+                      return Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: GestureDetector(
+                          onTap: () {
+                            assetController.selectedAsset.value = asset;
+                            log('Profile ID: ${asset.id}');
+                            Get.to(() => AssetDetailScreen(
+                                  asset: asset,
+                                ));
+                          },
+                          child: Container(
+                            width: double.maxFinite,
+                            clipBehavior: Clip.hardEdge,
+                            decoration: BoxDecoration(
+                              color: whiteColor,
+                              borderRadius: BorderRadius.circular(10.0),
+                              boxShadow: recShadow,
+                            ),
+                            child: Container(
+                              padding: const EdgeInsets.all(fixPadding * 1.5),
+                              margin: const EdgeInsets.symmetric(
+                                  vertical: fixPadding),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(10.0),
+                                color: whiteColor.withOpacity(0.1),
+                              ),
+                              child: AssetItemWidget(
+                                asset: asset,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                  ));
   }
 }

@@ -56,13 +56,14 @@ String truncateDate(String interval) {
 }
 
 const ENV = 'production';
-const API_ENV = 'localhost';
+const API_ENV = 'production';
 const DEVICE_ENV = 'physical';
+// const DEVICE_ENV = 'virtual';
 const APP_API_ENDPOINT = API_ENV == 'localhost'
     ? DEVICE_ENV == 'physical'
         ? 'http://172.16.32.87:3001'
         : 'http://10.0.2.2:3001'
-    : 'https://supabasekong-w0skgw8swgwcocwowokscokk.freetrader.africa';
+    : 'https://wkc0owg4w44k4scwkc40cswk.freetrader.africa';
 const CMS_ENDPOINT = DEVICE_ENV == 'physical'
     ? 'http://172.16.32.87:54321/graphql/v1'
     : 'http://172.16.32.87:54321/graphql/v1';

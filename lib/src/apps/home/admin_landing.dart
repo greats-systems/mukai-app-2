@@ -1,7 +1,11 @@
+import 'dart:developer';
+
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/home/admin/admin_recent_transactions.dart';
@@ -9,6 +13,7 @@ import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
 import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
+import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
@@ -21,6 +26,7 @@ class AdminLandingScreen extends StatefulWidget {
 
 class _AdminLandingScreenState extends State<AdminLandingScreen> {
   AuthController get authController => Get.put(AuthController());
+  final ProfileController _profileController = ProfileController();
   TransactionController get transactionController =>
       Get.put(TransactionController());
   late PageController pageController = PageController();
@@ -31,11 +37,23 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
   late double height;
   late double width;
   String? walletId;
+  String? userId;
+  Dio dio = Dio();
+
+  Future<void> fetchWalletID() async {
+    final walletJson = await _profileController.getProfileWallet(userId!);
+    setState(() {
+      walletId = walletJson![0]['id'];
+    });
+    log('fetchWalletID walletId: $walletId');
+  }
 
   @override
   void initState() {
     pageController = PageController(initialPage: selectedTab);
-    walletId = _getStorage.read('walletId');
+    userId = _getStorage.read('userId');
+    log('AdminLandingScreen userId: $userId');
+    fetchWalletID();
     super.initState();
   }
 
@@ -97,7 +115,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
           alignment: Alignment.center,
           child: Center(
             child: QrImageView(
-              data: walletId ?? 'No wallet ID',
+              data: walletId ?? 'No wallet ID 1',
               version: QrVersions.auto,
               size: 250.0,
             ),
@@ -176,13 +194,13 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
   adminOptions() {
     return Column(
       children: [
-        WalletBalancesWidget(), 
-      heightBox(20), 
-      tabBar(), tabPreviews()],
+        WalletBalancesWidget(),
+        heightBox(20),
+        tabBar(),
+        tabPreviews()
+      ],
     );
   }
-
-
 
   tabPreviews() {
     return SizedBox(

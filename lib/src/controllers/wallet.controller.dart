@@ -22,6 +22,19 @@ class WalletController {
     }
   }
 
+  Future<Wallet?> getGroupWallet(String userId) async {
+    log('getGroupWallet userId: $userId');
+    try {
+      final json = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
+      selectedWallet.value = Wallet.fromJson(json.data);
+      log('selectedWallet: ${selectedWallet.value.address}');
+      return Wallet.fromJson(json.data);
+    } catch (e) {
+      log('getWalletDetailsByID error: $e');
+      return null;
+    }
+  }
+
   Future<void> createGroupWallet(String groupId, Group group) async {
     try {
       final json = await supabase

@@ -116,10 +116,10 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
     if (profile != null) {
       final firstName = profile.first_name?.toUpperCase() ?? 'N';
       final lastName = profile.last_name?.toUpperCase() ?? '';
-      final idSnippet = profile.id?.substring(0, 8) ?? '';
+      final idSnippet = profile.id ?? '';
       return '$firstName $lastName';
     } else {
-      return 'No name to format';
+      return 'No name to format in member_item';
     }
   }
 
@@ -164,7 +164,7 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
                   _buildInfoColumn(
                       'Subs Balance', profile.wallet_balance.toString()),
                   _buildInfoColumn(
-                      'Account ID', profile.id?.substring(0, 8) ?? ''),
+                      'Account ID', profile.id != null ? profile.id!.substring(0, 8) : 'N/A'),
                 ],
               ),
               _buildChatButton(profile),

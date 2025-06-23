@@ -53,7 +53,7 @@ class ProfileController extends MainController {
           await supabase.from('profiles').select().eq('id', id).single();
           */
       log('getUserDetails profileJson: $profileJson');
-      return profileJson.data['data'];
+      return profileJson.data;
     } catch (error) {
       isLoading.value = false;
       Helper.errorSnackBar(

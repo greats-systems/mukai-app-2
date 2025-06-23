@@ -59,7 +59,7 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
           ),
         ),
         elevation: 0,
-        backgroundColor: primaryColor,
+        backgroundColor: secondaryColor.withAlpha(50),
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 0.0,
@@ -177,7 +177,7 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
       child: Container(
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: primaryColor,
+          color: secondaryColor.withAlpha(100),
           borderRadius: BorderRadius.all(Radius.circular(15.0)),
         ),
         child: Row(
@@ -209,14 +209,14 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
                                 ? Ri.chat_3_line
                                 : Ri.notification_2_fill,
                         color: selectedTab == index
-                            ? secondaryColor
-                            : whiteF5Color,
+                            ? blackOrignalColor
+                            : blackColor,
                       ),
                       Text(
                         tabList[index].toString(),
                         style: selectedTab == index
-                            ? TextStyle(color: secondaryColor, fontSize: 14)
-                            : semibold14White,
+                            ? TextStyle(color: blackColor, fontSize: 14)
+                            : semibold14Black,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
                       ),

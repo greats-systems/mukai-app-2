@@ -2,32 +2,101 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/src/apps/home/wallet_balances.dart';
+import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
+import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/apps/reports/widgets/bar_graph.dart';
+import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
+// import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:mukai/utils/utils.dart';
+// import 'package:mukai/utils/utils.dart';
 import 'package:path_provider/path_provider.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
   @override
-  State<ReportsScreen> createState() => _ReportsScreenState();
+  State<ReportsScreen> createState() => _CoopReportsWidgetState();
 }
 
-class _ReportsScreenState extends State<ReportsScreen> {
-    final GetStorage getStorage = GetStorage();
+class _CoopReportsWidgetState extends State<ReportsScreen> {
+  final GetStorage getStorage = GetStorage();
+  final List<Map<String, dynamic>> report = [];
+  // final WalletController _groupWalletController = WalletController();
+  final TransactionController _transactionController = TransactionController();
+  String? userId;
+  dynamic walletIdUSD;
+  dynamic walletIdZIG;
+  dynamic financialReportUSD;
+  dynamic financialReportZIG;
+
+  Future<void> _fetchData() async {
+    try {
+      userId = await getStorage.read('userId');
+      final responseUSD = await supabase
+          .from('wallets')
+          .select('id')
+          .eq('profile_id', userId!)
+          .eq('is_group_wallet', false)
+          .eq('default_currency', 'usd');
+
+      final responseZIG = await supabase
+          .from('wallets')
+          .select('id')
+          .eq('profile_id', userId!)
+          .eq('is_group_wallet', false)
+          .eq('default_currency', 'zig');
+
+      if (responseUSD.isEmpty && responseZIG.isEmpty) {
+        log('No USD/ZIG group wallet found for user $userId');
+        walletIdUSD = null;
+        walletIdZIG = null;
+        financialReportUSD = [];
+        financialReportZIG = [];
+        return;
+      }
+
+      if (responseUSD.isNotEmpty) {
+        walletIdUSD = responseUSD.first; // Use first() instead of single()
+        financialReportUSD =
+            await _transactionController.getFinancialReport(walletIdUSD['id']);
+        createUSDReport();
+      } else {
+        log('No USD wallet found');
+        return;
+      }
+
+      if (responseZIG.isNotEmpty) {
+        walletIdZIG = responseZIG.first;
+        financialReportZIG =
+            await _transactionController.getFinancialReport(walletIdZIG['id']);
+        createZIGReport();
+      } else {
+        log('No ZiG wallet found');
+        return;
+      }
+    } catch (e, s) {
+      log('Error fetching wallet data: $e $s');
+      walletIdUSD = null;
+      walletIdZIG = null;
+      financialReportUSD = [];
+      financialReportZIG = [];
+    }
+  }
 
   List<String> periodList = [
-    'Weekly',
+    'Daily',
     'Monthly',
   ];
-    List<String> currencyList = [
+  List<String> currencyList = [
     'ZIG',
     'USD',
   ];
-  List<double> weeklyDeposits = [
+
+  List<double> dailyDeposits = [
     22.87,
     11.23,
     18.18,
@@ -37,7 +106,46 @@ class _ReportsScreenState extends State<ReportsScreen> {
     12.93
   ];
 
-  List<double> weeklyWithdrawals = [
+  List<double> dailyDepositsUSD_ = [];
+  List<double> dailyWithdrawalsUSD_ = [];
+  List<double> dailyDepositsZIG_ = [];
+  List<double> dailyWithdrawalsZIG_ = [];
+
+  List<double> monthlyDepositsUSD_ = [];
+  List<double> monthlyWithdrawalsUSD_ = [];
+  List<double> monthlyDepositsZIG_ = [];
+  List<double> monthlyWithdrawalsZIG_ = [];
+
+  List<double> annualDepositsUSD_ = [];
+  List<double> annualWithdrawalsUSD_ = [];
+  List<double> annualDepositsZIG_ = [];
+  List<double> annualWithdrawalsZIG_ = [];
+
+  void createUSDReport() {
+    for (var period in financialReportUSD) {
+      if (period['period_type'] == 'daily') {
+        dailyDepositsUSD_.add(period['deposit_usd'].toDouble());
+        dailyWithdrawalsUSD_.add(period['withdrawal_usd'].toDouble());
+      } else if (period['period_type'] == 'monthly') {
+        monthlyDepositsUSD_.add(period['deposit_usd'].toDouble());
+        monthlyWithdrawalsUSD_.add(period['withdrawal_usd'].toDouble());
+      }
+    }
+  }
+
+  void createZIGReport() {
+    for (var period in financialReportUSD) {
+      if (period['period_type'] == 'daily') {
+        dailyDepositsZIG_.add(period['deposit_zig'].toDouble());
+        dailyWithdrawalsZIG_.add(period['withdrawal_zig'].toDouble());
+      } else if (period['period_type'] == 'monthly') {
+        monthlyDepositsZIG_.add(period['deposit_zig'].toDouble());
+        monthlyWithdrawalsZIG_.add(period['withdrawal_zig'].toDouble());
+      }
+    }
+  }
+
+  List<double> dailyWithdrawals = [
     19.48,
     17.36,
     12.14,
@@ -83,34 +191,35 @@ class _ReportsScreenState extends State<ReportsScreen> {
     // TODO: Implement download functionality
     try {
       final userId = getStorage.read('userId');
-      final response = await supabase
-          .from('transactions')
-          .select()
-          .eq('wallet_id', userId);
+      final response =
+          await supabase.from('transactions').select().eq('wallet_id', userId);
 
       if (response.isEmpty) {
         throw Exception('No transactions found');
       }
 
-      final transactions = response as List<dynamic>;
-      
+      // final transactions = response as List<dynamic>;
+
       String fileContent = '';
-      if (selectedDropdownValue == 'Weekly') {
-        fileContent = 'Weekly Report\n';
+      if (selectedDropdownValue == 'Daily') {
+        fileContent = 'Daily Report\n';
         fileContent += 'Date,Deposit,Withdrawal\n';
-        for (int i = 0; i < weeklyDeposits.length; i++) {
-          fileContent += 'Day ${i + 1},${weeklyDeposits[i]},${weeklyWithdrawals[i]}\n';
+        for (int i = 0; i < dailyDeposits.length; i++) {
+          fileContent +=
+              'Day ${i + 1},${dailyDeposits[i]},${dailyWithdrawals[i]}\n';
         }
       } else {
         fileContent = 'Monthly Report\n';
         fileContent += 'Month,Deposit,Withdrawal\n';
         for (int i = 0; i < monthlyDeposits.length; i++) {
-          fileContent += 'Month ${i + 1},${monthlyDeposits[i]},${monthlyWithdrawals[i]}\n';
+          fileContent +=
+              'Month ${i + 1},${monthlyDeposits[i]},${monthlyWithdrawals[i]}\n';
         }
       }
 
       final directory = await getApplicationDocumentsDirectory();
-      final file = File('${directory.path}/report_${DateTime.now().millisecondsSinceEpoch}.${selectedCurrencyValue?.toLowerCase() ?? 'csv'}');
+      final file = File(
+          '${directory.path}/report_${DateTime.now().millisecondsSinceEpoch}.${selectedCurrencyValue?.toLowerCase() ?? 'csv'}');
       await file.writeAsString(fileContent);
 
       ScaffoldMessenger.of(context).showSnackBar(
@@ -130,6 +239,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       isDownloading = true;
     });
   }
+
   void setDropdownValue(String value) {
     setState(() {
       selectedDropdownValue = value;
@@ -143,182 +253,170 @@ class _ReportsScreenState extends State<ReportsScreen> {
     });
     log(selectedCurrencyValue!);
   }
+
   @override
   void initState() {
     super.initState();
-    selectedDropdownValue = 'Weekly';
+    log('Coop reports');
+    _fetchData();
+    selectedDropdownValue = 'Daily';
   }
 
   @override
+  @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    final height = size.height;
-    final width = size.width;
-    // return Center(child: const Text('Reports screen'));
-    return   Scaffold(
+    return Scaffold(
       appBar: AppBar(
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
             bottom: Radius.circular(20.0), // Adjust the radius as needed
           ),
         ),
-        elevation: 0,
-        backgroundColor: primaryColor,
+        backgroundColor: secondaryColor.withAlpha(50),
         automaticallyImplyLeading: false,
         centerTitle: false,
-        titleSpacing: 20.0,
-        toolbarHeight: 70.0,
-        title:               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  GestureDetector(
-                    onTap: () {
-                      // TODO: Implement download functionality
-                      showDialog(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: Text('Download Report'),
-                          content: Text('Choose download format'),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                // Download as PDF
-                              },
-                              child: Text('PDF'),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                Navigator.pop(context);
-                                // Download as Excel
-                              },
-                              child: Text('Excel'),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                    child: Container(
-                      padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Row(
-                        children: [
-                          Icon(Icons.download, color: Colors.white, size: 16),
-                          SizedBox(width: 4),
-                          Text(
-                            'Download Report',
-                            style: TextStyle(fontSize: 14, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                   DropdownButton<String>(
-                    underline: SizedBox(),
-                    dropdownColor: primaryColor,
-                    value: selectedCurrencyValue ??
-                        currencyList[0], // Default selected value
-                    items: currencyList
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value, style: TextStyle(color: Colors.white),),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setCurrencyValue(newValue!);
-                    },
-                  ),
-                  DropdownButton<String>(
-                    underline: SizedBox(),
-                    dropdownColor: primaryColor,
-                    value: selectedDropdownValue ??
-                        periodList[0], // Default selected value
-                    items: periodList
-                        .map<DropdownMenuItem<String>>((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value, style: TextStyle(color: Colors.white),),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setDropdownValue(newValue!);
-                    },
-                  ),
-                ],
-              ),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: SizedBox(
-          height: height,
-          width: width,
-          child: Column(
-            children: [
-
-              SizedBox(
-                height: 45,
-              ),
-              SizedBox(
-                width: width*0.85,
-                height: height*0.4,
-                child: MyBarGraph(
-                  periodicDeposits: selectedDropdownValue == 'Weekly'
-                      ? weeklyDeposits
-                      : monthlyDeposits,
-                  periodicWithdrawals: selectedDropdownValue == 'Weekly'
-                      ? weeklyWithdrawals
-                      : monthlyWithdrawals,
-                ),
-              ),
-              SizedBox(
-                height: 45,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    decoration: BoxDecoration(
-                        color: primaryColor,
-                        borderRadius: BorderRadius.circular(25)),
-                    width: width / 2.5,
-                    height: height / 6,
-                    child: Center(
-                        child: Text(
-                      'Deposits\n\$12 300,89',
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade400,
-                          fontWeight: FontWeight.bold),
-                    )),
-                  ),
-                  SizedBox(
-                    width: width / 12,
-                  ),
-                  Container(
-                    decoration: BoxDecoration(
-                        color: recColor,
-                        borderRadius: BorderRadius.circular(25)),
-                    width: width / 2.5,
-                    height: height / 6,
-                    child: Center(
-                        child: Text(
-                      'Withdrawals\n\$3 289,20',
-                      style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade400,
-                          fontWeight: FontWeight.bold),
-                    )),
-                  ),
-                ],
-              )
-            ],
-          ),
+        titleSpacing: 0.0,
+        toolbarHeight: 80.0,
+        elevation: 0,
+        title: Column(
+          children: [
+            const AppHeaderWidget(),
+            // WalletBalancesWidget(),
+          ],
         ),
       ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min, // Prevent column from expanding
+          children: [
+            // Header Row with controls
+            _buildControlsRow(size.width),
+            const SizedBox(height: 16),
+            // Graph Container with fixed height
+            Container(
+              height: size.height * 0.35, // Reduced from 0.5 to 0.35
+              padding: const EdgeInsets.symmetric(vertical: 8),
+              child: MyBarGraph(
+                periodicDeposits: selectedDropdownValue == 'Daily'
+                    ? (selectedCurrencyValue == 'USD'
+                        ? dailyDepositsUSD_
+                        : dailyDepositsZIG_)
+                    : (selectedCurrencyValue == 'USD'
+                        ? monthlyDepositsUSD_
+                        : monthlyDepositsZIG_),
+                periodicWithdrawals: selectedDropdownValue == 'Daily'
+                    ? (selectedCurrencyValue == 'USD'
+                        ? dailyWithdrawalsUSD_
+                        : dailyWithdrawalsZIG_)
+                    : (selectedCurrencyValue == 'USD'
+                        ? monthlyWithdrawalsUSD_
+                        : monthlyWithdrawalsZIG_),
+              ),
+            ),
+            // Add other content here if needed
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildControlsRow(double width) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        _buildDownloadButton(),
+        _buildCurrencyDropdown(),
+        _buildPeriodDropdown(),
+      ],
+    );
+  }
+
+  Widget _buildDownloadButton() {
+    return GestureDetector(
+      onTap: () {
+        showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Download Report'),
+            content: const Text('Choose download format'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  downloadReport();
+                },
+                child: const Text('CSV'),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  // Implement PDF download
+                },
+                child: const Text('PDF'),
+              ),
+            ],
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: primaryColor.withAlpha(100),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: const Row(
+          children: [
+            Icon(Icons.download, color: Colors.black, size: 16),
+            SizedBox(width: 4),
+            Text(
+              'Download',
+              style: TextStyle(fontSize: 14, color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrencyDropdown() {
+    return DropdownButton<String>(
+      underline: const SizedBox(),
+      dropdownColor: primaryColor.withAlpha(100),
+      value: selectedCurrencyValue ?? currencyList[0],
+      items: currencyList.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+            style: const TextStyle(color: Colors.black),
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() => selectedCurrencyValue = newValue);
+      },
+    );
+  }
+
+  Widget _buildPeriodDropdown() {
+    return DropdownButton<String>(
+      underline: const SizedBox(),
+      dropdownColor: primaryColor.withAlpha(100),
+      value: selectedDropdownValue ?? periodList[0],
+      items: periodList.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(
+            value,
+            style: const TextStyle(color: Colors.black),
+          ),
+        );
+      }).toList(),
+      onChanged: (String? newValue) {
+        setState(() => selectedDropdownValue = newValue);
+      },
     );
   }
 }

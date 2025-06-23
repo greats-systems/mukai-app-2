@@ -596,8 +596,8 @@ class AuthController extends MainController {
     log('getAcountCooperatives profileID userId: $userId');
     try {
       isLoading.value = true;
-      final response = await dio
-          .get('$APP_API_ENDPOINT/cooperatives/${userId}/cooperatives/');
+      final response =
+          await dio.get('$APP_API_ENDPOINT/cooperatives/${userId}');
       if (response.statusCode == 200) {
         var data = response.data['data'];
         final List<dynamic> json = data;
@@ -762,102 +762,11 @@ class AuthController extends MainController {
       }
     }
   }
-  /*
-  Future<void> signin() async {
-    try {
-      isLoading.value = true;
-      log('credentials ${email.value} ${password.value}');
-      final response = await dio.post(
-        '${APP_API_ENDPOINT}/auth/login',
-        data: {
-          'email': email.value,
-          'password': password.value,
-        },
-      );
-      // log('response ${JsonEncoder.withIndent(' ').convert(response.data)}');
-
-      if (response.data['statusCode'] == 200) {
-        log('status code?');
-        final authResponse = AuthResponse.fromJson(response.data);
-        log('Auth response $authResponse');
-        final Session? session = authResponse.session;
-        if (authResponse.user != null) {
-          isLoading.value = false;
-          await _getStorage.write(
-              'refresh_token', authResponse.session!.refreshToken!);
-          await _getStorage.write(
-              'access_token', authResponse.session!.accessToken);
-          final user = authResponse.user;
-          if (user != null && user.id.isNotEmpty) {
-            await _getStorage.write('email', email.value);
-            await _getStorage.write('password', password.value);
-            await _getStorage.write('sessionId', session!.accessToken);
-            await _getStorage.write('sessionExpiration', session.expiresAt);
-            await _getStorage.write('userId', user.id);
-          }
-          log('awaiting setInitialScreen');
-          await setInitialScreen(response.data['user']['account_type']);
-        } else {
-          isLoading.value = false;
-          log('Login failed?');
-        }
-      } else {
-        isLoading.value = false;
-        Helper.errorSnackBar(
-            title: 'Error',
-            message: response.data['message'] ?? 'Login failed');
-      }
-      isLoading.value = false;
-    } catch (error) {
-      isLoading.value = false;
-      if (error is AuthException) {
-        log('loggin AuthException ${error.message}');
-        Helper.errorSnackBar(title: 'Error', message: error.message);
-      } else if (error is DioException) {
-        log('log in DioException $error');
-        Helper.errorSnackBar(
-            title: 'Error', message: "${error.response?.data}");
-      }
-    }
-  }
-  */
 
   Future<String?> fetchUserId() async {
     final id = await _getStorage.read('userId');
     return id;
   }
-  /*
-  Future<void> signin() async {
-    try {
-      isLoading.value = true;
-      final response = await dio.post(
-        '$APP_API_ENDPOINT/auth/login',
-        data: {'email': email.value, 'password': password.value},
-      ).timeout(const Duration(seconds: 30));
-
-      if (response.statusCode == 200) {
-        final authResponse = AuthResponse.fromJson(response.data);
-        await _saveSessionData(authResponse);
-        
-        // Store the tokens and user data
-        await _sessionManager.saveSession(
-          accessToken: authResponse.access_token,
-          refreshToken: authResponse.refresh_token,
-          userId: authResponse.user?.id ?? '',
-        );
-        
-        await _handleSuccessfulLogin(
-          accountType: response.data['user']['account_type'],
-          userId: response.data['user']['id'],
-        );
-      }
-    } catch (e) {
-      // Handle errors
-    } finally {
-      isLoading.value = false;
-    }
-  }
-  */
 
   Future<void> signin() async {
     try {
@@ -873,7 +782,7 @@ class AuthController extends MainController {
       ).timeout(const Duration(seconds: 30)); // Add timeout
 
       log('Response received: ${JsonEncoder.withIndent(' ').convert(response.data)}');
-      log('response.statusCode ${response.statusCode}');
+
       if (response.statusCode == 200 || response.statusCode == 201) {
         log('Successful login response');
         final authResponse = AuthResponse.fromJson(response.data);
@@ -895,8 +804,7 @@ class AuthController extends MainController {
         userId.value = response.data['user']['id'];
         await _getStorage.write('userId', response.data['user']['id']);
         await _getStorage.write('accessToken', response.data['access_token']);
-        await _getStorage.write(
-            'account_type', response.data['user']['account_type']);
+        await _getStorage.write('role', response.data['user']['account_type']);
         log('Wrote account_type to storage');
         await _getStorage.read('account_type');
         final walletJson = await dio
@@ -904,14 +812,14 @@ class AuthController extends MainController {
         if (walletJson.data != null) {
           await _getStorage.write('walletId', walletJson.data['id']);
         }
-        if (response.data['user']['account_type'] == 'coop-member') {
-          final groupMemberJson =
-              await dio.get('$APP_API_ENDPOINT/group_member');
-        } else {}
-        await _handleSuccessfulLogin(
-          accountType: response.data['user']['account_type'],
-          userId: response.data['user']['id'],
-        );
+        // if (response.data['user']['account_type'] == 'coop-member') {
+        //   final groupMemberJson =
+        //       await dio.get('$APP_API_ENDPOINT/group_members/${userId.value}');
+        //   log('groupMemberJson: $groupMemberJson');
+        // } else {
+        //   final adminMemberJson = await dio.get('$APP_API_ENDPOINT/cooperatives/${userId.value}');
+        // }
+        await _handleSuccessfulLogin();
       } else if (response.statusCode == 401) {
         _handleFailedLogin(response);
       } else {
@@ -965,29 +873,19 @@ class AuthController extends MainController {
 
   // d475de43-c9ef-4510-9823-7b31e3fc92e0
 
-  Future<void> _handleSuccessfulLogin({
-    required String accountType,
-    required String userId,
-  }) async {
+  Future<void> _handleSuccessfulLogin() async {
     log(person.value.toString());
     try {
-      log('Handling successful login for $accountType');
+      // log('Handling successful login for $accountType');
 
       // Force navigation after successful login
+      final role = await _getStorage.read('account_type');
+      log('_handleSuccessfulLogin role: $role');
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (accountType == 'coop-manager') {
-          Get.offAll(() => BottomBar(
-                role: 'admin',
-              ));
-        } else {
-          Get.offAll(() => BottomBar(
-                role: 'member',
-              ));
-          // Get.offAll(() => const AdminLandingScreen());
-        }
+        Get.offAll(() => BottomBar());
       });
 
-      log('Navigation triggered for $accountType');
+      // log('Navigation triggered for $accountType');
     } catch (e) {
       log('Error handling successful login: $e');
       throw Exception('Failed to handle post-login navigation');
@@ -1156,36 +1054,6 @@ class AuthController extends MainController {
     }
   }
 
-  /*
-  Future<void> createUserWallet(String userId) async {
-    final walletJson = {
-      'id': null,
-      'holding_account': null,
-      'address': null,
-      'status': null,
-      'balance': null,
-      'last_transaction_timestamp': null,
-      'parent_wallet_id': null,
-      'provider': null,
-      'default_currency': null,
-      'business_id': null,
-      'is_shared': false,
-      'is_active': true,
-      'is_sub_wallet': false,
-      'profile_id': userId,
-      'coop_id': null,
-    };
-
-    try {
-      final response =
-          await dio.post('$APP_API_ENDPOINT/wallets', data: walletJson);
-      log(response.toString());
-    } catch (e, s) {
-      log('createUserWallet error: $e $s');
-    }
-  }
-  */
-
   Future<void> updateAccount(String userId) async {
     var response = await dio.put(
       '$APP_API_ENDPOINT/auth/update-account/$userId',
@@ -1265,16 +1133,26 @@ class AuthController extends MainController {
         'is_group_wallet': false,
       };
       await dio.post('$APP_API_ENDPOINT/chats', data: chatParams);
-      final walletJson =
-          await dio.post('$APP_API_ENDPOINT/wallets', data: walletParams);
-      await _getStorage.write('walletId', walletJson.data['id']);
+      // final walletJson =
+      //     await dio.post('$APP_API_ENDPOINT/wallets', data: walletParams);
+      // await _getStorage.write('walletId', walletJson.data['id']);
       if (auth_response.statusCode == 201) {
+        await _getStorage.write(
+            'account_type', auth_response.data['user']['account_type']);
+
+        // Also store in 'role' for backward compatibility if needed
+        await _getStorage.write(
+            'role', auth_response.data['user']['account_type']);
         if (account_type.value == 'coop-member') {
           // log('chats POST response: ${JsonEncoder.withIndent(' ').convert(chat_response.data)}');
           // log(response.data);
           AuthDataResponse new_auth_data =
               AuthDataResponse.fromJson(auth_response.data);
           log('Registration successful: ${JsonEncoder.withIndent(' ').convert(new_auth_data)}');
+          await _getStorage.write(
+              'role', auth_response.data['user']['account_type']);
+          final x = await _getStorage.read('role');
+          log('authenticated user role: $x');
           // await _getStorage.write('userId', new_auth_data.user.id);
           if (profileImageFile.value.path.isNotEmpty) {
             profileImageUrl.value = (await uploadFile(profileImageFile.value))!;
@@ -1285,30 +1163,6 @@ class AuthController extends MainController {
           if (profileImageUrl.value.isNotEmpty ||
               nIDFile.value.path.isNotEmpty) {
             await updateAccount(new_auth_data.user.id);
-            /*
-            var response = await dio.put(
-              '$APP_API_ENDPOINT/auth/update-account/${new_auth_data.user.id}',
-              data: {
-                'id': new_auth_data.user.id,
-                'avatar': profileImageUrl.value.isNotEmpty
-                    ? profileImageUrl.value
-                    : null,
-                'national_id_url':
-                    nIDFileUrl.value.isNotEmpty ? nIDFileUrl.value : null,
-                'passport_url': passportFileUrl.value.isNotEmpty
-                    ? passportFileUrl.value
-                    : null,
-              },
-              options: Options(
-                validateStatus: (status) {
-                  return status! < 500; // Don't throw for 4xx errors
-                },
-              ),
-            );
-            if (response.statusCode == 200) {
-              isLoading.value = false;
-            }
-            */
           }
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
@@ -1322,43 +1176,6 @@ class AuthController extends MainController {
               duration: 5);
           Get.to(() => AdminRegisterCoopScreen());
         }
-        /*
-        AuthDataResponse new_auth_data =
-            AuthDataResponse.fromJson(response.data);
-        log('Registration successful: $new_auth_data');
-        await _getStorage.write('userId', new_auth_data.data.userId);
-        if (profileImageFile.value.path.isNotEmpty) {
-          profileImageUrl.value = (await uploadFile(profileImageFile.value))!;
-        }
-        if (nIDFile.value.path.isNotEmpty) {
-          nIDFileUrl.value = (await uploadFile(nIDFile.value))!;
-        }
-        if (profileImageUrl.value.isNotEmpty || nIDFile.value.path.isNotEmpty) {
-          var response = await dio.put(
-            '${APP_API_ENDPOINT}/accounts/update-account/${new_auth_data.data.userId}',
-            data: {
-              'id': new_auth_data.data.userId,
-              'avatar': profileImageUrl.value.isNotEmpty
-                  ? profileImageUrl.value
-                  : null,
-              'national_id_url':
-                  nIDFileUrl.value.isNotEmpty ? nIDFileUrl.value : null,
-              'passport_url': passportFileUrl.value.isNotEmpty
-                  ? passportFileUrl.value
-                  : null,
-            },
-            options: Options(
-              validateStatus: (status) {
-                return status! < 500; // Don't throw for 4xx errors
-              },
-            ),
-          );
-          if (response.statusCode == 200) {
-            isLoading.value = false;
-          }
-          
-        }
-        */
       } else {
         isLoading.value = false;
         final errorData = auth_response.data;
@@ -1386,6 +1203,8 @@ class AuthController extends MainController {
       isLoading.value = false;
     }
   }
+
+  // Why am I being redirected to the member UI instead of the admin UI after this function executes?
 
   Future<void> registerCoop() async {
     try {
@@ -1425,14 +1244,9 @@ class AuthController extends MainController {
             title: 'Well Done',
             message: 'Your cooperative successfully created',
             duration: 5);
-        Get.to(() => BottomBar(
-              role: 'admin',
-            ));
+        _handleSuccessfulLogin();
       } else {
         isLoading.value = false;
-        // final errorData = response.data;
-        // final errorMessage = errorData['message'] ?? 'Registration failed';
-        // throw Exception(errorMessage);
       }
     } on DioException catch (e) {
       isLoading.value = false;
@@ -1642,10 +1456,9 @@ class AuthController extends MainController {
         AuthDataResponse new_auth_data =
             AuthDataResponse.fromJson(response.data);
         log('response new_auth_data: $new_auth_data');
-        await _getStorage.write('role', response.data['user']['account_type']);
+        await _getStorage.write('userId', response.data['user']['id']);
         userId.value = response.data['user']['id'];
-        _handleSuccessfulLogin(
-            accountType: account_type.value, userId: userId.value);
+        _handleSuccessfulLogin();
       }
     } catch (error) {
       log('Error: $error');

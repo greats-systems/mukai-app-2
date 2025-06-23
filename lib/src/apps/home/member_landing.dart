@@ -1,7 +1,12 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/constants.dart';
+import 'package:mukai/src/apps/home/qr_code.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/apps/home/widgets/apps_features.dart';
@@ -10,6 +15,8 @@ import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'dart:io';
+import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
 
 class MemberLandingScreen extends StatefulWidget {
   const MemberLandingScreen({super.key, this.userId});
@@ -26,6 +33,8 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
   final GetStorage _getStorage = GetStorage();
   TransactionController get transactionController =>
       Get.put(TransactionController());
+  QRViewController? controller;
+
   final tabList = ["Account", "Wallets", "Assets"];
   int selectedTab = 0;
   bool refresh = false;
@@ -33,12 +42,69 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
   late double width;
 
   String? walletId;
+  String? userId;
+  bool _isDisposed = false;
+  bool _isLoading = false;
+
+  void fetchProfile() async {
+    if (_isDisposed) return;
+
+    setState(() {
+      _isLoading = true;
+      userId = _getStorage.read('userId');
+    });
+
+    try {
+      final walletJson = await supabase
+          .from('wallets')
+          .select('id')
+          .eq('profile_id', userId!)
+          .single();
+
+      if (!_isDisposed && mounted) {
+        setState(() {
+          walletId = walletJson['id'];
+          _isLoading = false;
+        });
+        _getStorage.write('walletId', walletId);
+        log('MemberLandingScreen userId: $userId');
+        log('MemberLandingScreen walletId: $walletId');
+      }
+    } catch (e) {
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    pageController.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
+    super.initState();
     pageController = PageController(initialPage: selectedTab);
     walletId = _getStorage.read('walletId');
-    super.initState();
+    fetchProfile();
+  }
+
+  @override
+  void reassemble() {
+    super.reassemble();
+    try {
+      if (Platform.isAndroid) {
+        controller!.pauseCamera();
+      }
+      controller!.resumeCamera();
+    } catch (error) {
+      log('reassemble error occured ${error}');
+    }
   }
 
   @override
@@ -48,7 +114,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
     height = size.height;
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(325.0), // Match the toolbarHeight
+        preferredSize: const Size.fromHeight(336.0), // Match the toolbarHeight
         child: Container(
           decoration: BoxDecoration(
             boxShadow: [
@@ -66,14 +132,21 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                 bottom: Radius.circular(20.0), // Adjust the radius as needed
               ),
             ),
-            backgroundColor: whiteF5Color,
+            backgroundColor: whiteColor,
             automaticallyImplyLeading: false,
             centerTitle: false,
             titleSpacing: -1.0,
-            toolbarHeight: 325.0,
+            toolbarHeight: 340.0,
             elevation: 0,
             title: Column(
-              children: [const AppHeaderWidget(),WalletBalancesWidget(),  heightBox(30), tabBar()],
+              children: [
+                const AppHeaderWidget(),
+                WalletBalancesWidget(),
+                heightBox(30),
+                Obx(() => authController.initiateNewTransaction.value == true
+                    ? SizedBox()
+                    : tabBar())
+              ],
             ),
           ),
         ),
@@ -130,84 +203,127 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
   }
 
   memberInitiateTrans() {
-    return Column(
+    return Row(
       children: [
-        Container(
-          padding: EdgeInsets.all(16),
-          alignment: Alignment.center,
-          child: Center(
-            child: QrImageView(
-              data: walletId ?? 'No wallet ID',
-              version: QrVersions.auto,
-              size: 250.0,
-            ),
-          ),
-        ),
-        Text('Scan to pay', style: bold16Black),
-        heightBox(20),
-        Container(
-            alignment: Alignment(0, 0),
-            height: height * 0.06,
-            width: width * 0.6,
-            padding: EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: primaryColor,
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              spacing: 5,
-              children: [
-                Container(
-                  alignment: Alignment.center,
-                  child: Image.asset(
-                    "assets/icons/mingcute_nfc-fill.png",
-                    height: 40,
-                    color: whiteF5Color,
-                  ),
-                ),
-                Text(
-                  'Use NFC',
-                  style: bold16White,
-                ),
-              ],
-            )),
-        heightBox(20),
-        GestureDetector(
-          onTap: () {
-            transactionController.selectedTransferOption.value = 'wallet';
-            transactionController.selectedTransferOption.refresh();
-            Get.to(() => TransfersScreen(
-                  category: 'wallet',
-                ));
-          },
-          child: Container(
-              alignment: Alignment(0, 0),
-              height: height * 0.06,
-              width: width * 0.6,
-              padding: EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: tertiaryColor,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 5,
-                children: [
-                  Container(
-                    alignment: Alignment.center,
-                    child: Image.asset(
-                      "assets/icons/mingcute_transfer-horizontal-line.png",
-                      height: 40,
-                      color: whiteF5Color,
+        Column(
+          children: [
+            heightBox(20),
+            Text('Scan QR-Code to Pay', style: bold16Black),
+            Container(
+              padding: EdgeInsets.all(10),
+              alignment: Alignment.center,
+              child: Center(
+                child: Column(
+                  children: [
+                    QrImageView(
+                      data: walletId ?? 'No wallet ID 3',
+                      version: QrVersions.auto,
+                      size: 160.0,
                     ),
+                    Text('${userId?.substring(24, 36)}')
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+        SizedBox(
+          width: width * 0.45,
+          child: Column(
+            children: [
+              heightBox(height * 0.08),
+              GestureDetector(
+                onTap: () {
+                  transactionController.selectedTransferOption.value = 'wallet';
+                  transactionController.selectedTransferOption.refresh();
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const QRViewExample(),
+                  ));
+                  // Get.to(() => TransfersScreen(
+                  //       category: 'wallet',
+                  //     ));
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.05,
+                    width: width * 0.9,
+                    // padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: tertiaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 5,
+                      children: [
+                        Container(
+                          alignment: Alignment.center,
+                          child: Image.asset(
+                            "assets/icons/mage_qr-code-fill.png",
+                            height: 40,
+                            color: whiteF5Color,
+                          ),
+                        ),
+                        Text(
+                          'Scan QR Code',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
+              ),
+              heightBox(20),
+              Container(
+                  alignment: Alignment(0, 0),
+                  height: height * 0.05,
+                  width: width * 0.9,
+                  // padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                  Text(
-                    'Sent to Member',
-                    style: bold16White,
-                  ),
-                ],
-              )),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 5,
+                    children: [
+                      Text(
+                        "Use NFC Tap n' Pay",
+                        style: bold16White,
+                      ),
+                    ],
+                  )),
+              heightBox(20),
+              GestureDetector(
+                onTap: () {
+                  transactionController.selectedTransferOption.value =
+                      'manual_wallet';
+                  transactionController.selectedTransferOption.refresh();
+                  transactionController.selectedProfile.value = Profile();
+                  Get.to(() => TransfersScreen(
+                        category: 'Direct Wallet',
+                      ));
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.05,
+                    width: width * 0.9,
+                    // padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: tertiaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 5,
+                      children: [
+                        Text(
+                          'Add Wallet Address',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
+              ),
+            ],
+          ),
         )
       ],
     );
@@ -237,13 +353,13 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(fixPadding * 2),
                   decoration: BoxDecoration(
-                      color: selectedTab == index
-                          ? primaryColor
-                          : tertiaryColor),
+                      color:
+                          selectedTab == index ? primaryColor : tertiaryColor),
                   child: Text(
                     tabList[index].toString(),
-                    style:
-                        selectedTab == index ? semibold12White : semibold12black,
+                    style: selectedTab == index
+                        ? semibold12White
+                        : semibold12black,
                     textAlign: TextAlign.center,
                     overflow: TextOverflow.ellipsis,
                   ),

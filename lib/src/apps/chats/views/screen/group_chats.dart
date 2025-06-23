@@ -13,6 +13,7 @@ import 'package:mukai/src/apps/groups/views/screens/create_group.dart';
 import 'package:mukai/src/apps/groups/views/screens/landing_page.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class GroupsList extends StatefulWidget {
   final int index;
@@ -34,48 +35,82 @@ class _GroupsListState extends State<GroupsList> {
   String? role;
   String searchQuery = '';
 
-  bool _isLoading = false;
+  bool _isLoading = true; // Start with loading true
+  bool _dataLoaded = false; // Track if data loading is complete
 
   @override
   void initState() {
-    setState(() {
-      _isLoading = true;
-    });
     super.initState();
-    setState(() {
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    try {
       loggedInUserId = _getStorage.read('userId');
-      role = _getStorage.read('account_type');
-      _initializeStream();
-      _initializeMembers();
-      _isLoading = false;
-    });
-    log('GroupsList userId: $loggedInUserId\trole: $role\n groups: $_memberGroups');
+      role = _getStorage.read('role');
+      log('GroupsList role: $role');
+
+      await Future.wait([
+        _initializeStream(),
+        _initializeMembers(),
+      ]);
+
+      if (mounted) {
+        setState(() {
+          _dataLoaded = true;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      log('Error initializing data: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
   }
 
   Future<void> _initializeStream() async {
-    _groupsStream = supabase
+    if (!mounted) return;
+
+    final stream = supabase
         .from('cooperatives')
         .stream(primaryKey: ['id'])
         .eq('admin_id', loggedInUserId ?? '')
         .order('created_at', ascending: false)
         .map((maps) => maps.map((map) => Group.fromMap(map)).toList());
+
+    if (mounted) {
+      setState(() {
+        _groupsStream = stream;
+      });
+    }
   }
 
   Future<void> _initializeMembers() async {
-    final memberData = await supabase
-        .from('group_members')
-        .select('member_id, cooperatives(*)')
-        .eq('member_id', loggedInUserId ?? '')
-        .order('created_at', ascending: false);
-    log('_initializeMembers memberData: ${memberData[0]}');
-    setState(() {
-    if (memberData[0]['cooperatives'] is Map) {
-      _memberGroups = [Group.fromMap(memberData[0]['cooperatives'])];
-    } else {
-      _memberGroups = memberData.map((item) => Group.fromMap(item)).toList();
+    try {
+      final memberData = await supabase
+          .from('group_members')
+          .select('member_id, cooperatives(*)')
+          .eq('member_id', loggedInUserId ?? '')
+          .order('created_at', ascending: false);
+
+      if (mounted) {
+        setState(() {
+          _memberGroups = memberData[0]['cooperatives'] is Map
+              ? [Group.fromMap(memberData[0]['cooperatives'])]
+              : memberData.map((item) => Group.fromMap(item)).toList();
+        });
+      }
+    } catch (e) {
+      log('Error loading members: $e');
+      if (mounted) {
+        setState(() {
+          _memberGroups = [];
+        });
+      }
     }
-  });
-    log('_memberGroups: $_memberGroups');
   }
 
   @override
@@ -84,25 +119,68 @@ class _GroupsListState extends State<GroupsList> {
     super.dispose();
   }
 
-@override
-Widget build(BuildContext context) {
-  if (_isLoading) {
-    return Center(child: CircularProgressIndicator());
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return Center(child: LoadingShimmerWidget());
+    }
+
+    // Show empty state if no data loaded
+    if (!_dataLoaded) {
+      return Center(child: Text('Failed to load data'));
+    }
+
+    final isCoopMember = role == 'coop-member';
+    final hasGroups = isCoopMember
+        ? _memberGroups?.isNotEmpty ?? false
+        : _groupsStream != null;
+
+    return Column(
+      children: [
+        if (!isCoopMember) _buildSearchField(),
+        Expanded(
+          child: hasGroups
+              ? isCoopMember
+                  ? _buildMembersList()
+                  : _buildGroupsList()
+              : _buildEmptyState(isCoopMember),
+        )
+      ],
+    );
   }
 
-  // Determine which list to show based on role
-  final isCoopMember = role == 'coop-member';
-  final mainContent = isCoopMember ? _buildMembersList() : _buildGroupsList();
-
-  return Column(
-    mainAxisAlignment: MainAxisAlignment.center,
-    children: [
-      if (!isCoopMember) _buildSearchField(),
-      Expanded(child: mainContent),
-      const SizedBox(height: 10),
-    ],
-  );
-}
+  Widget _buildEmptyState(bool isCoopMember) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(isCoopMember
+              ? 'You are not part of any groups yet'
+              : 'No groups found'),
+          const SizedBox(height: 20),
+          ElevatedButton(
+            onPressed: () => Get.to(() => MemberRegisterCoopScreen()),
+            child: const Text('Search for Groups'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+            ),
+          ),
+          const SizedBox(height: 10),
+          if (!isCoopMember) ...[
+            ElevatedButton(
+              onPressed: () => Get.to(() => CreateGroup()),
+              child: const Text('Create a Group'),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: primaryColor,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
 
   Widget _buildSearchField() {
     return Padding(
@@ -129,141 +207,137 @@ Widget build(BuildContext context) {
   }
 
   Widget _buildGroupsList() {
-    return Expanded(
-      child: StreamBuilder<List<Group>>(
-        stream: _groupsStream,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return StreamBuilder<List<Group>>(
+      stream: _groupsStream,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('This account has no groups associated with it.'),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      // TODO: Navigate to search screen
-                      Get.to(() => MemberRegisterCoopScreen());
-                    },
-                    child: const Text('Search for Groups'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text('This account has no groups associated with it.'),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to search screen
+                    Get.to(() => MemberRegisterCoopScreen());
+                  },
+                  child: const Text('Search for Groups'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
                   ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      // TODO: Navigate to create group screen
-                      Get.to(() => CreateGroup());
-                    },
-                    child: const Text('Create a Group'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
+                ),
+                const SizedBox(height: 10),
+                ElevatedButton(
+                  onPressed: () {
+                    // TODO: Navigate to create group screen
+                    Get.to(() => CreateGroup());
+                  },
+                  child: const Text('Create a Group'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primaryColor,
+                    foregroundColor: Colors.white,
                   ),
-                ],
-              ),
-            );
-          }
-
-          final groups = snapshot.data!
-              .where((group) =>
-                  group.name
-                      ?.toLowerCase()
-                      .contains(searchQuery.toLowerCase()) ??
-                  false)
-              .toList();
-
-          return ListView.builder(
-            itemCount: groups.length,
-            itemBuilder: (context, index) {
-              final group = groups[index];
-              return _buildGroupTile(group);
-            },
+                ),
+              ],
+            ),
           );
-        },
-      ),
+        }
+
+        final groups = snapshot.data!
+            .where((group) =>
+                group.name?.toLowerCase().contains(searchQuery.toLowerCase()) ??
+                false)
+            .toList();
+
+        return ListView.builder(
+          itemCount: groups.length,
+          itemBuilder: (context, index) {
+            final group = groups[index];
+            return _buildGroupTile(group);
+          },
+        );
+      },
     );
   }
 
   Widget _buildMembersList() {
-    return Expanded(
-      child: StreamBuilder<List<Group>>(
-        stream: _memberGroups != null
-            ? Stream.fromIterable([_memberGroups!])
-            : Stream.empty(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+    return _isLoading
+        ? const Center(child: LoadingShimmerWidget())
+        : StreamBuilder<List<Group>>(
+            stream: _memberGroups != null
+                ? Stream.fromIterable([_memberGroups!])
+                : Stream.empty(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: LoadingShimmerWidget());
+              }
 
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-          if (!snapshot.hasData || snapshot.data!.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Text('This account has no groups associated with it.'),
-                  const SizedBox(height: 20),
-                  ElevatedButton(
-                    onPressed: () {
-                      // TODO: Navigate to search screen
-                      Get.to(() => MemberRegisterCoopScreen());
-                    },
-                    child: const Text('Search for Groups'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
+              if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Text('This account has no groups associated with it.'),
+                      const SizedBox(height: 20),
+                      ElevatedButton(
+                        onPressed: () {
+                          // TODO: Navigate to search screen
+                          Get.to(() => MemberRegisterCoopScreen());
+                        },
+                        child: const Text('Search for Groups'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      ElevatedButton(
+                        onPressed: () {
+                          // TODO: Navigate to create group screen
+                          Get.to(() => CreateGroup());
+                        },
+                        child: const Text('Create a Group'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: primaryColor,
+                          foregroundColor: Colors.white,
+                        ),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  ElevatedButton(
-                    onPressed: () {
-                      // TODO: Navigate to create group screen
-                      Get.to(() => CreateGroup());
-                    },
-                    child: const Text('Create a Group'),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: primaryColor,
-                      foregroundColor: Colors.white,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
+                );
+              }
 
-          final groups = snapshot.data!
-              .where((group) =>
-                  group.name
-                      ?.toLowerCase()
-                      .contains(searchQuery.toLowerCase()) ??
-                  false)
-              .toList();
+              final groups = snapshot.data!
+                  .where((group) =>
+                      group.name
+                          ?.toLowerCase()
+                          .contains(searchQuery.toLowerCase()) ??
+                      false)
+                  .toList();
 
-          return ListView.builder(
-            itemCount: groups.length,
-            itemBuilder: (context, index) {
-              final group = groups[index];
-              return _buildMemberTile(group);
+              return ListView.builder(
+                itemCount: groups.length,
+                itemBuilder: (context, index) {
+                  final group = groups[index];
+                  return _buildMemberTile(group);
+                },
+              );
             },
           );
-        },
-      ),
-    );
   }
 
   Widget _buildGroupTile(Group group) {

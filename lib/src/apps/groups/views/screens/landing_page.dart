@@ -1,16 +1,19 @@
 import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
+import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
 import 'package:mukai/src/apps/groups/views/screens/add_asset.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_assets.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_memeber_analytics.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_reports.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_wallet_balances.dart';
+import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
@@ -38,19 +41,27 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   bool refresh = false;
   late double height;
   late double width;
-  String? walletId;
+  dynamic? walletId;
 
   String? userId;
   String? role;
   bool _isLoading = false;
+  final dio = Dio();
 
   void fetchProfile() async {
     if (_isDisposed) return;
     setState(() {
       _isLoading = true;
       userId = _getStorage.read('userId');
-      role = _getStorage.read('account_type');
+      role = _getStorage.read('role');
     });
+    final walletJson =
+        await supabase.from('wallets').select('id').eq('profile_id', userId!);
+    // .single();
+    setState(() {
+      walletId = walletJson;
+    });
+    log('CoopLandingScreen walletId: $walletId');
 
     // final userjson = await profileController.getUserDetails(userId!);
 
@@ -65,7 +76,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   void initState() {
     log('CoopLandingScreen group.id: ${widget.group.id}');
     pageController = PageController(initialPage: selectedTab);
-    walletId = _getStorage.read('walletId');
+    // walletId = _getStorage.read('walletId');
     fetchProfile();
 
     super.initState();
@@ -85,13 +96,13 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-      floatingActionButton: selectedTab == 2
+      floatingActionButton: role == 'coop-manager' && selectedTab == 2
           ? FloatingActionButton(
               onPressed: () {
                 Get.to(() => AddAssetWidget(group: widget.group));
               },
               backgroundColor: primaryColor,
-              child: const Icon(Icons.add),
+              child: const Icon(Icons.add, color: tertiaryColor, size: 36,),
             )
           : null,
       backgroundColor: primaryColor,
@@ -163,11 +174,9 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       onTap: () {
         log('CoopHeaderWidget\nuserId: $userId\nrole: $role');
         if (role == 'coop-manager') {
-          Get.to(() => BottomBar(role: 'admin'));
+          Get.to(() => BottomBar());
         } else {
-          Get.to(() => BottomBar(
-                role: 'member',
-              ));
+          Get.to(() => BottomBar());
         }
       },
       child: Container(
@@ -210,7 +219,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  Utils.trimp('${widget.group.name ?? 'No name'}'),
+                  Utils.trimp(widget.group.name ?? 'No name on landing page'),
                   style: semibold18WhiteF5,
                 ),
               ),
@@ -336,9 +345,12 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                 children: [
                   Column(
                     children: [
+                      downloadReports(context),
                       SizedBox(
-                          height: height * 0.33, child: CoopReportsWidget()),
-                      CoopMemeberAnalytics(group: widget.group),
+                          height: height * 0.35, child: CoopReportsWidget()),
+                      if (role == 'coop-manager')
+                        CoopMemeberAnalytics(group: widget.group),
+                      // if (role == 'coop-manager')
                       CoopWalletBalancesWidget(group: widget.group),
                     ],
                   ),
@@ -400,6 +412,85 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
             );
           },
         ),
+      ),
+    );
+  }
+
+  downloadReports(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () {
+              Get.to(() => MemberPaySubs(group: widget.group));
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: tertiaryColor.withAlpha(100),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'Pay Subscription',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: () {
+              // TODO: Implement download functionality
+              showDialog(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: Text('Download Report'),
+                  content: Text('Choose download format'),
+                  actions: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Download as PDF
+                      },
+                      child: Text('PDF'),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.pop(context);
+                        // Download as Excel
+                      },
+                      child: Text('Excel'),
+                    ),
+                  ],
+                ),
+              );
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: primaryColor.withAlpha(100),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.download, color: Colors.black, size: 16),
+                  SizedBox(width: 4),
+                  Text(
+                    'Download Report',
+                    style: TextStyle(fontSize: 14, color: Colors.black),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }

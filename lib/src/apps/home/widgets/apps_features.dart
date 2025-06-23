@@ -9,6 +9,7 @@ import 'package:mukai/src/apps/home/widgets/assets/assets_list.dart';
 import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
 import 'package:mukai/src/apps/home/widgets/recent_transactions.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfer_transaction.dart';
+import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/theme/theme.dart';
 
 class HomeAccountWidgetApps extends StatefulWidget {
@@ -26,7 +27,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
   late double height;
   late double width;
   final accountList = [
-    {"image": "assets/icons/Buy stocks.png", "title": "Pay Subs"},
+    // {"image": "assets/icons/Buy stocks.png", "title": "Pay Subs"},
     {"image": "assets/icons/vaadin_money-withdraw.png", "title": "Withdraw"},
     {"image": "assets/icons/bx_transfer.png", "title": "Transfer"},
     {
@@ -50,8 +51,10 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
     {"image": "assets/icons/game-icons_wallet.png", "title": "Gazette Stocks"},
   ];
   final assetsList = [
-    {"image": "assets/icons/material-symbols_folder-managed-rounded.png", "title": "Assets"},
-
+    {
+      "image": "assets/icons/material-symbols_folder-managed-rounded.png",
+      "title": "Assets"
+    },
     {"image": "assets/icons/gridicons_add-outline.png", "title": "Add Asset"},
     {"image": "assets/icons/Group.png", "title": "Declare Ownership"},
     {"image": "assets/icons/game-icons_cash.png", "title": "Request Valuation"},
@@ -77,6 +80,10 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
   void _handleItemTap(String title) {
     switch (title) {
       case 'Withdraw':
+        Get.to(() => TransfersScreen(
+              category: 'cashout',
+            ));
+
         // Get.to(() => WithdrawScreen());
         throw UnimplementedError();
       case 'Transfer':
@@ -86,17 +93,17 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
         Get.to(() => ConverterScreen());
         break;
       case 'Add Asset':
-          Get.to(() => AddMemberAssetWidget());
+        Get.to(() => AddMemberAssetWidget());
         break;
       case 'Assets':
         Get.to(() => MemberAssetsList());
         break;
-  
-      case 'Pay Subs':
-        Get.to(() => MemberPaySubs());
-        break;
-        
-        /*
+
+      // case 'Pay Subs':
+      //   Get.to(() => MemberPaySubs());
+      //   break;
+
+      /*
       case 'Pay Subs':
       Get.to(() => TransferTransactionScreen(purpose: 'subscription'));
       break;
@@ -119,9 +126,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
         throw UnimplementedError();
       // Add cases for all your other options
       default:
-        Get.snackbar(
-          
-          'Coming Soon', 'This feature is under development');
+        Get.snackbar('Coming Soon', 'This feature is under development');
         break;
     }
   }

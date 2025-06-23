@@ -1,7 +1,11 @@
+import 'dart:convert';
 import 'dart:developer';
 
+import 'package:dio/dio.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/asset.controller.dart';
@@ -24,11 +28,13 @@ import 'package:iconify_flutter_plus/icons/ph.dart';
 class AssetDetailScreen extends StatefulWidget {
   final Asset asset;
   final String? status;
+  final Group? group;
 
   const AssetDetailScreen({
     super.key,
     required this.asset,
     this.status,
+    this.group,
   });
 
   @override
@@ -36,7 +42,7 @@ class AssetDetailScreen extends StatefulWidget {
 }
 
 class _MemberDetailScreenState extends State<AssetDetailScreen> {
-    TextEditingController descriptionController = TextEditingController();
+  TextEditingController descriptionController = TextEditingController();
   TextEditingController fiatValueController = TextEditingController();
   TextEditingController nameController = TextEditingController();
   TextEditingController walletAddressController = TextEditingController();
@@ -62,12 +68,16 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
   late double width;
   Map<String, dynamic>? userJson = {};
   bool _isLoading = false;
-
-
+  String? role;
+  String? userId;
+  Dio dio = Dio();
 
   @override
   void initState() {
     assetController.asset.value = widget.asset;
+    userId = GetStorage().read('userId');
+    role = GetStorage().read('role');
+    log('AssetDetailScreen userId: $userId\nrole: $role\ngroup id: ${widget.group!.id}');
     // getProfile().then((value) {});
     setDetails();
     super.initState();
@@ -76,37 +86,11 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
   void setDetails() {
     if (userJson != null) {
       nameController.text = widget.asset.assetDescriptiveName ?? 'No name';
-      descriptionController.text = widget.asset.assetDescription ?? 'No description';
+      descriptionController.text =
+          widget.asset.assetDescription ?? 'No description';
       fiatValueController.text = widget.asset.fiatValue.toString();
     }
   }
-
-  /*
-  Future<void> getProfile() async {
-    log(asset.id ?? 'No ID');
-    log('Fetching data');
-    // final jsonData = await fetchData();
-    log('Done');
-    // log('jsonData: ${JsonEncoder.withIndent(' ').convert(jsonData)}');
-    profileController.selectedProfile.value = asset;
-    profileController.asset.value = asset;
-    profileController.asset.refresh();
-    log(JsonEncoder.withIndent(' ')
-        .convert(profileController.asset.value.toMap()));
-
-    authController.selected_province.value =
-        asset.province_state ?? 'no province';
-    authController.selected_city.value = asset.id ?? 'no city';
-    asset.country = asset.country ?? 'no country';
-
-    nameController.text = asset.first_name ?? 'no name';
-    lastNameController.text = asset.last_name ?? 'no name';
-    accountTypeController.text = asset.account_type ?? 'no account type';
-    emailController.text = asset.email ?? 'no email';
-    mobileNumberController.text = asset.phone ?? 'no phone';
-    cityController.text = asset.city ?? 'no city';
-  }
-  */
 
   @override
   Widget build(BuildContext context) {
@@ -168,12 +152,11 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                 ],
               ),
             ),
-            bottomNavigationBar: requestSummary(widget.asset)
-                // profileController.selectedProfile.value == 'accepted'
-                //     ? updateButton(context)
-                //     : ,
-          );
+            bottomNavigationBar: role == 'coop-member'
+                ? pollSummary(widget.asset)
+                : requestSummary(widget.asset));
   }
+
   nameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -185,6 +168,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: role == 'coop-member' ? false : true,
             onChanged: (value) {
               assetController.asset.value?.assetDescriptiveName = value;
             },
@@ -204,7 +188,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
-    descriptionField() {
+  descriptionField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -215,6 +199,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: role == 'coop-member' ? false : true,
             onChanged: (value) {
               assetController.asset.value?.assetDescription = value;
             },
@@ -274,6 +259,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: role == 'coop-member' ? false : true,
             onChanged: (value) {
               assetController.asset.value?.fiatValue = double.parse(value);
             },
@@ -304,32 +290,35 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
         heightSpace,
         boxWidget(
           child: DropdownSearch<String>(
-                onChanged: (value) {
-                  if (value != null) {
-                    assetController.asset.value?.category = value;
-                  }
-                },
-                selectedItem: "Fixed", // Default to Fixed
-                items: (filter, infiniteScrollProps) => const ["Fixed", "Non-Fixed", "Other"],
-                decoratorProps: DropDownDecoratorProps(
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Select Asset Type',
-                    hintStyle: semibold14Grey,
-                    contentPadding: EdgeInsets.all(fixPadding * 1.5),
-                  ),
-                ),
-                popupProps: PopupProps.menu(
-                  itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(item, style: semibold14Black),
-                  ),
-                ),
+            enabled: role == 'coop-member' ? false : true,
+            onChanged: (value) {
+              if (value != null) {
+                assetController.asset.value?.category = value;
+              }
+            },
+            selectedItem: "Fixed", // Default to Fixed
+            items: (filter, infiniteScrollProps) =>
+                const ["Fixed", "Non-Fixed", "Other"],
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Select Asset Type',
+                hintStyle: semibold14Grey,
+                contentPadding: EdgeInsets.all(fixPadding * 1.5),
               ),
+            ),
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(item, style: semibold14Black),
+              ),
+            ),
+          ),
         )
       ],
     );
   }
+
   country_field() {
     return Container(
       width: double.maxFinite,
@@ -539,55 +528,75 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
-
-
-  /*
-  mobileNumberField() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Container(
-        decoration: BoxDecoration(
-          color: whiteColor,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: IntlPhoneField(
-          // focusNode: FocusNode(onKeyEvent: ),
-          keyboardType: TextInputType.phone,
-          onChanged: (value) => {
-            profileController.asset.value.phone = value.completeNumber,
-          },
-          controller: mobileNumberController,
-          disableLengthCheck: true,
-          showCountryFlag: false,
-          dropdownTextStyle: semibold14Black,
-          initialCountryCode: "ZW",
-          dropdownIconPosition: IconPosition.trailing,
-          dropdownIcon: const Icon(
-            Icons.keyboard_arrow_down,
-            color: blackOrignalColor,
-          ),
-          style: medium14Black,
-          dropdownDecoration: const BoxDecoration(
-            border: Border(
-              right: BorderSide(color: blackOrignalColor, width: 2.0),
-            ),
-          ),
-          pickerDialogStyle: PickerDialogStyle(backgroundColor: dialogBgColor),
-          flagsButtonMargin: const EdgeInsets.symmetric(
-              horizontal: fixPadding, vertical: fixPadding / 1.5),
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
-            hintText: "Enter your mobile number",
-            hintStyle: medium14Black,
-          ),
-        ),
+  supportButton(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: GestureDetector(
+        onTap: () {
+          log('${widget.group!.id}');
+          // profileController.updateUser();
+          // Navigator.pop(context);
+        },
+        child: Obx(() => profileController.isLoading.value == true
+            ? const LinearProgressIndicator(
+                color: whiteColor,
+              )
+            : Container(
+                width: double.maxFinite,
+                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
+                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(10.0),
+                  boxShadow: buttonShadow,
+                ),
+                child: const Text(
+                  "Support",
+                  style: bold18White,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )),
       ),
     );
   }
-  */
+
+  opposeButton(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: GestureDetector(
+        onTap: () {
+          log('I oppose');
+          // profileController.updateUser();
+          // Navigator.pop(context);
+        },
+        child: Obx(() => profileController.isLoading.value == true
+            ? const LinearProgressIndicator(
+                color: whiteColor,
+              )
+            : Container(
+                width: double.maxFinite,
+                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
+                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(10.0),
+                  boxShadow: buttonShadow,
+                ),
+                child: const Text(
+                  "Oppose",
+                  style: bold18White,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )),
+      ),
+    );
+  }
 
   cityField() {
     return Column(
@@ -613,10 +622,6 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
       ],
     );
   }
-
-
-
-
 
   walletAddressField() {
     return Column(
@@ -869,6 +874,148 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
+  pollSummary(Asset asset) {
+    return Container(
+      width: double.maxFinite,
+      margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
+          fixPadding * 2.0, fixPadding * 3.0),
+      padding: const EdgeInsets.symmetric(
+          horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
+      decoration: BoxDecoration(
+        color: whiteF5Color,
+        borderRadius: BorderRadius.circular(10.0),
+        boxShadow: buttonShadow,
+      ),
+      child: Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: Row(
+          spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            GestureDetector(
+              onTap: () async {
+                // log('asset id: ${widget.asset.id}');
+
+                var params = {
+                  'group_id': widget.group!.id,
+                  'supporting_votes': userId,
+                  'updated_at': DateTime.now().toIso8601String(),
+                  'asset_id': widget.asset.id,
+                };
+                try {
+                  final response = await dio.patch(
+                      '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
+                      data: params);
+                  log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
+                  // Navigator.pop(context);
+                  // if (response.data['error']) {
+                  //   Helper.errorSnackBar(
+                  //       title: 'Error',
+                  //       message: response.data['error']['message']);
+                  // }
+                  if (response.data['data'] == "You have voted already") {
+                    Helper.warningSnackBar(
+                        title: 'Duplicate vote',
+                        message: response.data['data'],
+                        duration: 5);
+                  } else {
+                    Helper.successSnackBar(
+                        title: 'Success!',
+                        message: 'You have cast your vote',
+                        duration: 5);
+                  }
+                } on DioException catch (e, s) {
+                  log('DioException encountered when casting vote $e $s');
+                  Helper.errorSnackBar(
+                      title: 'Error', message: e.toString(), duration: 5);
+                  // TODO
+                } on Exception catch (e, s) {
+                  log('Error encountered when casting vote $e $s');
+                  Helper.errorSnackBar(
+                      title: 'Error', message: e.toString(), duration: 5);
+                }
+              },
+              child: Container(
+                  alignment: Alignment(0, 0),
+                  height: height * 0.04,
+                  width: width * 0.25,
+                  // padding: EdgeInsets.all(5),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 1,
+                    children: [
+                      Text(
+                        'Support',
+                        style: bold16White,
+                      ),
+                    ],
+                  )),
+            ),
+            if (profileController.selectedProfile.value.status == 'declined')
+              SizedBox()
+            else
+              GestureDetector(
+                onTap: () async {
+                  // log('I oppose');
+                  var params = {
+                    'group_id': widget.group!.id,
+                    'opposing_votes': userId,
+                    'updated_at': DateTime.now().toIso8601String(),
+                    'asset_id': widget.asset.id,
+                  };
+                  try {
+                    log(params.toString());
+                    final response = await dio.patch(
+                        '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
+                        data: params);
+                    log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
+                    // Navigator.pop(context);
+                    if (response.data['data'] == 'You have voted already') {
+                      Helper.warningSnackBar(
+                          title: 'Duplicate vote',
+                          message: response.data['data'],
+                          duration: 5);
+                    } else {
+                      Helper.successSnackBar(
+                          title: 'Success!',
+                          message: 'You have cast your vote',
+                          duration: 5);
+                    }
+                  } on Exception catch (e, s) {
+                    log('Error casting opposing vote: $e $s');
+                  }
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.04,
+                    width: width * 0.25,
+                    // padding: EdgeInsets.all(5),
+                    decoration: BoxDecoration(
+                      color: redColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 1,
+                      children: [
+                        Text(
+                          'Oppose',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
   requestSummary(Asset asset) {
     return Container(
       width: double.maxFinite,
@@ -903,7 +1050,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                     onConfirm: () async {
                       if (asset.id != null) {
                         await assetController.updateAsset(asset.id!);
-                           Navigator.pop(context);
+                        Navigator.pop(context);
                         Get.back();
                       } else {
                         Helper.errorSnackBar(
@@ -992,7 +1139,6 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                       ],
                     )),
               ),
-
           ],
         ),
       ),

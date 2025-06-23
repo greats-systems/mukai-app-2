@@ -11,9 +11,9 @@ import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
 
-class TransfersScreen extends StatelessWidget {
-  final String category;
-  TransfersScreen({super.key, required this.category});
+class QrNfcWalletTransferScreen extends StatelessWidget {
+  final String wallet_id;
+  QrNfcWalletTransferScreen({super.key, required this.wallet_id});
   AuthController get authController => Get.put(AuthController());
   TransactionController get transactionController =>
       Get.put(TransactionController());
@@ -56,10 +56,10 @@ class TransfersScreen extends StatelessWidget {
         centerTitle: false,
         titleSpacing: 20.0,
         toolbarHeight: 70.0,
-        title: Text(
-          Utils.trimp('${Utils.trimp(category)} Transfer'),
-          style: medium18WhiteF5,
-        ),
+        title: Obx(() => Text(
+              'Transfer to ${Utils.trimp(transactionController.selectedProfile.value.last_name!)}',
+              style: medium18WhiteF5,
+            )),
       ),
       body: Column(
         children: [
@@ -81,17 +81,7 @@ class TransfersScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(fixPadding * 2.0),
                 children: [
                   height20Space,
-                  // if (transactionController.selectedTransferOptionCategory.value ==
-                  //     'mobile_money')
-                  //   sendToMobileWallet(),
-                  // Text(
-                  //     '${transactionController.selectedTransferOption.value}'),
-                  Obx(() =>
-                      transactionController.selectedTransferOption.value ==
-                              'manual_wallet'
-                          ? ManualTransferToWalletWidget()
-                          : sendToMobileWallet()),
-
+                  sendToMobileWallet(),
                   height20Space,
                   registerContent(),
                 ],
@@ -104,37 +94,6 @@ class TransfersScreen extends StatelessWidget {
   }
 
   sendToMobileWallet() {
-    return Column(
-      children: [
-        // Obx(() =>
-        //     transactionController.transferTransaction.value.sending_wallet !=
-        //             null
-        //         ? Row(
-        //             children: [
-        //               Text(
-        //                 'Sending Wallet: ${transactionController.transferTransaction.value.sending_wallet?.substring(28, 36)}',
-        //                 style: semibold12black,
-        //               ),
-        //               SizedBox(
-        //                 width: 30,
-        //               ),
-        //               Text(
-        //                 'Receiving Wallet: ${transactionController.transferTransaction.value.receiving_wallet?.substring(28, 36)}',
-        //                 style: semibold12black,
-        //               ),
-        //             ],
-        //           )
-        //         : SizedBox.shrink()),
-        heightSpace,
-        numberField(),
-        heightSpace,
-        amountField(),
-        heightSpace,
-      ],
-    );
-  }
-
-  sendToSelectedWallet() {
     return Column(
       children: [
         heightSpace,
@@ -213,10 +172,10 @@ class TransfersScreen extends StatelessWidget {
                   'Wallet ID:\t',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-                // Text(
-                //   "${wallet_id.substring(0, 8)}...${wallet_id.substring(28, 36)}",
-                //   // style: TextStyle(fontWeight: FontWeight.bold),
-                // ),
+                Text(
+                  "${wallet_id.substring(0, 8)}...${wallet_id.substring(28, 36)}",
+                  // style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ],
@@ -290,6 +249,59 @@ class TransfersScreen extends StatelessWidget {
     );
   }
 
+  town_cityField() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Container(
+        decoration: BoxDecoration(
+          color: recWhiteColor,
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Obx(() => DropdownSearch<String>(
+              onChanged: (value) => {
+                authController.town_city.value = value!,
+              },
+              key: town_city_key,
+              selectedItem: authController.town_city.value,
+              items: (filter, infiniteScrollProps) =>
+                  authController.selected_province_town_city_options,
+              decoratorProps: DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+
+                  labelText: 'Select Town/City',
+                  labelStyle: const TextStyle(
+                      color: blackOrignalColor,
+                      fontSize: 22), // Black label text
+                  // border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: recWhiteColor, // White background for input field
+                ),
+                baseStyle: const TextStyle(
+                    color: blackOrignalColor,
+                    fontSize: 18), // Black text for selected item
+              ),
+              popupProps: PopupProps.menu(
+                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(item,
+                      style: const TextStyle(
+                          color: blackOrignalColor, fontSize: 18)),
+                ),
+                fit: FlexFit.loose,
+                constraints: const BoxConstraints(),
+                menuProps: const MenuProps(
+                  backgroundColor: whiteF5Color,
+                  elevation: 4,
+                ),
+              ),
+            )),
+      ),
+    );
+  }
+
   registerContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -347,7 +359,7 @@ class TransfersScreen extends StatelessWidget {
             borderRadius: BorderRadius.circular(10.0),
           ),
           contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
-          hintText: "Phone Number",
+          hintText: "${wallet_id}",
           hintStyle: medium15Grey,
           prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
           prefixIcon: Center(
@@ -398,6 +410,22 @@ class TransfersScreen extends StatelessWidget {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  appLogo() {
+    return Center(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Image.asset("assets/images/logo-nobg.png", height: 150.0),
+          Text(
+            'express your greatness',
+            style:
+                TextStyle(fontStyle: FontStyle.italic, color: secondaryColor),
+          )
+        ],
       ),
     );
   }
