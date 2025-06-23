@@ -11,12 +11,16 @@ import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/apps/reports/widgets/bar_graph.dart';
+import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
+import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/financial_report.controller.dart';
+import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 // import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 // import 'package:mukai/utils/utils.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:get/get.dart';
 
 class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
@@ -48,6 +52,12 @@ class _ReportsScreenState extends State<ReportsScreen> {
   bool _isDisposed = false;
   final _downloadController = CancelToken();
   final _dataController = CancelToken();
+
+  final AuthController authController = Get.find<AuthController>();
+  final TransactionController transactionController =
+      Get.find<TransactionController>();
+  final WalletController walletController = Get.find<WalletController>();
+  final ProfileController profileController = Get.find<ProfileController>();
 
   @override
   void dispose() {

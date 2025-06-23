@@ -188,58 +188,6 @@ class TransactionController extends MainController {
       log('getAllMembers error: $e $s');
       return [];
     }
-    /*
-    try {
-      await dio
-          .get('${constants.APP_API_ENDPOINT}/auth/profiles')
-          .then((response) async {
-        log(response.data);
-        final List<dynamic> json = response.data;
-        profilesList = json.map((item) => Profile.fromMap(item)).toList();
-        membersQueried.value = profilesList;
-        membersQueried.refresh();
-        await Helper.successSnackBar(title: 'Success', message: 'order saved');
-        isLoading.value = false;
-      }).catchError((error) {
-        isLoading.value = false;
-        if (error is PostgrestException) {
-          debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'Error', message: error.message);
-        } else {
-          Helper.errorSnackBar(title: 'Error', message: error.toString());
-        }
-      });
-      transactions.refresh();
-      return profilesList;
-    } catch (e) {
-      Helper.errorSnackBar(title: 'Error', message: e.toString(), duration: 10);
-      return profilesList;
-    }
-    
-    try {
-      await supabase.from('profiles').select('*').then((response) async {
-        final List<dynamic> json = response;
-        profilesList = json.map((item) => Profile.fromMap(item)).toList();
-        membersQueried.value = profilesList;
-        membersQueried.refresh();
-        await Helper.successSnackBar(title: 'Success', message: 'order saved');
-        isLoading.value = false;
-      }).catchError((error) {
-        isLoading.value = false;
-        if (error is PostgrestException) {
-          debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'Error', message: error.message);
-        } else {
-          Helper.errorSnackBar(title: 'Error', message: error.toString());
-        }
-      });
-      transactions.refresh();
-      return profilesList;
-    } catch (error) {
-      Helper.errorSnackBar(title: 'Error', message: error.toString());
-      return profilesList;
-    }
-    */
   }
 
   Future<List<Transaction>> getAllTransaction() async {
@@ -290,7 +238,7 @@ class TransactionController extends MainController {
         throw Exception('User ID not found. Please log in again.');
       }
 
-      transferTransaction.value.account_id = userId;
+      transferTransaction.value.account_id = userId; 
 
       transferTransaction.value.category = 'transfer';
 
@@ -303,7 +251,7 @@ class TransactionController extends MainController {
             return status! < 500;
           },
         ),
-      ).timeout(Duration(seconds: 10));
+      ).timeout(Duration(seconds: 30));
       log("transferTransaction response: ${response.toString()}");
       log("transferTransaction response data : ${response.data}");
       if (response.statusCode == 201) {
@@ -336,17 +284,6 @@ class TransactionController extends MainController {
               ));
         }
       }
-
-      /*
-      if (response.statusCode == 200) {
-        // Get.to(() => BottomBar());
-      } else {
-        isLoading.value = false;
-        final errorData = response.data;
-        final errorMessage = errorData['message'] ?? 'Registration failed';
-        throw Exception(errorMessage);
-      }
-      */
     } on DioException catch (e) {
       isLoading.value = false;
       log('Dio error: ${e.message}');
@@ -365,39 +302,6 @@ class TransactionController extends MainController {
       isLoading.value = false;
     }
   }
-
-  // Future<void> initiateTransfer() async {
-  //   try {
-  //     isLoading.value = true;
-  //     var userId = await _getStorage.read('userId');
-  //     transferTransaction.value.account_id = userId;
-  //     transferTransaction.value.category = 'transfer';
-  //     log('transaction ${transferTransaction.toJson()}');
-  //     await supabase
-  //         .from('transactions')
-  //         .insert(transferTransaction.toJson())
-  //         .then((value) async {
-  //       await Helper.successSnackBar(title: 'Success', message: 'order saved');
-  //       isLoading.value = false;
-
-  //       Get.toNamed(Routes.bottomBar);
-  //     }).catchError((error) {
-  //       isLoading.value = false;
-
-  //       if (error is PostgrestException) {
-  //         debugPrint('PostgrestException ${error.message}');
-  //         Helper.errorSnackBar(title: 'Error', message: error.message);
-  //       } else {
-  //         Helper.errorSnackBar(title: 'Error', message: error);
-  //       }
-  //     });
-  //   } catch (error) {
-  //     log('addNewOrder error $error');
-  //     isLoading.value = false;
-  //     Helper.errorSnackBar(title: 'Error', message: error);
-  //     return;
-  //   }
-  // }
 
   Future<void> addTransaction(Transaction transaction) async {
     try {

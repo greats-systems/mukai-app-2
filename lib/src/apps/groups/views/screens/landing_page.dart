@@ -14,6 +14,7 @@ import 'package:mukai/src/apps/groups/views/screens/coop_memeber_analytics.dart'
 import 'package:mukai/src/apps/groups/views/screens/coop_reports.dart';
 import 'package:mukai/src/apps/groups/views/screens/coop_wallet_balances.dart';
 import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
+import 'package:mukai/src/apps/transactions/views/screens/transfer_transaction.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
@@ -32,7 +33,8 @@ class CoopLandingScreen extends StatefulWidget {
 
 class _CoopLandingScreenState extends State<CoopLandingScreen> {
   final AuthController authController = Get.find<AuthController>();
-  final TransactionController transactionController = Get.find<TransactionController>();
+  final TransactionController transactionController =
+      Get.find<TransactionController>();
   late PageController pageController = PageController();
   final GetStorage _getStorage = GetStorage();
   final tabList = ["Dashboard", "Members", "Assets"];
@@ -101,7 +103,11 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                 Get.to(() => AddAssetWidget(group: widget.group));
               },
               backgroundColor: primaryColor,
-              child: const Icon(Icons.add, color: tertiaryColor, size: 36,),
+              child: const Icon(
+                Icons.add,
+                color: tertiaryColor,
+                size: 36,
+              ),
             )
           : null,
       backgroundColor: primaryColor,
@@ -423,6 +429,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
         children: [
           GestureDetector(
             onTap: () {
+              // Get.to(() => TransferTransactionScreen(group: widget.group));
               Get.to(() => MemberPaySubs(group: widget.group));
             },
             child: Container(

@@ -530,18 +530,6 @@ class AuthController extends MainController {
         // Get.offAll(() => MemberHomeScreen());
         throw UnimplementedError();
       }
-      /*
-      if (supabase.auth.currentUser != null) {
-        if (role == 'coop-manager') {
-          Get.offAll(() => const BottomBar());
-        } else {
-          // Get.offAll(() => MemberHomeScreen());
-          throw UnimplementedError();
-        }
-      } else {
-        await logout();
-      }
-      */
     } catch (e) {
       log('Error in setInitialScreen: $e');
       await logout();
@@ -597,7 +585,7 @@ class AuthController extends MainController {
     try {
       isLoading.value = true;
       final response =
-          await dio.get('$APP_API_ENDPOINT/cooperatives/${userId}');
+          await dio.get('$APP_API_ENDPOINT/cooperatives/$userId');
       if (response.statusCode == 200) {
         var data = response.data['data'];
         final List<dynamic> json = data;

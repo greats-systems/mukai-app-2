@@ -14,7 +14,7 @@ class Group extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   final String? id;
   final String? admin_id;
-  final String? wallet_id;
+  String? wallet_id;
   final String? name;
   final String? city;
   final String? country;
