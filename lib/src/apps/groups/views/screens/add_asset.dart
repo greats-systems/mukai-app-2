@@ -23,9 +23,9 @@ import 'package:iconify_flutter_plus/icons/ic.dart';
 import 'package:iconify_flutter_plus/icons/ph.dart';
 
 class AddAssetWidget extends StatefulWidget {
-Group? group;
+  Group? group;
 
-   AddAssetWidget({
+  AddAssetWidget({
     super.key,
     required this.group,
   });
@@ -65,7 +65,6 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
   void initState() {
     super.initState();
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -138,16 +137,16 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
                   //     ? town_cityField()
                   //     : SizedBox()),
                   // heightBox(10),
-        
                 ],
               ),
             ),
-            bottomNavigationBar: Obx(() => assetController.isLoading.value == true
-                ? const LinearProgressIndicator(
-                  minHeight: 1,
-                    color: whiteColor,
-                  )
-                : saveButton(context)),
+            bottomNavigationBar:
+                Obx(() => assetController.isLoading.value == true
+                    ? const LinearProgressIndicator(
+                        minHeight: 1,
+                        color: whiteColor,
+                      )
+                    : saveButton(context)),
           );
   }
 
@@ -326,14 +325,14 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
     );
   }
 
-   saveButton(BuildContext context) {
+  saveButton(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: GestureDetector(
         onTap: () {
-
+          // log(widget.group!.id!);
           assetController.createAsset(widget.group!.id!, null, 'group');
-          Navigator.pop(context);
+          // Navigator.pop(context);
         },
         child: Obx(() => profileController.isLoading.value == true
             ? const LinearProgressIndicator(
@@ -360,9 +359,6 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
       ),
     );
   }
-
-
-
 
   cityField() {
     return Column(
@@ -419,7 +415,7 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
     );
   }
 
-    descriptionField() {
+  descriptionField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -490,7 +486,11 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              assetController.asset.value?.fiatValue = double.parse(value);
+              try {
+                assetController.asset.value?.fiatValue = double.parse(value);
+              } on Exception catch (e) {
+                log(e.toString());
+              }
             },
             style: semibold14Black,
             cursorColor: primaryColor,
@@ -519,28 +519,29 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
         heightSpace,
         boxWidget(
           child: DropdownSearch<String>(
-                onChanged: (value) {
-                  if (value != null) {
-                    assetController.asset.value?.category = value;
-                  }
-                },
-                selectedItem: "Fixed", // Default to Fixed
-                items: (filter, infiniteScrollProps) => const ["Fixed", "Non-Fixed", "Other"],
-                decoratorProps: DropDownDecoratorProps(
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Select Asset Type',
-                    hintStyle: semibold14Grey,
-                    contentPadding: EdgeInsets.all(fixPadding * 1.5),
-                  ),
-                ),
-                popupProps: PopupProps.menu(
-                  itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(item, style: semibold14Black),
-                  ),
-                ),
+            onChanged: (value) {
+              if (value != null) {
+                assetController.asset.value?.category = value;
+              }
+            },
+            selectedItem: "Fixed", // Default to Fixed
+            items: (filter, infiniteScrollProps) =>
+                const ["Fixed", "Non-Fixed", "Other"],
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Select Asset Type',
+                hintStyle: semibold14Grey,
+                contentPadding: EdgeInsets.all(fixPadding * 1.5),
               ),
+            ),
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(item, style: semibold14Black),
+              ),
+            ),
+          ),
         )
       ],
     );
@@ -568,22 +569,21 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
   picInfo() {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
-    return Obx(
-        () => assetController.selectedAsset.value?.imageUrl != null
-            ? SizedBox(
-                height: height * 0.2,
-                width: width * 0.3,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: RenderSupabaseImageIdWidget(
-                    filePath: assetController.selectedAsset.value?.imageUrl ?? '',
-                  ),
-                ),
-              )
-            : const Icon(
-                Icons.person_2_rounded,
-                color: blackOrignalColor,
-              ));
+    return Obx(() => assetController.selectedAsset.value?.imageUrl != null
+        ? SizedBox(
+            height: height * 0.2,
+            width: width * 0.3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: RenderSupabaseImageIdWidget(
+                filePath: assetController.selectedAsset.value?.imageUrl ?? '',
+              ),
+            ),
+          )
+        : const Icon(
+            Icons.person_2_rounded,
+            color: blackOrignalColor,
+          ));
   }
 
   userProfileImage(Size size) {
@@ -846,7 +846,6 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
       ),
     );
   }
-
 
   BoxDecoration bgBoxDecoration = BoxDecoration(
     color: recColor,

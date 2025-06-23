@@ -3,6 +3,7 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:dropdown_search/dropdown_search.dart';
+import 'dart:developer';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:mukai/brick/models/group.model.dart';
@@ -36,7 +37,8 @@ class MemberDetailScreen extends StatefulWidget {
     super.key,
     required this.profile,
     this.status,
-    this.groupId, this.isActive,
+    this.groupId,
+    this.isActive,
   });
 
   @override
@@ -873,150 +875,156 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
   }
 
   requestSummary(Profile profile) {
-  final isActiveMember = widget.isActive ?? false;
-  final isDeclinedStatus = profileController.selectedProfile.value.status == 'declined';
+    final isActiveMember = widget.isActive ?? false;
+    final isDeclinedStatus =
+        profileController.selectedProfile.value.status == 'declined';
 
-  return Container(
-    width: double.maxFinite,
-    margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
-        fixPadding * 2.0, fixPadding * 3.0),
-    padding: const EdgeInsets.symmetric(
-        horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-    decoration: BoxDecoration(
-      color: whiteF5Color,
-      borderRadius: BorderRadius.circular(10.0),
-      boxShadow: buttonShadow,
-    ),
-    child: Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: Row(
-        spacing: 10,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Show Accept button only if member is not active and not declined
-          if (!isActiveMember && !isDeclinedStatus) ...[
-            GestureDetector(
-              onTap: () {
-                Get.defaultDialog(
-                    barrierDismissible: true,
-                    middleTextStyle: TextStyle(color: blackColor, fontSize: 14),
-                    buttonColor: primaryColor,
-                    backgroundColor: tertiaryColor,
-                    title: 'Membership Request',
-                    middleText:
-                        'Are you sure you want to accept ${profile.first_name ?? 'No name'.toUpperCase()} ${profile.last_name ?? 'No name'.toUpperCase()} Membership Request ID ${profile.id ?? 'No ID'.substring(0, 8)}?',
-                    textConfirm: 'Yes, Accept',
-                    confirmTextColor: whiteColor,
-                    onConfirm: () async {
-                      if (profile.id != null) {
-                        await updateMemberRequest(
-                            profile.id!, widget.groupId!, 'active');
-                      } else {
-                        Helper.errorSnackBar(
-                            title: 'Blank ID',
-                            message: 'No ID was provided',
-                            duration: 5);
-                      }
-                    },
-                    cancelTextColor: redColor,
-                    onCancel: () {
-                      if (Get.isDialogOpen!) {
-                        Get.back();
-                      }
-                    });
-              },
-              child: Container(
-                  alignment: Alignment(0, 0),
-                  height: height * 0.04,
-                  width: width * 0.25,
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 1,
-                    children: [
-                      Text(
-                        'Accept',
-                        style: bold16White,
-                      ),
-                    ],
-                  )),
-            ),
-          ],
-          
-          // Show Decline button only if member is not active and not declined
-          if (!isActiveMember && !isDeclinedStatus) ...[
-            GestureDetector(
-              onTap: () {
-                Get.defaultDialog(
-                    middleTextStyle:
-                        TextStyle(color: blackColor, fontSize: 14),
-                    buttonColor: primaryColor,
-                    backgroundColor: tertiaryColor,
-                    title: 'Membership Request',
-                    middleText:
-                        'Are you sure you want to decline ${profile.first_name!.toUpperCase()} ${profile.last_name!.toUpperCase()} Request ID ${profile.id!.substring(0, 8)}?',
-                    textConfirm: 'Yes, Decline',
-                    confirmTextColor: whiteColor,
-                    onConfirm: () async {
-                      await updateMemberRequest(
-                          profile.id!, widget.groupId!, 'declined');
-                    },
-                    cancelTextColor: redColor,
-                    onCancel: () {
-                      if (Get.isDialogOpen!) {
-                        Get.back();
-                      }
-                    });
-              },
-              child: Container(
-                  alignment: Alignment(0, 0),
-                  height: height * 0.04,
-                  width: width * 0.25,
-                  decoration: BoxDecoration(
-                    color: redColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 1,
-                    children: [
-                      Text(
-                        'Decline',
-                        style: bold16White,
-                      ),
-                    ],
-                  )),
-            ),
-          ],
-          
-          // Always show Message button
-          Container(
-              alignment: Alignment(0, 0),
-              height: height * 0.04,
-              width: isActiveMember || isDeclinedStatus ? width * 0.7 : width * 0.25,
-              padding: EdgeInsets.all(5),
-              decoration: BoxDecoration(
-                color: primaryColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                spacing: 5,
-                children: [
-                  Text(
-                    'Message',
-                    style: bold16White,
-                  ),
-                ],
-              )),
-        ],
+    return Container(
+      width: double.maxFinite,
+      margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
+          fixPadding * 2.0, fixPadding * 3.0),
+      padding: const EdgeInsets.symmetric(
+          horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
+      decoration: BoxDecoration(
+        color: whiteF5Color,
+        borderRadius: BorderRadius.circular(10.0),
+        boxShadow: buttonShadow,
       ),
-    ),
-  );
-}
+      child: Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: Row(
+          spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Show Accept button only if member is not active and not declined
+            if (!isActiveMember && !isDeclinedStatus) ...[
+              GestureDetector(
+                onTap: () {
+                  Get.defaultDialog(
+                      barrierDismissible: true,
+                      middleTextStyle:
+                          TextStyle(color: blackColor, fontSize: 14),
+                      buttonColor: primaryColor,
+                      backgroundColor: tertiaryColor,
+                      title: 'Membership Request',
+                      middleText:
+                          'Are you sure you want to accept ${profile.first_name ?? 'No name'.toUpperCase()} ${profile.last_name ?? 'No name'.toUpperCase()} Membership Request ID ${profile.id ?? 'No ID'.substring(0, 8)}?',
+                      textConfirm: 'Yes, Accept',
+                      confirmTextColor: whiteColor,
+                      onConfirm: () async {
+                        if (profile.id != null) {
+                          await updateMemberRequest(
+                              profile.id!, widget.groupId!, 'active');
+                          Navigator.pop(context);
+                        } else {
+                          Helper.errorSnackBar(
+                              title: 'Blank ID',
+                              message: 'No ID was provided',
+                              duration: 5);
+                        }
+                      },
+                      cancelTextColor: redColor,
+                      onCancel: () {
+                        if (Get.isDialogOpen!) {
+                          Get.back();
+                        }
+                      });
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.04,
+                    width: width * 0.25,
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 1,
+                      children: [
+                        Text(
+                          'Accept',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
+              ),
+            ],
+
+            // Show Decline button only if member is not active and not declined
+            if (!isActiveMember && !isDeclinedStatus) ...[
+              GestureDetector(
+                onTap: () {
+                  Get.defaultDialog(
+                      middleTextStyle:
+                          TextStyle(color: blackColor, fontSize: 14),
+                      buttonColor: primaryColor,
+                      backgroundColor: tertiaryColor,
+                      title: 'Membership Request',
+                      middleText:
+                          'Are you sure you want to decline ${profile.first_name!.toUpperCase()} ${profile.last_name!.toUpperCase()} Request ID ${profile.id!.substring(0, 8)}?',
+                      textConfirm: 'Yes, Decline',
+                      confirmTextColor: whiteColor,
+                      onConfirm: () async {
+                        await updateMemberRequest(
+                            profile.id!, widget.groupId!, 'declined');
+                      },
+                      cancelTextColor: redColor,
+                      onCancel: () {
+                        if (Get.isDialogOpen!) {
+                          Get.back();
+                        }
+                      });
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.04,
+                    width: width * 0.25,
+                    decoration: BoxDecoration(
+                      color: redColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 1,
+                      children: [
+                        Text(
+                          'Decline',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
+              ),
+            ],
+
+            // Always show Message button
+            Container(
+                alignment: Alignment(0, 0),
+                height: height * 0.04,
+                width: isActiveMember || isDeclinedStatus
+                    ? width * 0.7
+                    : width * 0.25,
+                padding: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 5,
+                  children: [
+                    Text(
+                      'Message',
+                      style: bold16White,
+                    ),
+                  ],
+                )),
+          ],
+        ),
+      ),
+    );
+  }
 
   imageChangeOption(String icon, String title) {
     return InkWell(
@@ -1084,40 +1092,27 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       'cooperative_id': group_id,
       'member_id': member_id,
     };
-    if (member_id != null) {
-      try {
-        _isLoading = true;
-        log('Updating member request');
-        final cmrResponse = await dio.patch(
-            '$APP_API_ENDPOINT/cooperative_member_requests/${widget.groupId}',
-            data: coopRequestUpdateParams);
-        log('Inserting into group_members');
-        final insertGroupMemberResponse = await dio
-            .post('$APP_API_ENDPOINT/group_members', data: groupMemberParams);
-        /*
-        final response = await supabase
-            .from('cooperative_member_requests')
-            .update({'status': status}).eq('member_id', member_id);
-        log(response);
-        
-        final insertGroupMemberResponse =
-            await supabase.from('group_members').insert({
-          'cooperative_id': null,
-          'member_id': member_id,
-          // 'group_id': group_id,
-        });
-        */
-        log('cmrResponse: $cmrResponse\ninsertGroupMemberResponse: $insertGroupMemberResponse');
-      } catch (error) {
-        _isLoading = false;
-        Helper.errorSnackBar(
-            title: 'Error', message: error.toString(), duration: 5);
-      }
-      return null;
-    } else {
-      log('User ID is null');
-      return null;
+    var profileParams = {'cooperative_id': widget.groupId, 'id': member_id};
+    try {
+      _isLoading = true;
+      log('Updating member request');
+      final cmrResponse = await dio.patch(
+          '$APP_API_ENDPOINT/cooperative_member_requests/${widget.groupId}',
+          data: coopRequestUpdateParams);
+      log('Inserting into group_members');
+      final insertGroupMemberResponse = await dio
+          .post('$APP_API_ENDPOINT/group_members', data: groupMemberParams);
+      log('Updating profile');
+      final updateProfileResponse = await dio.patch(
+          '$APP_API_ENDPOINT/auth/update-account/$member_id',
+          data: profileParams);
+      log('cmrResponse: $cmrResponse\ninsertGroupMemberResponse: $insertGroupMemberResponse\nupdateProfileResponse: $updateProfileResponse');
+    } catch (error) {
+      _isLoading = false;
+      Helper.errorSnackBar(
+          title: 'Error', message: error.toString(), duration: 5);
     }
+    return null;
   }
 
   BoxDecoration bgBoxDecoration = BoxDecoration(
