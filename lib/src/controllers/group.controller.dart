@@ -92,110 +92,102 @@ class GroupController {
   }
 
   Future<List<Profile>?> getMukandoGroupMembers(String groupId) async {
+    try {
+      log('Fetching members for group: $groupId');
+
+      // Make the API request
+      final response = await dio.get(
+        '$APP_API_ENDPOINT/cooperatives/$groupId/members',
+        options: Options(
+          validateStatus: (status) => status! < 500, // Accept <500 status codes
+        ),
+      );
+
+      log('Response data: ${response.data}');
+
+      // Handle different response formats
+      if (response.data == null) {
+        log('No data received in response');
+        return null;
+      }
+
+      // Process the response data
+      if (response.data is List) {
+        // Handle array response
+        final members = (response.data as List)
+            .where((item) => item != null)
+            .map((item) => Profile.fromMap(item))
+            .toList();
+        log('Successfully parsed ${members.length} members');
+        return members;
+      } else if (response.data is Map) {
+        // Handle single object response
+        log('Parsing single member response');
+        return [Profile.fromMap(response.data)];
+      } else {
+        log('Unexpected response format: ${response.data.runtimeType}');
+        return null;
+      }
+    } on DioException catch (e) {
+      log('Dio error fetching group members: ${e.message}');
+      if (e.response != null) {
+        log('Status code: ${e.response!.statusCode}');
+        log('Response data: ${e.response!.data}');
+      }
+      return null;
+    } on FormatException catch (e) {
+      log('Data format error: ${e.message}');
+      return null;
+    } catch (e, s) {
+      log('Unexpected error', error: e, stackTrace: s);
+      return null;
+    }
+  }
+
+  Future<List<Profile>?> getPendingMukandoGroupMembers(String groupId) async {
   try {
-    log('Fetching members for group: $groupId');
-    
-    // Make the API request
     final response = await dio.get(
-      '$APP_API_ENDPOINT/cooperatives/$groupId/members',
-      options: Options(
-        validateStatus: (status) => status! < 500, // Accept <500 status codes
-      ),
+      '$APP_API_ENDPOINT/cooperative_member_requests/$groupId/unresolved'
     );
 
-    log('Response data: ${response.data}');
+    log('Pending members raw response: ${response.data}');
 
-    // Handle different response formats
-    if (response.data == null) {
-      log('No data received in response');
-      return null;
+    // 1. Check if response data exists
+    if (response.data == null || response.data['data'] == null) {
+      log('No pending members found for group $groupId');
+      return [];
     }
 
-    // Process the response data
-    if (response.data is List) {
-      // Handle array response
-      final members = (response.data as List)
-          .where((item) => item != null)
-          .map((item) => Profile.fromMap(item))
-          .toList();
-      log('Successfully parsed ${members.length} members');
-      return members;
-    } else if (response.data is Map) {
-      // Handle single object response
-      log('Parsing single member response');
-      return [Profile.fromMap(response.data)];
-    } else {
-      log('Unexpected response format: ${response.data.runtimeType}');
-      return null;
+    final responseData = response.data['data'] as List;
+    log('Found ${responseData.length} pending member records');
+
+    // 2. Process all members consistently
+    final profiles = <Profile>[];
+    
+    for (final item in responseData) {
+      try {
+        if (item['profiles'] != null) {
+          final profile = Profile.fromMap(item['profiles']);
+          if (profile.id != null) {
+            profiles.add(profile);
+          }
+        }
+      } catch (e, s) {
+        log('Error processing member record: $item', error: e, stackTrace: s);
+      }
     }
+
+    log('Successfully parsed ${profiles.length} pending members');
+    return profiles;
+
   } on DioException catch (e) {
-    log('Dio error fetching group members: ${e.message}');
-    if (e.response != null) {
-      log('Status code: ${e.response!.statusCode}');
-      log('Response data: ${e.response!.data}');
-    }
-    return null;
-  } on FormatException catch (e) {
-    log('Data format error: ${e.message}');
+    log('API error fetching pending members: ${e.message}', error: e);
     return null;
   } catch (e, s) {
-    log('Unexpected error', error: e, stackTrace: s);
+    log('Unexpected error fetching pending members', error: e, stackTrace: s);
     return null;
   }
 }
-
-  Future<List<Profile>?> getPendingMukandoGroupMembers(String groupId) async {
-    try {
-      // 1. Fetch the group data with members
-      /*
-      final response = await supabase
-          .from('group')
-          .select('members')
-          .eq('id', groupId)
-          .single()
-          .timeout(const Duration(seconds: 10)); // Add timeout
-      */
-      final response = await dio.get(
-          '$APP_API_ENDPOINT/cooperative_member_requests/$groupId/unresolved');
-      log('getPendingMukandoGroupMembers response: ${JsonEncoder.withIndent(' ').convert(response.data['data'])}');
-      // 2. Validate and parse the response
-      if (response.data == null) {
-        log('No members found for group $groupId');
-        return [];
-      } else {
-        // 3. Convert members to Profile objects
-        if (response.data['data'].length > 1) {
-          final membersList = response.data['data']['profiles'] as List;
-          final profiles = membersList
-              .whereType<Map<String, dynamic>>() // Ensure each item is a Map
-              .map((item) => Profile.fromMap(item))
-              .where((profile) =>
-                  profile.id != null) // Filter out invalid profiles
-              .toList();
-
-          log('Fetched ${profiles.length} members for group $groupId');
-          log('Fetched ${profiles.map((profile) => profile.toMap())}');
-          return profiles;
-        } else if (response.data['data'].length == 1) {
-          final data = response.data['data'][0]['profiles'];
-          return [Profile.fromMap(data)];
-        } else {
-          log('No members found for group $groupId');
-          return [];
-        }
-      }
-    } on PostgrestException catch (e) {
-      log('Supabase error fetching group members: ${e.message}', error: e);
-      return null;
-    } on TimeoutException catch (e) {
-      log('Timeout fetching group members: $e');
-      return null;
-    } catch (e, s) {
-      log('Unexpected error fetching pending group members',
-          error: e, stackTrace: s);
-      return null;
-    }
-  }
 
   Future<Wallet?> getGroupWallet(String groupId) async {
     try {

@@ -101,13 +101,13 @@ class LoginScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     "Register",
-                                    style: semibold14Black,
+                                    style: TextStyle(color: secondaryColor),
                                     textAlign: TextAlign.center,
                                   ),
                                   Iconify(
                                     Ri.arrow_right_line,
                                     size: 24,
-                                    color: blackOrignalColor,
+                                    color: secondaryColor,
                                   )
                                 ],
                               ),

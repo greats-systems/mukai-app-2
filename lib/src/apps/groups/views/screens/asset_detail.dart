@@ -76,7 +76,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
   void initState() {
     assetController.asset.value = widget.asset;
     userId = GetStorage().read('userId');
-    role = GetStorage().read('account_type');
+    role = GetStorage().read('role');
     log('AssetDetailScreen userId: $userId\nrole: $role\ngroup id: ${widget.group!.id}');
     // getProfile().then((value) {});
     setDetails();
@@ -91,33 +91,6 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
       fiatValueController.text = widget.asset.fiatValue.toString();
     }
   }
-
-  /*
-  Future<void> getProfile() async {
-    log(asset.id ?? 'No ID');
-    log('Fetching data');
-    // final jsonData = await fetchData();
-    log('Done');
-    // log('jsonData: ${JsonEncoder.withIndent(' ').convert(jsonData)}');
-    profileController.selectedProfile.value = asset;
-    profileController.asset.value = asset;
-    profileController.asset.refresh();
-    log(JsonEncoder.withIndent(' ')
-        .convert(profileController.asset.value.toMap()));
-
-    authController.selected_province.value =
-        asset.province_state ?? 'no province';
-    authController.selected_city.value = asset.id ?? 'no city';
-    asset.country = asset.country ?? 'no country';
-
-    nameController.text = asset.first_name ?? 'no name';
-    lastNameController.text = asset.last_name ?? 'no name';
-    accountTypeController.text = asset.account_type ?? 'no account type';
-    emailController.text = asset.email ?? 'no email';
-    mobileNumberController.text = asset.phone ?? 'no phone';
-    cityController.text = asset.city ?? 'no city';
-  }
-  */
 
   @override
   Widget build(BuildContext context) {
@@ -181,11 +154,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
             ),
             bottomNavigationBar: role == 'coop-member'
                 ? pollSummary(widget.asset)
-                : requestSummary(widget.asset)
-            // profileController.selectedProfile.value == 'accepted'
-            //     ? updateButton(context)
-            //     : ,
-            );
+                : requestSummary(widget.asset));
   }
 
   nameField() {
@@ -199,6 +168,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: role == 'coop-member' ? false : true,
             onChanged: (value) {
               assetController.asset.value?.assetDescriptiveName = value;
             },
@@ -229,6 +199,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: role == 'coop-member' ? false : true,
             onChanged: (value) {
               assetController.asset.value?.assetDescription = value;
             },
@@ -288,6 +259,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: role == 'coop-member' ? false : true,
             onChanged: (value) {
               assetController.asset.value?.fiatValue = double.parse(value);
             },
@@ -318,6 +290,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
         heightSpace,
         boxWidget(
           child: DropdownSearch<String>(
+            enabled: role == 'coop-member' ? false : true,
             onChanged: (value) {
               if (value != null) {
                 assetController.asset.value?.category = value;
@@ -923,10 +896,10 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
             GestureDetector(
               onTap: () async {
                 // log('asset id: ${widget.asset.id}');
-                
+
                 var params = {
                   'group_id': widget.group!.id,
-                  'supporting_votes': [userId],
+                  'supporting_votes': userId,
                   'updated_at': DateTime.now().toIso8601String(),
                   'asset_id': widget.asset.id,
                 };
@@ -935,22 +908,33 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                       '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
                       data: params);
                   log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                  Navigator.pop(context);
-                  Helper.successSnackBar(
-                      title: 'Success!',
-                      message: 'You have cast your vote',
-                      duration: 5);
+                  // Navigator.pop(context);
+                  // if (response.data['error']) {
+                  //   Helper.errorSnackBar(
+                  //       title: 'Error',
+                  //       message: response.data['error']['message']);
+                  // }
+                  if (response.data['data'] == "You have voted already") {
+                    Helper.warningSnackBar(
+                        title: 'Duplicate vote',
+                        message: response.data['data'],
+                        duration: 5);
+                  } else {
+                    Helper.successSnackBar(
+                        title: 'Success!',
+                        message: 'You have cast your vote',
+                        duration: 5);
+                  }
                 } on DioException catch (e, s) {
                   log('DioException encountered when casting vote $e $s');
                   Helper.errorSnackBar(
-                      title: 'Error', message: e.response!.data['message'], duration: 5);
+                      title: 'Error', message: e.toString(), duration: 5);
                   // TODO
                 } on Exception catch (e, s) {
                   log('Error encountered when casting vote $e $s');
                   Helper.errorSnackBar(
                       title: 'Error', message: e.toString(), duration: 5);
                 }
-                
               },
               child: Container(
                   alignment: Alignment(0, 0),
@@ -982,49 +966,29 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                     'group_id': widget.group!.id,
                     'opposing_votes': userId,
                     'updated_at': DateTime.now().toIso8601String(),
+                    'asset_id': widget.asset.id,
                   };
                   try {
+                    log(params.toString());
                     final response = await dio.patch(
-                        '$APP_API_ENDPOINT/cooperative_member_approvals/${widget.group!.id}',
+                        '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
                         data: params);
                     log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                    Navigator.pop(context);
-                    Helper.successSnackBar(
-                        title: 'Success!',
-                        message: 'You have cast your vote',
-                        duration: 5);
+                    // Navigator.pop(context);
+                    if (response.data['data'] == 'You have voted already') {
+                      Helper.warningSnackBar(
+                          title: 'Duplicate vote',
+                          message: response.data['data'],
+                          duration: 5);
+                    } else {
+                      Helper.successSnackBar(
+                          title: 'Success!',
+                          message: 'You have cast your vote',
+                          duration: 5);
+                    }
                   } on Exception catch (e, s) {
                     log('Error casting opposing vote: $e $s');
                   }
-                  /*
-                  Get.defaultDialog(
-                      barrierDismissible: true,
-                      middleTextStyle:
-                          TextStyle(color: blackColor, fontSize: 14),
-                      buttonColor: primaryColor,
-                      backgroundColor: tertiaryColor,
-                      title: 'Delete Asset',
-                      middleText:
-                          'Are you sure you want to delete ${asset.assetDescriptiveName!.toUpperCase()} ${asset.id?.substring(28, 36) ?? ''}?',
-                      textConfirm: 'Yes, Delete',
-                      confirmTextColor: whiteColor,
-                      onConfirm: () async {
-                        await assetController.deleteAsset(asset.id!);
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-
-                        // Navigator.pop(context);
-                        // if (Get.isDialogOpen!) {
-                        //   Get.back();
-                        // }
-                      },
-                      cancelTextColor: redColor,
-                      onCancel: () {
-                        if (Get.isDialogOpen!) {
-                          Get.back();
-                        }
-                      });
-                      */
                 },
                 child: Container(
                     alignment: Alignment(0, 0),

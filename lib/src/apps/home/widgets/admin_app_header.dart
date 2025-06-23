@@ -30,8 +30,8 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
   String? role;
   Map<String, dynamic>? userProfile = {};
   bool _isLoading = false;
-  
-  void fetchProfile() async {
+
+  Future<void> fetchProfile() async {
     if (_isDisposed) return;
     setState(() {
       _isLoading = true;
@@ -46,6 +46,7 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
       userProfile = userjson;
       _isLoading = false;
     });
+    log('AdminAppHeaderWidget userProfile: $userProfile');
   }
 
   @override
@@ -61,6 +62,7 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
     _isDisposed = true;
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -82,7 +84,6 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
                   ],
                 ),
               ),
-        
             ],
           );
   }
@@ -139,7 +140,7 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  'Hi, ${userProfile?['first_name'] ?? 'No name'}',
+                  'Hi, ${userProfile?['first_name'] ?? 'No na'}',
                   style: semibold18WhiteF5,
                 ),
               ),
@@ -153,7 +154,7 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  '${userProfile?['account_type'] ?? 'No name'}',
+                  '${userProfile?['account_type'] ?? 'No name in admin appheader'}',
                   style: regular12whiteF5,
                 ),
               ),
