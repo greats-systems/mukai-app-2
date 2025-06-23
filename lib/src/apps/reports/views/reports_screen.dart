@@ -1,15 +1,18 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:intl/intl.dart';
+import 'package:mukai/brick/models/financial_report.model.dart';
+import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
-import 'package:mukai/src/apps/home/wallet_balances.dart';
-import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
 import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/apps/reports/widgets/bar_graph.dart';
-import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
+import 'package:mukai/src/controllers/financial_report.controller.dart';
+import 'package:mukai/src/controllers/wallet.controller.dart';
 // import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 // import 'package:mukai/utils/utils.dart';
@@ -19,71 +22,96 @@ class ReportsScreen extends StatefulWidget {
   const ReportsScreen({super.key});
 
   @override
-  State<ReportsScreen> createState() => _CoopReportsWidgetState();
+  State<ReportsScreen> createState() => _ReportsScreenState();
 }
 
-class _CoopReportsWidgetState extends State<ReportsScreen> {
+class _ReportsScreenState extends State<ReportsScreen> {
+  List<int> monthlyIndices = [];
+  List<String> dailyLabels = [];
+  List<String> weeklyLabels = [];
+  List<String> monthlyLabels = [];
+
   final GetStorage getStorage = GetStorage();
+  final FinancialReportController _financialReportController =
+      FinancialReportController();
+  final WalletController _walletController = WalletController();
   final List<Map<String, dynamic>> report = [];
   // final WalletController _groupWalletController = WalletController();
-  final TransactionController _transactionController = TransactionController();
   String? userId;
-  dynamic walletIdUSD;
-  dynamic walletIdZIG;
-  dynamic financialReportUSD;
-  dynamic financialReportZIG;
+  List<Wallet?>? wallets;
+  Wallet? individualUSDWallet;
+  Wallet? individualZigWallet;
+  List<FinancialReport>? financialReport;
+
+  final dio = Dio();
+  bool _isLoading = true;
+  bool _isDisposed = false;
+  final _downloadController = CancelToken();
+  final _dataController = CancelToken();
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    _downloadController.cancel(); // Cancel any ongoing downloads
+    _dataController.cancel(); // Cancel any data fetching
+    super.dispose();
+  }
+
+  // Modified to check mounted state before setState
+  void safeSetState(VoidCallback fn) {
+    if (!_isDisposed && mounted) {
+      setState(fn);
+    }
+  }
+
+  Future<void> _fetchFinancialReport() async {
+    try {
+      if (individualUSDWallet == null) {
+        log('No USD wallet available');
+        return;
+      }
+
+      log('Fetching financial report for wallet: ${individualUSDWallet!.id}');
+      financialReport = await _financialReportController
+          .getFinancialReport(individualUSDWallet!.id!);
+
+      if (financialReport != null) {
+        log('Fetched ${financialReport!.length} transactions');
+        // log(JsonEncoder.withIndent(' ').convert(financialReport));
+        createUSDReport();
+        createZIGReport();
+      } else {
+        log('Received null financial report');
+      }
+    } catch (e) {
+      if (!_isDisposed) {
+        log('_fetchFinancialReport error: $e');
+      }
+    }
+  }
 
   Future<void> _fetchData() async {
     try {
       userId = await getStorage.read('userId');
-      final responseUSD = await supabase
-          .from('wallets')
-          .select('id')
-          .eq('profile_id', userId!)
-          .eq('is_group_wallet', false)
-          .eq('default_currency', 'usd');
+      wallets = await _walletController.getWalletsByProfileID(userId!);
 
-      final responseZIG = await supabase
-          .from('wallets')
-          .select('id')
-          .eq('profile_id', userId!)
-          .eq('is_group_wallet', false)
-          .eq('default_currency', 'zig');
-
-      if (responseUSD.isEmpty && responseZIG.isEmpty) {
-        log('No USD/ZIG group wallet found for user $userId');
-        walletIdUSD = null;
-        walletIdZIG = null;
-        financialReportUSD = [];
-        financialReportZIG = [];
-        return;
-      }
-
-      if (responseUSD.isNotEmpty) {
-        walletIdUSD = responseUSD.first; // Use first() instead of single()
-        financialReportUSD =
-            await _transactionController.getFinancialReport(walletIdUSD['id']);
-        createUSDReport();
-      } else {
-        log('No USD wallet found');
-        return;
-      }
-
-      if (responseZIG.isNotEmpty) {
-        walletIdZIG = responseZIG.first;
-        financialReportZIG =
-            await _transactionController.getFinancialReport(walletIdZIG['id']);
-        createZIGReport();
-      } else {
-        log('No ZiG wallet found');
-        return;
+      // Use safeSetState instead of direct setState
+      if (wallets != null) {
+        for (var wallet in wallets!) {
+          if (!wallet!.is_group_wallet! && wallet.default_currency == 'usd') {
+            safeSetState(() {
+              individualUSDWallet = wallet;
+            });
+          } else if (wallet.is_group_wallet! &&
+              wallet.default_currency == 'zig') {
+            safeSetState(() {
+              individualZigWallet = wallet;
+            });
+          }
+        }
       }
     } catch (e, s) {
       log('Error fetching wallet data: $e $s');
-      walletIdUSD = null;
-      walletIdZIG = null;
-      financialReportUSD = [];
-      financialReportZIG = [];
     }
   }
 
@@ -96,20 +124,15 @@ class _CoopReportsWidgetState extends State<ReportsScreen> {
     'USD',
   ];
 
-  List<double> dailyDeposits = [
-    22.87,
-    11.23,
-    18.18,
-    36.28,
-    20.84,
-    27.07,
-    12.93
-  ];
-
   List<double> dailyDepositsUSD_ = [];
   List<double> dailyWithdrawalsUSD_ = [];
   List<double> dailyDepositsZIG_ = [];
   List<double> dailyWithdrawalsZIG_ = [];
+
+  List<double> weeklyDepositsUSD_ = [];
+  List<double> weeklyWithdrawalsUSD_ = [];
+  List<double> weeklyDepositsZIG_ = [];
+  List<double> weeklyWithdrawalsZIG_ = [];
 
   List<double> monthlyDepositsUSD_ = [];
   List<double> monthlyWithdrawalsUSD_ = [];
@@ -122,73 +145,267 @@ class _CoopReportsWidgetState extends State<ReportsScreen> {
   List<double> annualWithdrawalsZIG_ = [];
 
   void createUSDReport() {
-    for (var period in financialReportUSD) {
-      if (period['period_type'] == 'daily') {
-        dailyDepositsUSD_.add(period['deposit_usd'].toDouble());
-        dailyWithdrawalsUSD_.add(period['withdrawal_usd'].toDouble());
-      } else if (period['period_type'] == 'monthly') {
-        monthlyDepositsUSD_.add(period['deposit_usd'].toDouble());
-        monthlyWithdrawalsUSD_.add(period['withdrawal_usd'].toDouble());
+    // Clear previous data
+    dailyDepositsUSD_.clear();
+    dailyWithdrawalsUSD_.clear();
+    weeklyDepositsUSD_.clear();
+    weeklyWithdrawalsUSD_.clear();
+    monthlyDepositsUSD_.clear();
+    monthlyWithdrawalsUSD_.clear();
+
+    dailyLabels.clear();
+    weeklyLabels.clear();
+    monthlyLabels.clear();
+
+    if (financialReport != null) {
+      final now = DateTime.now();
+
+      // Initialize daily data (last 7 days)
+      final dailyData = List.generate(7, (index) {
+        final date = now.subtract(Duration(days: 6 - index));
+        return _DailyData(
+          day: date,
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Initialize weekly data (last 8 weeks)
+      final weeklyData = List.generate(8, (index) {
+        final weekStart = now.subtract(Duration(days: (7 - index) * 7));
+        return _WeeklyData(
+          weekStart: weekStart,
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Initialize monthly data (all 12 months)
+      final year = now.year;
+      final monthlyData = List.generate(12, (index) {
+        return _MonthlyData(
+          month: DateTime(year, index + 1),
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Process transactions
+      for (var report in financialReport!) {
+        final amount = report.amount ?? 0;
+
+        if (report.periodStart != null) {
+          try {
+            final dt = DateTime.parse(report.periodStart!);
+
+            // Daily processing
+            if (report.periodType == 'daily') {
+              for (var daily in dailyData) {
+                if (isSameDay(dt, daily.day)) {
+                  if (report.narrative == 'credit') {
+                    daily = daily.copyWith(credit: daily.credit + amount);
+                  } else {
+                    daily = daily.copyWith(debit: daily.debit + amount);
+                  }
+                  break;
+                }
+              }
+            }
+            // Weekly processing
+            else if (report.periodType == 'weekly') {
+              for (var weekly in weeklyData) {
+                if (isSameWeek(dt, weekly.weekStart)) {
+                  if (report.narrative == 'credit') {
+                    weekly = weekly.copyWith(credit: weekly.credit + amount);
+                  } else {
+                    weekly = weekly.copyWith(debit: weekly.debit + amount);
+                  }
+                  break;
+                }
+              }
+            }
+            // Monthly processing
+            else if (report.periodType == 'monthly') {
+              final monthIndex = dt.month - 1;
+              if (monthIndex >= 0 && monthIndex < 12) {
+                if (report.narrative == 'credit') {
+                  monthlyData[monthIndex] = monthlyData[monthIndex].copyWith(
+                      credit: monthlyData[monthIndex].credit + amount);
+                } else {
+                  monthlyData[monthIndex] = monthlyData[monthIndex]
+                      .copyWith(debit: monthlyData[monthIndex].debit + amount);
+                }
+              }
+            }
+          } catch (e) {
+            log('Error processing transaction: $e');
+          }
+        }
+      }
+
+      // Populate daily data
+      for (var daily in dailyData) {
+        dailyDepositsUSD_.add(daily.credit);
+        dailyWithdrawalsUSD_.add(daily.debit);
+        dailyLabels.add(DateFormat('E').format(daily.day)); // Mon, Tue, etc.
+      }
+
+      // Populate weekly data
+      for (var weekly in weeklyData) {
+        weeklyDepositsUSD_.add(weekly.credit);
+        weeklyWithdrawalsUSD_.add(weekly.debit);
+        weeklyLabels.add('W${DateFormat('d MMM').format(weekly.weekStart)}');
+      }
+
+      // Populate monthly data
+      for (var monthData in monthlyData) {
+        monthlyDepositsUSD_.add(monthData.credit);
+        monthlyWithdrawalsUSD_.add(monthData.debit);
+        monthlyLabels.add(DateFormat('MMM').format(monthData.month));
       }
     }
   }
 
   void createZIGReport() {
-    for (var period in financialReportUSD) {
-      if (period['period_type'] == 'daily') {
-        dailyDepositsZIG_.add(period['deposit_zig'].toDouble());
-        dailyWithdrawalsZIG_.add(period['withdrawal_zig'].toDouble());
-      } else if (period['period_type'] == 'monthly') {
-        monthlyDepositsZIG_.add(period['deposit_zig'].toDouble());
-        monthlyWithdrawalsZIG_.add(period['withdrawal_zig'].toDouble());
+    // Clear previous data
+    dailyDepositsZIG_.clear();
+    dailyWithdrawalsZIG_.clear();
+    weeklyDepositsZIG_.clear();
+    weeklyWithdrawalsZIG_.clear();
+    monthlyDepositsZIG_.clear();
+    monthlyWithdrawalsZIG_.clear();
+
+    dailyLabels.clear();
+    weeklyLabels.clear();
+    monthlyLabels.clear();
+
+    if (financialReport != null) {
+      final now = DateTime.now();
+
+      // Initialize daily data (last 7 days)
+      final dailyData = List.generate(7, (index) {
+        final date = now.subtract(Duration(days: 6 - index));
+        return _DailyData(
+          day: date,
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Initialize weekly data (last 8 weeks)
+      final weeklyData = List.generate(8, (index) {
+        final weekStart = now.subtract(Duration(days: (7 - index) * 7));
+        return _WeeklyData(
+          weekStart: weekStart,
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Initialize monthly data (all 12 months)
+      final year = now.year;
+      final monthlyData = List.generate(12, (index) {
+        return _MonthlyData(
+          month: DateTime(year, index + 1),
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Process transactions
+      for (var report in financialReport!) {
+        final amount = report.amount ?? 0;
+
+        if (report.periodStart != null) {
+          try {
+            final dt = DateTime.parse(report.periodStart!);
+
+            // Daily processing
+            if (report.periodType == 'daily') {
+              for (var daily in dailyData) {
+                if (isSameDay(dt, daily.day)) {
+                  if (report.narrative == 'credit') {
+                    daily = daily.copyWith(credit: daily.credit + amount);
+                  } else {
+                    daily = daily.copyWith(debit: daily.debit + amount);
+                  }
+                  break;
+                }
+              }
+            }
+            // Weekly processing
+            else if (report.periodType == 'weekly') {
+              for (var weekly in weeklyData) {
+                if (isSameWeek(dt, weekly.weekStart)) {
+                  if (report.narrative == 'credit') {
+                    weekly = weekly.copyWith(credit: weekly.credit + amount);
+                  } else {
+                    weekly = weekly.copyWith(debit: weekly.debit + amount);
+                  }
+                  break;
+                }
+              }
+            }
+            // Monthly processing
+            else if (report.periodType == 'monthly') {
+              final monthIndex = dt.month - 1;
+              if (monthIndex >= 0 && monthIndex < 12) {
+                if (report.narrative == 'credit') {
+                  monthlyData[monthIndex] = monthlyData[monthIndex].copyWith(
+                      credit: monthlyData[monthIndex].credit + amount);
+                } else {
+                  monthlyData[monthIndex] = monthlyData[monthIndex]
+                      .copyWith(debit: monthlyData[monthIndex].debit + amount);
+                }
+              }
+            }
+          } catch (e) {
+            log('Error processing transaction: $e');
+          }
+        }
+      }
+
+      // Populate daily data
+      for (var daily in dailyData) {
+        dailyDepositsUSD_.add(daily.credit);
+        dailyWithdrawalsUSD_.add(daily.debit);
+        dailyLabels.add(DateFormat('E').format(daily.day)); // Mon, Tue, etc.
+      }
+
+      // Populate weekly data
+      for (var weekly in weeklyData) {
+        weeklyDepositsUSD_.add(weekly.credit);
+        weeklyWithdrawalsUSD_.add(weekly.debit);
+        weeklyLabels.add('W${DateFormat('d MMM').format(weekly.weekStart)}');
+      }
+
+      // Populate monthly data
+      for (var monthData in monthlyData) {
+        monthlyDepositsUSD_.add(monthData.credit);
+        monthlyWithdrawalsUSD_.add(monthData.debit);
+        monthlyLabels.add(DateFormat('MMM').format(monthData.month));
       }
     }
   }
 
-  List<double> dailyWithdrawals = [
-    19.48,
-    17.36,
-    12.14,
-    28.78,
-    16.96,
-    20.18,
-    17.84
-  ];
+// Helper functions
+  bool isSameDay(DateTime a, DateTime b) {
+    return a.year == b.year && a.month == b.month && a.day == b.day;
+  }
 
-  List<double> monthlyDeposits = [
-    12.87,
-    44.41,
-    52.11,
-    35.67,
-    65.21,
-    77.20,
-    45.34,
-    29.35,
-    48.36,
-    12.85,
-    66.33,
-    81.20
-  ];
+  bool isSameWeek(DateTime a, DateTime weekStart) {
+    final weekEnd = weekStart.add(const Duration(days: 6));
+    return a.isAfter(weekStart.subtract(const Duration(days: 1))) &&
+        a.isBefore(weekEnd.add(const Duration(days: 1)));
+  }
 
-  List<double> monthlyWithdrawals = [
-    10.97,
-    58.17,
-    25.36,
-    30.78,
-    15.37,
-    41.38,
-    38.21,
-    38.89,
-    24.11,
-    42.59,
-    37.11,
-    74.86
-  ];
   String? selectedDropdownValue;
   String? selectedCurrencyValue;
   bool isDownloading = false;
+
   Future<void> downloadReport() async {
     // TODO: Implement download functionality
+    safeSetState(() => isDownloading = true);
     try {
       final userId = getStorage.read('userId');
       final response =
@@ -204,16 +421,16 @@ class _CoopReportsWidgetState extends State<ReportsScreen> {
       if (selectedDropdownValue == 'Daily') {
         fileContent = 'Daily Report\n';
         fileContent += 'Date,Deposit,Withdrawal\n';
-        for (int i = 0; i < dailyDeposits.length; i++) {
+        for (int i = 0; i < dailyDepositsUSD_.length; i++) {
           fileContent +=
-              'Day ${i + 1},${dailyDeposits[i]},${dailyWithdrawals[i]}\n';
+              'Day ${i + 1},${dailyDepositsUSD_[i]},${dailyWithdrawalsUSD_[i]}\n';
         }
       } else {
         fileContent = 'Monthly Report\n';
         fileContent += 'Month,Deposit,Withdrawal\n';
-        for (int i = 0; i < monthlyDeposits.length; i++) {
+        for (int i = 0; i < monthlyDepositsUSD_.length; i++) {
           fileContent +=
-              'Month ${i + 1},${monthlyDeposits[i]},${monthlyWithdrawals[i]}\n';
+              'Month ${i + 1},${monthlyDepositsUSD_[i]},${monthlyWithdrawalsUSD_[i]}\n';
         }
       }
 
@@ -241,28 +458,56 @@ class _CoopReportsWidgetState extends State<ReportsScreen> {
   }
 
   void setDropdownValue(String value) {
+    if (_isDisposed) return;
     setState(() {
       selectedDropdownValue = value;
+      if (individualUSDWallet != null) {
+        _fetchFinancialReport().then((_) {
+          createUSDReport();
+          createZIGReport();
+        });
+      }
     });
     log(selectedDropdownValue!);
   }
 
   void setCurrencyValue(String value) {
+    if (_isDisposed) return;
     setState(() {
       selectedCurrencyValue = value;
     });
     log(selectedCurrencyValue!);
   }
 
+  Future<void> _initializeData() async {
+    safeSetState(() => _isLoading = true);
+    try {
+      await _fetchData(); // First load wallets
+      if (!_isDisposed && individualUSDWallet != null) {
+        await _fetchFinancialReport();
+        if (!_isDisposed) {
+          createUSDReport();
+        }
+      }
+    } catch (e) {
+      if (!_isDisposed) {
+        log('Initialization error: $e');
+      }
+    } finally {
+      if (!_isDisposed) {
+        safeSetState(() => _isLoading = false);
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
     log('Coop reports');
-    _fetchData();
+    _initializeData();
     selectedDropdownValue = 'Daily';
   }
 
-  @override
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
@@ -298,22 +543,24 @@ class _CoopReportsWidgetState extends State<ReportsScreen> {
             Container(
               height: size.height * 0.35, // Reduced from 0.5 to 0.35
               padding: const EdgeInsets.symmetric(vertical: 8),
-              child: MyBarGraph(
-                periodicDeposits: selectedDropdownValue == 'Daily'
-                    ? (selectedCurrencyValue == 'USD'
-                        ? dailyDepositsUSD_
-                        : dailyDepositsZIG_)
-                    : (selectedCurrencyValue == 'USD'
-                        ? monthlyDepositsUSD_
-                        : monthlyDepositsZIG_),
-                periodicWithdrawals: selectedDropdownValue == 'Daily'
-                    ? (selectedCurrencyValue == 'USD'
-                        ? dailyWithdrawalsUSD_
-                        : dailyWithdrawalsZIG_)
-                    : (selectedCurrencyValue == 'USD'
-                        ? monthlyWithdrawalsUSD_
-                        : monthlyWithdrawalsZIG_),
-              ),
+              child: _isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : MyBarGraph(
+                      periodicDeposits: selectedDropdownValue == 'Daily'
+                          ? (selectedCurrencyValue == 'USD'
+                              ? dailyDepositsUSD_
+                              : dailyDepositsZIG_)
+                          : (selectedCurrencyValue == 'USD'
+                              ? monthlyDepositsUSD_
+                              : monthlyDepositsZIG_),
+                      periodicWithdrawals: selectedDropdownValue == 'Daily'
+                          ? (selectedCurrencyValue == 'USD'
+                              ? dailyWithdrawalsUSD_
+                              : dailyWithdrawalsZIG_)
+                          : (selectedCurrencyValue == 'USD'
+                              ? monthlyWithdrawalsUSD_
+                              : monthlyWithdrawalsZIG_),
+                    ),
             ),
             // Add other content here if needed
           ],
@@ -417,6 +664,78 @@ class _CoopReportsWidgetState extends State<ReportsScreen> {
       onChanged: (String? newValue) {
         setState(() => selectedDropdownValue = newValue);
       },
+    );
+  }
+}
+
+class _DailyData {
+  final DateTime day;
+  final double credit;
+  final double debit;
+
+  _DailyData({
+    required this.day,
+    required this.credit,
+    required this.debit,
+  });
+
+  _DailyData copyWith({
+    DateTime? day,
+    double? credit,
+    double? debit,
+  }) {
+    return _DailyData(
+      day: day ?? this.day,
+      credit: credit ?? this.credit,
+      debit: debit ?? this.debit,
+    );
+  }
+}
+
+class _WeeklyData {
+  final DateTime weekStart;
+  final double credit;
+  final double debit;
+
+  _WeeklyData({
+    required this.weekStart,
+    required this.credit,
+    required this.debit,
+  });
+
+  _WeeklyData copyWith({
+    DateTime? weekStart,
+    double? credit,
+    double? debit,
+  }) {
+    return _WeeklyData(
+      weekStart: weekStart ?? this.weekStart,
+      credit: credit ?? this.credit,
+      debit: debit ?? this.debit,
+    );
+  }
+}
+
+class _MonthlyData {
+  final DateTime month;
+  final double credit;
+  final double debit;
+
+  _MonthlyData({
+    required this.month,
+    required this.credit,
+    required this.debit,
+  });
+
+  _MonthlyData copyWith({
+    DateTime? month,
+    double? credit,
+    double? debit,
+  }) {
+    return _MonthlyData(
+      month: month ?? this.month,
+      credit: credit ?? this.credit,
+      debit: debit ?? this.debit,
     );
   }
 }

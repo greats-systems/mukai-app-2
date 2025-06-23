@@ -85,7 +85,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
             ));
 
         // Get.to(() => WithdrawScreen());
-        throw UnimplementedError();
+        // throw UnimplementedError();m
       case 'Transfer':
         Get.to(() => TransferTransactionScreen());
         break;

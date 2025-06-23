@@ -615,7 +615,7 @@ class AuthController extends MainController {
       }
     } catch (e) {
       isLoading.value = false;
-      log('getWalletDetailsByID error: $e');
+      // log('getWalletDetailsByID error: $e');
       isLoading.value = false;
       Helper.errorSnackBar(title: 'Error', message: e.toString(), duration: 10);
     }

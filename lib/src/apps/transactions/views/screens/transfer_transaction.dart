@@ -283,11 +283,11 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
                                 children: [
                                   Text(
                                     'Select USD Wallet ',
-                                    style: semibold12black,
+                                    style: semibold12White,
                                   ),
                                   Text(
                                     '${usdWallet?['balance']} USD',
-                                    style: semibold12black,
+                                    style: semibold12White,
                                   ),
                                 ],
                               ),

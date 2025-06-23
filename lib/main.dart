@@ -1,6 +1,8 @@
 import 'dart:developer';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:isar/isar.dart';
 import 'package:mukai/brick/brick.g.dart';
@@ -8,6 +10,8 @@ import 'package:mukai/firebase_options.dart';
 import 'package:mukai/src/app.dart';
 import 'package:mukai/src/apps/settings/settings_controller.dart';
 import 'package:mukai/src/apps/settings/settings_service.dart';
+import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
+import 'package:mukai/src/controllers/auth.controller.dart';
 import 'injection_container.dart' as injection_container;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase_flutter;
@@ -65,6 +69,8 @@ Future<void> main() async {
   // Run the app and pass in the SettingsController. The app listens to the
   // SettingsController for changes, then passes it further down to the
   // SettingsView.
+  Get.put(AuthController());
+  Get.put(TransactionController());
   runApp(MyApp(settingsController: settingsController));
   // runApp(const MyApp());
 }

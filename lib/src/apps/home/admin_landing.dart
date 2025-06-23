@@ -42,10 +42,18 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
 
   Future<void> fetchWalletID() async {
     final walletJson = await _profileController.getProfileWallet(userId!);
-    setState(() {
-      walletId = walletJson![0]['id'];
-    });
+    if (mounted) {
+      setState(() {
+        walletId = walletJson![0]['id'];
+      });
+    }
     log('fetchWalletID walletId: $walletId');
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -213,13 +221,15 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
               child: PageView(
                 controller: pageController,
                 onPageChanged: (index) {
-                  setState(() {
-                    refresh = true;
-                    selectedTab = index;
-                  });
-                  setState(() {
-                    refresh = false;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      refresh = true;
+                      selectedTab = index;
+                    });
+                    setState(() {
+                      refresh = false;
+                    });
+                  }
                 },
                 children: [
                   Container(
