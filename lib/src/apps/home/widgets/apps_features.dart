@@ -6,8 +6,6 @@ import 'package:get/get.dart';
 import 'package:mukai/src/apps/converter/views/converter_screen.dart';
 import 'package:mukai/src/apps/home/widgets/assets/add_asset.dart';
 import 'package:mukai/src/apps/home/widgets/assets/assets_list.dart';
-import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
-import 'package:mukai/src/apps/home/widgets/recent_transactions.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfer_transaction.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/theme/theme.dart';

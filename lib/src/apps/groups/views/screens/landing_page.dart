@@ -464,7 +464,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               showDialog(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: Text('Download Report'),
+                  title: Text('Download Coperative Report'),
                   content: Text('Choose download format'),
                   actions: [
                     TextButton(

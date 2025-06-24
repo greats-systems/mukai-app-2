@@ -1,5 +1,6 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:get/get.dart';
@@ -10,24 +11,54 @@ import 'package:mukai/src/apps/transactions/views/widgets/transfer_to_wallet.dar
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
+import 'dart:developer';
 
-class TransfersScreen extends StatelessWidget {
+class TransfersScreen extends StatefulWidget {
   final String category;
   TransfersScreen({super.key, required this.category});
+
+  @override
+  State<TransfersScreen> createState() => _TransfersScreenState();
+}
+
+class _TransfersScreenState extends State<TransfersScreen> {
   AuthController get authController => Get.put(AuthController());
+
   TransactionController get transactionController =>
       Get.put(TransactionController());
+
   final WalletController walletController = WalletController();
 
   final TextEditingController amountController = TextEditingController();
+
   final TextEditingController phoneController = TextEditingController();
+
   final province_field_key = GlobalKey<DropdownSearchState>();
+
   final agritex_officer_key = GlobalKey<DropdownSearchState>();
+
   final district_key = GlobalKey<DropdownSearchState>();
+
   final town_city_key = GlobalKey<DropdownSearchState>();
+
+  final WalletController _walletController = WalletController();
+
+  final GetStorage _getStorage = GetStorage();
+
   late double height;
+
   late double width;
+
   final dropDownKey = GlobalKey<DropdownSearchState>();
+
+  String? userId;
+
+  @override
+  void initState() {
+    setState(() => userId = _getStorage.read('userId'));
+    log(userId!);
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +88,7 @@ class TransfersScreen extends StatelessWidget {
         titleSpacing: 20.0,
         toolbarHeight: 70.0,
         title: Text(
-          Utils.trimp('${Utils.trimp(category)} Transfer'),
+          Utils.trimp('${Utils.trimp(widget.category)} Transfer'),
           style: medium18WhiteF5,
         ),
       ),
@@ -90,7 +121,9 @@ class TransfersScreen extends StatelessWidget {
                       transactionController.selectedTransferOption.value ==
                               'manual_wallet'
                           ? ManualTransferToWalletWidget()
-                          : sendToMobileWallet()),
+                          : widget.category == 'internal'
+                              ? sendToWalletPlus()
+                              : sendToMobileWallet()),
 
                   height20Space,
                   registerContent(),
@@ -106,27 +139,20 @@ class TransfersScreen extends StatelessWidget {
   sendToMobileWallet() {
     return Column(
       children: [
-        // Obx(() =>
-        //     transactionController.transferTransaction.value.sending_wallet !=
-        //             null
-        //         ? Row(
-        //             children: [
-        //               Text(
-        //                 'Sending Wallet: ${transactionController.transferTransaction.value.sending_wallet?.substring(28, 36)}',
-        //                 style: semibold12black,
-        //               ),
-        //               SizedBox(
-        //                 width: 30,
-        //               ),
-        //               Text(
-        //                 'Receiving Wallet: ${transactionController.transferTransaction.value.receiving_wallet?.substring(28, 36)}',
-        //                 style: semibold12black,
-        //               ),
-        //             ],
-        //           )
-        //         : SizedBox.shrink()),
         heightSpace,
         numberField(),
+        heightSpace,
+        amountField(),
+        heightSpace,
+      ],
+    );
+  }
+
+  sendToWalletPlus() {
+    return Column(
+      children: [
+        heightSpace,
+        accountNumberField(),
         heightSpace,
         amountField(),
         heightSpace,
@@ -257,7 +283,7 @@ class TransfersScreen extends StatelessWidget {
     );
   }
 
-  registerButton() {
+  initiateTransfer() {
     return GestureDetector(
       onTap: () async {
         transactionController.accountNumber.value = '';
@@ -313,7 +339,7 @@ class TransfersScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   goBackButton(),
-                  registerButton(),
+                  initiateTransfer(),
                 ],
               )),
       ],
@@ -353,6 +379,49 @@ class TransfersScreen extends StatelessWidget {
           prefixIcon: Center(
             child: Icon(
               Icons.phone_android_outlined,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  accountNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        onChanged: (value) async {
+          transactionController.transferTransaction.value.receiving_wallet =
+              value;
+          final json = await _walletController.getWalletLikeID(userId!);
+          log(json.toString());
+        },
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: greyB5Color), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Account number",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.wallet,
               color: primaryColor,
             ),
           ),

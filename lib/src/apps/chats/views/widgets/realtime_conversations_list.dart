@@ -5,8 +5,8 @@ import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/schema/chat.dart';
 import 'package:mukai/src/apps/chats/views/widgets/conversation_tile.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
-import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:rxdart/rxdart.dart';
 
 import 'package:flutter/material.dart';
@@ -40,36 +40,51 @@ class _RealTimeConversationsListState extends State<RealTimeConversationsList>
 
   String? loggedInUserId;
   bool refresh = false;
+  bool _isLoading = false;
+
   @override
   void initState() {
-    var userId =
-        _getStorage.read('userId') ?? 'b35bd2e8-efcc-4824-9750-b5439c5d625e';
-    log('User ID fromRealTimeConversationsList: $userId');
-    // Create two separate streams
-    profileIdStream = supabase
-        .from('chats')
-        .stream(primaryKey: ['id'])
-        .eq('profile_id', userId)
-        .order('most_recent_content_time')
-        .map((maps) =>
-            maps.map((map) => Chat.fromMap(map: map, userId: userId)).toList());
-    receiverIdStream = supabase
-        .from('chats')
-        .stream(primaryKey: ['id'])
-        .eq('receiver_id', userId)
-        .order('most_recent_content_time')
-        .map((maps) =>
-            maps.map((map) => Chat.fromMap(map: map, userId: userId)).toList());
-    _chatsStream = CombineLatestStream.list([
-      profileIdStream,
-      receiverIdStream,
-    ]).map((listOfLists) {
-      final allChats = listOfLists.expand((list) => list).toList();
-      final uniqueChats = allChats.toSet().toList();
-      return uniqueChats.map((chat) {
-        return chat;
-      }).toList();
-    });
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      var userId =
+          _getStorage.read('userId') ?? 'b35bd2e8-efcc-4824-9750-b5439c5d625e';
+      log('User ID fromRealTimeConversationsList: $userId');
+      // Create two separate streams
+      profileIdStream = supabase
+          .from('chats')
+          .stream(primaryKey: ['id'])
+          .eq('profile_id', userId)
+          .order('most_recent_content_time')
+          .map((maps) => maps
+              .map((map) => Chat.fromMap(map: map, userId: userId))
+              .toList());
+      receiverIdStream = supabase
+          .from('chats')
+          .stream(primaryKey: ['id'])
+          .eq('receiver_id', userId)
+          .order('most_recent_content_time')
+          .map((maps) => maps
+              .map((map) => Chat.fromMap(map: map, userId: userId))
+              .toList());
+      _chatsStream = CombineLatestStream.list([
+        profileIdStream,
+        receiverIdStream,
+      ]).map((listOfLists) {
+        final allChats = listOfLists.expand((list) => list).toList();
+        final uniqueChats = allChats.toSet().toList();
+        return uniqueChats.map((chat) {
+          return chat;
+        }).toList();
+      });
+    } on Exception catch (e, s) {
+      log('RealTimeConversationsList error: $e $s');
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
     super.initState();
   }
 
@@ -97,7 +112,7 @@ class _RealTimeConversationsListState extends State<RealTimeConversationsList>
             child: Column(
               children: [
                 if (chats.isNotEmpty) searchTextField(),
-                height5Space,
+                height5Space,                
                 chats.isEmpty
                     ? const Center(
                         child: Text('No chats found'),

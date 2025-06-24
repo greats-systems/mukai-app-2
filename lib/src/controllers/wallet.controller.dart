@@ -34,6 +34,21 @@ class WalletController {
     }
   }
 
+  Future<Wallet?> getWalletLikeID(String id) async {
+    log('--------- getWalletLikeID $id ----------');
+    try {
+      final response =
+          await dio.get('$APP_API_ENDPOINT/wallet/like/$id');
+      final dynamic json = response.data;
+      log(JsonEncoder.withIndent(' ').convert(json));
+      final wallet = Wallet.fromJson(json);
+      return wallet;
+    } catch (e, s) {
+      log('getWalletLikeID error: $e $s');
+      return null;
+    }
+  }
+
   Future<void> createGroupWallet(String groupId, Group group) async {
     try {
       final json = await supabase
