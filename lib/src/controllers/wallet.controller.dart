@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -9,28 +10,26 @@ import 'package:mukai/constants.dart';
 class WalletController {
   final dio = Dio();
   var selectedWallet = Wallet().obs;
-  Future<Wallet?> getWallet(String userId) async {
-    log('getWallet userId: $userId');
+  Future<List<Wallet>?> getWalletsByProfileID(String userId) async {
     try {
-      final json = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
-      selectedWallet.value = Wallet.fromJson(json.data);
-      log('selectedWallet: ${selectedWallet.value.address}');
-      return Wallet.fromJson(json.data);
-    } catch (e) {
-      log('getWalletDetailsByID error: $e');
+      final response = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
+      // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
+      final List<dynamic> walletList = response.data['data'];
+      return walletList.map((item) => Wallet.fromJson(item)).toList();
+    } catch (e, s) {
+      log('getWalletDetailsByID error: $e $s');
       return null;
     }
   }
 
-  Future<Wallet?> getGroupWallet(String userId) async {
-    log('getGroupWallet userId: $userId');
+  Future<List<Wallet>?> getIndividualWallets(String userId) async {
     try {
-      final json = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
-      selectedWallet.value = Wallet.fromJson(json.data);
-      log('selectedWallet: ${selectedWallet.value.address}');
-      return Wallet.fromJson(json.data);
-    } catch (e) {
-      log('getWalletDetailsByID error: $e');
+      final response = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
+      // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
+      final List<dynamic> walletList = response.data['data'];
+      return walletList.map((item) => Wallet.fromJson(item)).toList();
+    } catch (e, s) {
+      log('getIndividualWallets error: $e $s');
       return null;
     }
   }

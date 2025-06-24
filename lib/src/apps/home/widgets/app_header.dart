@@ -40,7 +40,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
   late PageController pageController = PageController();
   final tabList = ["Account", "Wallets", "Assets", 'FinMarket'];
   int selectedTab = 0;
-  Wallet? wallet;
+  List<Wallet>? wallet;
   Future? _fetchDataFuture;
 
   Future<void> _fetchData() async {
@@ -48,7 +48,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
       final userId = await _getStorage.read('userId');
       if (!mounted) return;
 
-      final walletData = await _walletController.getWallet(userId);
+      final walletData = await _walletController.getWalletsByProfileID(userId);
       if (!mounted) return;
 
       setState(() => wallet = walletData);
@@ -89,32 +89,6 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
             ],
           ),
         ),
-        // heightBox(30),
-        // Padding(
-        //   padding: EdgeInsets.only(left: width * 0.3),
-        //   child: Column(
-        //     children: [
-        //       SizedBox(
-        //         width: width,
-        //         child: AutoSizeText(
-        //           'Your available balance',
-        //           style: medium14Black,
-        //         ),
-        //       ),
-        //       height5Space,
-        //       Padding(
-        //         padding: EdgeInsets.only(left: width * 0.06),
-        //         child: SizedBox(
-        //           width: width,
-        //           child: AutoSizeText(
-        //             '\$${(wallet?.balance ?? 0.0).toStringAsFixed(2)}',
-        //             style: medium14Black,
-        //           ),
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
       ],
     );
   }
@@ -172,7 +146,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  '${Utils.trimp(profileController.profile.value.first_name! ?? 'No name')} ${Utils.trimp(profileController.profile.value.last_name!)}',
+                  '${Utils.trimp(profileController.profile.value.first_name ?? 'No name')} ${Utils.trimp(profileController.profile.value.last_name ?? 'No name')}',
                   style: medium14Black,
                 ),
               ),

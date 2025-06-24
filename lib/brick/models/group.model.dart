@@ -14,7 +14,7 @@ class Group extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   final String? id;
   final String? admin_id;
-  final String? wallet_id;
+  String? wallet_id;
   final String? name;
   final String? city;
   final String? country;
@@ -31,26 +31,6 @@ class Group extends OfflineFirstWithSupabaseModel {
     this.country,
     this.monthly_sub = 0.0,
   });
-
-  /*
-  factory Group.fromGroupMap(Map<String, dynamic> json) {
-    try {
-      var group = Group(
-          id: json["id"],
-          name: json['name'],
-          country: json['country'],
-          city: json['city'],
-          monthly_sub: json['monthly_sub'],
-          // members: json['members'].map(),
-          admin_id: json['admin_id']);
-      // log(json['members']);
-      return group;
-    } catch (error, st) {
-      log('group.fromMap error $error $st');
-      return Group(id: null);
-    }
-  }
-  */
   
 
   factory Group.fromMap(Map<String, dynamic> json) {

@@ -28,6 +28,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
   // String? currency;
   String? createdAt;
   String? updatedAt;
+  String? currency;
+  String? narrative;
 
   Transaction({
     // this.currency,
@@ -49,6 +51,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
     // this.receiving_account_number,
     this.createdAt,
     this.updatedAt,
+    this.currency,
+    this.narrative,
   });
 
   // Factory method to create an Transaction from a JSON map
@@ -83,6 +87,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
       amount: parseDouble(json['amount'], 0.0),
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      currency: json['currency'],
+      narrative: json['narrative'],
     );
     return transaction;
   }
@@ -102,6 +108,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
       'purpose': purpose,
       'status': status,
       'amount': amount,
+      'currency': currency,
+      'narrative': narrative,
     };
   }
 }

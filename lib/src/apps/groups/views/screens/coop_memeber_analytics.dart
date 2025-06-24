@@ -129,7 +129,7 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
         : Padding(
             padding: const EdgeInsets.only(top: 10.0, left: 10, right: 10),
             child: Container(
-              height: height * 0.1,
+              height: height * 0.5,
               width: width * 0.9,
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(

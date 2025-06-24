@@ -56,8 +56,10 @@ class MyBarGraph extends StatelessWidget {
                     reservedSize: 30,
                   ),
                 ),
-                topTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
-                rightTitles: AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                topTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
+                rightTitles:
+                    AxisTitles(sideTitles: SideTitles(showTitles: false)),
                 leftTitles: AxisTitles(
                   sideTitles: SideTitles(
                     showTitles: true,
@@ -73,20 +75,30 @@ class MyBarGraph extends StatelessWidget {
                 enabled: true,
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    final day = periodicDeposits.length == 7 
+                    final day = periodicDeposits.length >= 7 &&
+                            periodicDeposits.length < 9
                         ? _getDayName(group.x)
-                        : _getMonthName(group.x);
+                        : periodicDeposits.length == 12
+                            ? _getMonthName(group.x)
+                            : _getYear(group.x);
                     final amount = rod.toY.toStringAsFixed(2);
-                    final type = rodIndex == 0 ? 'Deposit' : 'Withdrawal';
+                    final type = rodIndex == 0 ? 'Credit' : 'Debit';
                     return BarTooltipItem(
                       '$day\n$type: \$$amount',
-                      TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+                      TextStyle(
+                          color: Colors.white, fontWeight: FontWeight.bold),
                     );
                   },
                 ),
               ),
               alignment: BarChartAlignment.spaceAround,
               groupsSpace: 10,
+              extraLinesData: ExtraLinesData(horizontalLines: [
+                HorizontalLine(
+                  y: maxY * 1.1, // Creates extra space at the top
+                  color: Colors.transparent,
+                ),
+              ]),
             ),
           ),
         ),
@@ -98,7 +110,9 @@ class MyBarGraph extends StatelessWidget {
     try {
       final combined = [...periodicDeposits, ...periodicWithdrawals];
       if (combined.isEmpty) return 100; // Default max if no data
-      return combined.reduce((a, b) => a > b ? a : b) * 1.2;
+      final maxValue = combined.reduce((a, b) => a > b ? a : b);
+      // Add 30% padding to ensure tooltip space
+      return maxValue * 1.5;
     } catch (e) {
       return 100; // Fallback value
     }
@@ -118,7 +132,9 @@ class MyBarGraph extends StatelessWidget {
             width: 15,
           ),
           BarChartRodData(
-            toY: index < periodicWithdrawals.length ? periodicWithdrawals[index] : 0,
+            toY: index < periodicWithdrawals.length
+                ? periodicWithdrawals[index]
+                : 0,
             color: recColor,
             width: 15,
           ),
@@ -152,10 +168,20 @@ class MyBarGraph extends StatelessWidget {
       fontSize: 12,
     );
 
+    // Format large numbers with K, M, etc. for thousands, millions
+    String formattedValue;
+    if (value >= 1000000) {
+      formattedValue = '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value >= 1000) {
+      formattedValue = '${(value / 1000).toStringAsFixed(1)}K';
+    } else {
+      formattedValue = value.toInt().toString();
+    }
+
     return SideTitleWidget(
       meta: meta,
-      child: Text('\$${value.toInt().toString()}', style: style),
       // axisSide: meta.axisSide,
+      child: Text(formattedValue, style: style),
     );
   }
 
@@ -208,6 +234,21 @@ class MyBarGraph extends StatelessWidget {
         return 'Dec';
       default:
         return '';
+    }
+  }
+
+  int _getYear(int value) {
+    switch (value.toInt()) {
+      case 0:
+        return DateTime.now().year - 3;
+      case 1:
+        return DateTime.now().year - 2;
+      case 2:
+        return DateTime.now().year - 1;
+      case 3:
+        return DateTime.now().year;
+      default:
+        return DateTime.now().year;
     }
   }
 }

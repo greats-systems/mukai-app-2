@@ -1,10 +1,13 @@
+import 'dart:convert';
 import 'dart:developer';
 
+import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
@@ -14,7 +17,8 @@ class CoopWalletBalancesWidget extends StatefulWidget {
   const CoopWalletBalancesWidget({super.key, required this.group});
 
   @override
-  State<CoopWalletBalancesWidget> createState() => _CoopWalletBalancesWidgetState();
+  State<CoopWalletBalancesWidget> createState() =>
+      _CoopWalletBalancesWidgetState();
 }
 
 class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
@@ -32,49 +36,61 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
   Map<String, dynamic>? userProfile = {};
   Map<String, dynamic>? walletProfile = {};
   List<Map<String, dynamic>>? profileWallets = [];
+  Map<String, dynamic>? coopWallet = {};
   Map<String, dynamic>? zigWallet = {};
   Map<String, dynamic>? usdWallet = {};
   bool _isLoading = false;
+  final dio = Dio();
+
+  // Update your fetchId method
   void fetchId() async {
     if (_isDisposed) return;
 
-    setState(() {
-      _isLoading = true;
-      userId = _getStorage.read('userId');
-      role = _getStorage.read('account_type');
-    });
+    try {
+      setState(() {
+        _isLoading = true;
+        userId = _getStorage.read('userId');
+        role = _getStorage.read('account_type');
+      });
 
-    final userjson = await profileController.getUserDetails(userId!);
-    // final walletJson = await profileController.getWalletDetails(userId!);
-    final profileWallets = await profileController.getProfileWallets(widget.group?.id ?? userId!);
+      final response = await dio.get(
+          '$APP_API_ENDPOINT/wallets/coop/${widget.group?.id ?? 'No wallet ID'}');
 
-    if (_isDisposed) return;
-    log('CoopWalletBalancesWidget profileWallets: $profileWallets');
-    setState(() {
-      userProfile = userjson;
-      if (profileWallets != null && profileWallets.isNotEmpty) {
-        try {
-          zigWallet = profileWallets.firstWhere(
-            (element) => element['default_currency']?.toLowerCase() == 'zig',
-            orElse: () => {'balance': '0.00', 'default_currency': 'ZIG'},
-          );
-          usdWallet = profileWallets.firstWhere(
-            (element) => element['default_currency']?.toLowerCase() == 'usd',
-            orElse: () => {'balance': '0.00', 'default_currency': 'USD'},
-          );
-          log('zigWallet: $zigWallet');
-          log('usdWallet: $usdWallet');
-        } catch (e) {
-          log('Error finding wallets: $e');
-          zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
-          usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
-        }
-      } else {
+      log('Wallet Data: ${response.data}');
+
+      if (response.data != null && response.data['data'] != null) {
+        final walletData = response.data['data'];
+        setState(() {
+          // Create wallet maps based on the currency
+          if (walletData['default_currency']?.toLowerCase() == 'usd') {
+            usdWallet = {
+              'balance': walletData['balance']?.toStringAsFixed(2) ?? '0.00',
+              'default_currency': 'USD'
+            };
+            zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
+          } else if (walletData['default_currency']?.toLowerCase() == 'zig') {
+            zigWallet = {
+              'balance': walletData['balance']?.toStringAsFixed(2) ?? '0.00',
+              'default_currency': 'ZIG'
+            };
+            usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
+          }
+
+          log('USD Wallet: $usdWallet');
+          log('ZIG Wallet: $zigWallet');
+        });
+      }
+    } catch (e, s) {
+      log('Error fetching wallet data: $e $s');
+      setState(() {
         zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
         usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
+      });
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
-      _isLoading = false;
-    });
+    }
   }
 
   @override
@@ -125,10 +141,10 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
               MetricRow(
                 icon: "assets/icons/mdi_account-payment-outline.png",
                 title: 'Fines and Penalties Received',
-                zigValue: '${zigWallet?['balance'] ?? '0.00'}',
-                usdValue: '\$${usdWallet?['balance'] ?? '0.00'}',
+                zigValue: '${zigWallet?['fines'] ?? '0.00'}',
+                usdValue: '\$${usdWallet?['fines'] ?? '0.00'}',
               ),
-                                  Container(
+              Container(
                 color: whiteF5Color.withOpacity(0.5),
                 width: width,
                 height: 1.5,
@@ -139,7 +155,6 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
                 zigValue: '${zigWallet?['balance'] ?? '0.00'}',
                 usdValue: '\$${usdWallet?['balance'] ?? '0.00'}',
               ),
-                  
             ],
           ),
         ),

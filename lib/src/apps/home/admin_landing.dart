@@ -5,6 +5,8 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/components/admin_landing_app_bar.dart';
+import 'package:mukai/components/member_landing_app_bar.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
@@ -42,10 +44,18 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
 
   Future<void> fetchWalletID() async {
     final walletJson = await _profileController.getProfileWallet(userId!);
-    setState(() {
-      walletId = walletJson![0]['id'];
-    });
+    if (mounted) {
+      setState(() {
+        walletId = walletJson![0]['id'];
+      });
+    }
     log('fetchWalletID walletId: $walletId');
+  }
+
+  @override
+  void dispose() {
+    pageController.dispose();
+    super.dispose();
   }
 
   @override
@@ -64,7 +74,29 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     height = size.height;
     return Scaffold(
       backgroundColor: primaryColor,
-      appBar: PreferredSize(
+      // appBar: MukaiAdminLandingAppBar(),
+      appBar: buildAppBar(),
+      body: Container(
+          padding: EdgeInsets.all(2),
+          decoration: BoxDecoration(
+            color: whiteF5Color,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(40),
+              topRight: Radius.circular(40),
+            ),
+          ),
+          child: ListView(
+            children: [
+              Obx(() => authController.initiateNewTransaction.value == true
+                  ? adminInitiateTrans()
+                  : adminOptions())
+            ],
+          )),
+    );
+  }
+
+  PreferredSizeWidget buildAppBar(){
+    return PreferredSize(
         preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
         child: Container(
           decoration: BoxDecoration(
@@ -87,24 +119,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
             title: const AdminAppHeaderWidget(),
           ),
         ),
-      ),
-      body: Container(
-          padding: EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: whiteF5Color,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(40),
-              topRight: Radius.circular(40),
-            ),
-          ),
-          child: ListView(
-            children: [
-              Obx(() => authController.initiateNewTransaction.value == true
-                  ? adminInitiateTrans()
-                  : adminOptions())
-            ],
-          )),
-    );
+      );
   }
 
   adminInitiateTrans() {
@@ -213,13 +228,15 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
               child: PageView(
                 controller: pageController,
                 onPageChanged: (index) {
-                  setState(() {
-                    refresh = true;
-                    selectedTab = index;
-                  });
-                  setState(() {
-                    refresh = false;
-                  });
+                  if (mounted) {
+                    setState(() {
+                      refresh = true;
+                      selectedTab = index;
+                    });
+                    setState(() {
+                      refresh = false;
+                    });
+                  }
                 },
                 children: [
                   Container(
@@ -293,3 +310,5 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     );
   }
 }
+
+
