@@ -38,11 +38,12 @@ class AuthBind extends Bindings {
   }
 }
 
-class AuthController extends MainController {
+class AuthController extends GetxController  {
   var uuid = const Uuid();
   final dio = Dio();
   final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
-
+  final GetStorage _storage = GetStorage();
+  
   @override
   void onInit() {
     super.onInit();
@@ -66,11 +67,11 @@ class AuthController extends MainController {
 
   Future<void> _loadUserData(String userId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/users/$userId');
+      final response = await dio.get('$APP_API_ENDPOINT/auth/profiles/$userId');
       // Update your profile controller with the user data
       profileController.profile.value = Profile.fromMap(response.data);
-    } catch (e) {
-      log('Failed to load user data: $e');
+    } catch (e, s) {
+      log('Failed to load user data: $e $s');
     }
   }
 
@@ -584,8 +585,7 @@ class AuthController extends MainController {
     log('getAcountCooperatives profileID userId: $userId');
     try {
       isLoading.value = true;
-      final response =
-          await dio.get('$APP_API_ENDPOINT/cooperatives/$userId');
+      final response = await dio.get('$APP_API_ENDPOINT/cooperatives/$userId');
       if (response.statusCode == 200) {
         var data = response.data['data'];
         final List<dynamic> json = data;
@@ -790,23 +790,10 @@ class AuthController extends MainController {
           ..email = response.data['user']['email']
           ..account_type = response.data['user']['account_type'];
         userId.value = response.data['user']['id'];
-        await _getStorage.write('userId', response.data['user']['id']);
-        await _getStorage.write('accessToken', response.data['access_token']);
+        // await _getStorage.write('userId', response.data['user']['id']);
+        // await _getStorage.write('accessToken', response.data['access_token']);
         await _getStorage.write('role', response.data['user']['account_type']);
         log('Wrote account_type to storage');
-        await _getStorage.read('account_type');
-        final walletJson = await dio
-            .get('$APP_API_ENDPOINT/wallets/${response.data['user']['id']}');
-        if (walletJson.data != null) {
-          await _getStorage.write('walletId', walletJson.data['id']);
-        }
-        // if (response.data['user']['account_type'] == 'coop-member') {
-        //   final groupMemberJson =
-        //       await dio.get('$APP_API_ENDPOINT/group_members/${userId.value}');
-        //   log('groupMemberJson: $groupMemberJson');
-        // } else {
-        //   final adminMemberJson = await dio.get('$APP_API_ENDPOINT/cooperatives/${userId.value}');
-        // }
         await _handleSuccessfulLogin();
       } else if (response.statusCode == 401) {
         _handleFailedLogin(response);
@@ -842,6 +829,13 @@ class AuthController extends MainController {
 
   Future<void> _saveSessionData(AuthResponse authResponse) async {
     try {
+      await _sessionManager.saveSession(
+        accessToken: authResponse.session!.accessToken,
+        refreshToken: authResponse.session!.refreshToken!,
+        userId: authResponse.user!.id,
+        email: authResponse.user!.email!,
+        expiresAt: DateTime.parse(authResponse.session!.expiresAt!.toString()),
+      );
       await _getStorage.write(
           'refresh_token', authResponse.session!.refreshToken!);
       await _getStorage.write(
@@ -852,6 +846,7 @@ class AuthController extends MainController {
       await _getStorage.write(
           'sessionExpiration', authResponse.session!.expiresAt);
       await _getStorage.write('userId', authResponse.user!.id);
+      await _getStorage.write('role', authResponse.user!.role);
       log('Session data saved successfully');
     } catch (e) {
       log('Error saving session data: $e');
@@ -1470,7 +1465,7 @@ class AuthController extends MainController {
   Future<void> logout() async {
     try {
       isLoading.value = true;
-      update();
+      // update();
 
       // 1. Get raw user ID string from storage
       final userId = await _getStorage.read('userId');
@@ -1507,7 +1502,7 @@ class AuthController extends MainController {
       log('Logout error: $e');
     } finally {
       isLoading.value = false;
-      update();
+      // update();
     }
   }
 

@@ -11,6 +11,7 @@ import 'package:mukai/src/apps/home/widgets/subs/pay_sub_trans_detail.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 // import 'package:muc/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
+import 'package:mukai/src/components/my_app_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
@@ -77,7 +78,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
   int selectedTab = 0;
   String? userId;
   String? role;
-  Map<String, dynamic>? userProfile = {};
+  // Map<String, dynamic>? userProfile = {};
   List<Wallet>? sendingWallet = [];
   List<Wallet>? receivingWallet = [];
   List<Map<String, dynamic>>? profileWallets = [];
@@ -95,30 +96,29 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
       userId = _getStorage.read('userId');
       role = _getStorage.read('account_type');
     });
-    final walletJsonData =
+    final coopWalletJsonData =
         await walletController.getWalletsByProfileID(widget.group.admin_id!);
     final userWalletJsonData =
         await walletController.getWalletsByProfileID(userId!);
     log(userWalletJsonData.toString());
-    final userjson = await profileController.getUserDetails(userId!);
+    // final userjson = await profileController.getUserDetails(userId!);
     final profileWallets = await profileController.getProfileWallets(userId!);
     await authController.getAcountCooperatives(userId!);
 
     if (_isDisposed) return;
     log('profileWallets: $profileWallets');
     setState(() {
-      userProfile = userjson;
-      if (walletJsonData != null) {
-        for (var data in walletJsonData) {
+      // userProfile = userjson;
+      if (coopWalletJsonData != null) {
+        for (var data in coopWalletJsonData) {
           if (data.is_group_wallet!) {
             log('Group wallet id: ${data.id!}');
-            receivingWallet = walletJsonData;
+            receivingWallet = coopWalletJsonData;
             widget.group.wallet_id = data.id;
             transactionController.selectedTransaction.value.receiving_wallet =
                 data.id;
           }
-          sendingWallet =
-              userWalletJsonData;
+          sendingWallet = userWalletJsonData;
         }
       }
       if (profileWallets != null && profileWallets.isNotEmpty) {
@@ -167,39 +167,40 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     width = size.width;
     height = size.height;
     return Scaffold(
-        appBar: AppBar(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20.0), // Adjust the radius as needed
-            ),
-          ),
-          elevation: 0,
-          backgroundColor: primaryColor,
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: whiteF5Color,
-            ),
-          ),
-          centerTitle: false,
-          titleSpacing: 20.0,
-          toolbarHeight: 70.0,
-          title: const SizedBox(
-            child: Text(
-              'Pay Cooperative Subscription',
-              style: medium18WhiteF5,
-            ),
-          ),
-        ),
+        appBar: MyAppBar(title: 'Pay Subscription'),
+        // appBar: AppBar(
+        //   shape: const RoundedRectangleBorder(
+        //     borderRadius: BorderRadius.vertical(
+        //       bottom: Radius.circular(20.0), // Adjust the radius as needed
+        //     ),
+        //   ),
+        //   elevation: 0,
+        //   backgroundColor: primaryColor,
+        //   automaticallyImplyLeading: false,
+        //   leading: IconButton(
+        //     onPressed: () {
+        //       Navigator.pop(context);
+        //     },
+        //     icon: const Icon(
+        //       Icons.arrow_back,
+        //       color: whiteF5Color,
+        //     ),
+        //   ),
+        //   centerTitle: false,
+        //   titleSpacing: 20.0,
+        //   toolbarHeight: 70.0,
+        //   title: const SizedBox(
+        //     child: Text(
+        //       'Pay Cooperative Subscription',
+        //       style: medium18WhiteF5,
+        //     ),
+        //   ),
+        // ),
         body: Container(
           color: whiteF5Color,
           child: Column(
             children: [
-              receivingWallet!= null
+              receivingWallet != null
                   ? Column(
                       children: [
                         heightBox(10),
@@ -226,6 +227,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                                     PaySubTransDetail(group: widget.group),
                                     heightBox(10),
                                     accountWallets(),
+                                    _isLoading ? Center(child: CircularProgressIndicator(),) :
                                     ElevatedButton(
                                         style: ElevatedButton.styleFrom(
                                           backgroundColor: primaryColor,
@@ -234,37 +236,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                                                 BorderRadius.circular(10),
                                           ),
                                         ),
-                                        onPressed: () async {
-                                          transactionController
-                                                  .transferTransaction
-                                                  .value
-                                                  .amount =
-                                              widget.group.monthly_sub ?? 0.0;
-                                          transactionController
-                                                  .transferTransaction
-                                                  .value
-                                                  .sending_wallet =
-                                              sendingWallet![0].id;
-                                          transactionController
-                                                  .transferTransaction
-                                                  .value
-                                                  .receiving_wallet =
-                                             receivingWallet![0].id;
-                                          transactionController
-                                              .transferTransaction
-                                              .value
-                                              .transferCategory = 'transfer';
-                                          transactionController
-                                              .transferTransaction
-                                              .value
-                                              .transferMode = 'WALLETPLUS';
-                                          transactionController
-                                              .transferTransaction
-                                              .value
-                                              .transactionType = 'subscription';
-                                          await transactionController
-                                              .initiateTransfer();
-                                        },
+                                        onPressed: processPayment,
                                         child: Text(
                                           'Pay Subscription',
                                           style: semibold12White,
@@ -285,6 +257,38 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
             ],
           ),
         ));
+  }
+
+  void processPayment() async {
+    try {
+      setState(() {
+  _isLoading = true;
+});
+      transactionController.transferTransaction.value.amount =
+          widget.group.monthly_sub;
+      transactionController.transferTransaction.value.sending_wallet =
+          sendingWallet![0].id;
+      transactionController.transferTransaction.value.receiving_wallet =
+          receivingWallet![0].id;
+      transactionController.transferTransaction.value.transferCategory =
+          'transfer';
+      transactionController.transferTransaction.value.transferMode =
+          'WALLETPLUS';
+      transactionController.transferTransaction.value.transactionType =
+          'subscription';
+      transactionController.transferTransaction.value.currency =
+          sendingWallet![0].default_currency;
+      transactionController.transferTransaction.value.narrative = 'debit';
+      await transactionController.initiateTransfer();
+    } catch (e, s) {
+      log('processPayment error: $e $s');
+    } finally {
+      if (mounted) {
+  setState(() {
+    _isLoading = false;
+  });
+}
+    }
   }
 
   accountWallets() {

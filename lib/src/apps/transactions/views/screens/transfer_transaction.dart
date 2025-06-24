@@ -131,7 +131,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
 
   @override
   void initState() {
-    log('TransferTransactionScreen group ID: ${widget.group!.id}');
+    log('TransferTransactionScreen group ID: ${widget.group?.id ?? 'No ID'}');
     super.initState();
     fetchId();
   }

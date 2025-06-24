@@ -56,7 +56,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   final AuthController authController = Get.find<AuthController>();
   final TransactionController transactionController =
       Get.find<TransactionController>();
-  final WalletController walletController = Get.find<WalletController>();
+  final WalletController walletController = Get.put(WalletController());
   final ProfileController profileController = Get.find<ProfileController>();
 
   @override
@@ -95,7 +95,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       }
     } catch (e) {
       if (!_isDisposed) {
-        log('_fetchFinancialReport error: $e');
+        log('ReportsScreen _fetchFinancialReport error: $e');
       }
     }
   }

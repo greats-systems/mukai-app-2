@@ -75,7 +75,8 @@ class MyBarGraph extends StatelessWidget {
                 enabled: true,
                 touchTooltipData: BarTouchTooltipData(
                   getTooltipItem: (group, groupIndex, rod, rodIndex) {
-                    final day = periodicDeposits.length == 7
+                    final day = periodicDeposits.length >= 7 &&
+                            periodicDeposits.length < 9
                         ? _getDayName(group.x)
                         : periodicDeposits.length == 12
                             ? _getMonthName(group.x)
@@ -92,6 +93,12 @@ class MyBarGraph extends StatelessWidget {
               ),
               alignment: BarChartAlignment.spaceAround,
               groupsSpace: 10,
+              extraLinesData: ExtraLinesData(horizontalLines: [
+                HorizontalLine(
+                  y: maxY * 1.1, // Creates extra space at the top
+                  color: Colors.transparent,
+                ),
+              ]),
             ),
           ),
         ),
@@ -103,7 +110,9 @@ class MyBarGraph extends StatelessWidget {
     try {
       final combined = [...periodicDeposits, ...periodicWithdrawals];
       if (combined.isEmpty) return 100; // Default max if no data
-      return combined.reduce((a, b) => a > b ? a : b) * 1.2;
+      final maxValue = combined.reduce((a, b) => a > b ? a : b);
+      // Add 30% padding to ensure tooltip space
+      return maxValue * 1.5;
     } catch (e) {
       return 100; // Fallback value
     }
@@ -159,10 +168,20 @@ class MyBarGraph extends StatelessWidget {
       fontSize: 12,
     );
 
+    // Format large numbers with K, M, etc. for thousands, millions
+    String formattedValue;
+    if (value >= 1000000) {
+      formattedValue = '${(value / 1000000).toStringAsFixed(1)}M';
+    } else if (value >= 1000) {
+      formattedValue = '${(value / 1000).toStringAsFixed(1)}K';
+    } else {
+      formattedValue = value.toInt().toString();
+    }
+
     return SideTitleWidget(
       meta: meta,
-      child: Text('\$${value.toInt().toString()}', style: style),
       // axisSide: meta.axisSide,
+      child: Text(formattedValue, style: style),
     );
   }
 

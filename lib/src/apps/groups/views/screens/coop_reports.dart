@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -9,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:mukai/brick/models/financial_report.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
-import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/apps/reports/widgets/bar_graph.dart';
 import 'package:mukai/src/controllers/financial_report.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
@@ -19,7 +17,8 @@ import 'package:mukai/theme/theme.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CoopReportsWidget extends StatefulWidget {
-  const CoopReportsWidget({super.key});
+  final String walletId;
+  const CoopReportsWidget({super.key, required this.walletId});
 
   @override
   State<CoopReportsWidget> createState() => _CoopReportsWidgetState();
@@ -41,7 +40,8 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
   List<Wallet?>? wallets;
   Wallet? cooperativeUSDWallet;
   Wallet? individualZigWallet;
-  List<FinancialReport>? financialReportUSD_;
+  List<FinancialReport>? financialReport;
+  List<FinancialReport>? financialReportZIG_;
 
   final dio = Dio();
   bool _isLoading = true;
@@ -66,25 +66,28 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
 
   Future<void> _fetchFinancialReport() async {
     try {
-      if (cooperativeUSDWallet == null) {
-        log('No coop USD wallet available');
-        return;
-      }
+      log('Fetching coop financial report for wallet: ${widget.walletId}');
+      financialReport =
+          await _financialReportController.getFinancialReport(widget.walletId);
 
-      log('Fetching coop financial report for wallet: ${cooperativeUSDWallet!.id}');
-      financialReportUSD_ = await _financialReportController
-          .getFinancialReport(cooperativeUSDWallet!.id!);
+      if (financialReport != null) {
+        log('Fetched ${financialReport!.length} transactions');
+        // Filter reports by currency
+        financialReportZIG_ = financialReport!
+            .where((report) => report.currency?.toLowerCase() == 'zig')
+            .toList();
+        financialReport = financialReport!
+            .where((report) => report.currency?.toLowerCase() == 'usd')
+            .toList();
 
-      if (financialReportUSD_ != null) {
-        log('Fetched ${financialReportUSD_!.length} transactions');
-        // log(JsonEncoder.withIndent(' ').convert(financialReportUSD_));
         createUSDReport();
+        createZIGReport();
       } else {
         log('Received null financial report');
       }
     } catch (e) {
       if (!_isDisposed) {
-        log('_fetchFinancialReport error: $e');
+        log('CoopReports _fetchFinancialReport error: $e');
       }
     }
   }
@@ -104,8 +107,8 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
           } else if (wallet.is_group_wallet! &&
               wallet.default_currency == 'zig') {
             safeSetState(() {
-  individualZigWallet = wallet;
-});
+              individualZigWallet = wallet;
+            });
           }
         }
       }
@@ -118,7 +121,7 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
     'Daily',
     'Monthly',
   ];
-  List<String> currencyList = ['ZIG', 'USD', 'GBP'];
+  List<String> currencyList = ['ZIG', 'USD'];
 
   List<double> dailyDepositsUSD_ = [];
   List<double> dailyWithdrawalsUSD_ = [];
@@ -153,7 +156,7 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
     weeklyLabels.clear();
     monthlyLabels.clear();
 
-    if (financialReportUSD_ != null) {
+    if (financialReport != null) {
       final now = DateTime.now();
 
       // Initialize daily data (last 7 days)
@@ -186,14 +189,12 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
         );
       });
 
-      // Process transactions
-      for (var report in financialReportUSD_!) {
+      // Process USD transactions
+      for (var report in financialReport!) {
         final amount = report.amount ?? 0;
-
         if (report.periodStart != null) {
           try {
             final dt = DateTime.parse(report.periodStart!);
-
             // Daily processing
             if (report.periodType == 'daily') {
               for (var daily in dailyData) {
@@ -234,7 +235,7 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
               }
             }
           } catch (e) {
-            log('Error processing transaction: $e');
+            log('Error processing USD transaction: $e');
           }
         }
       }
@@ -245,7 +246,7 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
         dailyWithdrawalsUSD_.add(daily.debit);
         dailyLabels.add(DateFormat('E').format(daily.day)); // Mon, Tue, etc.
       }
-
+      log('dailyDepositsUSD_: $dailyDepositsUSD_');
       // Populate weekly data
       for (var weekly in weeklyData) {
         weeklyDepositsUSD_.add(weekly.credit);
@@ -259,6 +260,129 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
         monthlyWithdrawalsUSD_.add(monthData.debit);
         monthlyLabels.add(DateFormat('MMM').format(monthData.month));
       }
+    }
+  }
+
+  void createZIGReport() {
+    // Clear previous data
+    dailyDepositsZIG_.clear();
+    dailyWithdrawalsZIG_.clear();
+    weeklyDepositsZIG_.clear();
+    weeklyWithdrawalsZIG_.clear();
+    monthlyDepositsZIG_.clear();
+    monthlyWithdrawalsZIG_.clear();
+
+    dailyLabels.clear();
+    weeklyLabels.clear();
+    monthlyLabels.clear();
+
+    if (financialReportZIG_ != null) {
+      final now = DateTime.now();
+
+      // Initialize daily data (last 7 days)
+      final dailyData = List.generate(7, (index) {
+        final date = now.subtract(Duration(days: 6 - index));
+        return _DailyData(
+          day: date,
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Initialize weekly data (last 8 weeks)
+      final weeklyData = List.generate(8, (index) {
+        final weekStart = now.subtract(Duration(days: (7 - index) * 7));
+        return _WeeklyData(
+          weekStart: weekStart,
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Initialize monthly data (all 12 months)
+      final year = now.year;
+      final monthlyData = List.generate(12, (index) {
+        return _MonthlyData(
+          month: DateTime(year, index + 1),
+          credit: 0.0,
+          debit: 0.0,
+        );
+      });
+
+      // Process ZIG transactions
+      for (var report in financialReportZIG_!) {
+        final amount = report.amount ?? 0;
+        if (report.periodStart != null) {
+          try {
+            final dt = DateTime.parse(report.periodStart!);
+            // Daily processing
+            if (report.periodType == 'daily') {
+              for (var daily in dailyData) {
+                if (isSameDay(dt, daily.day)) {
+                  if (report.narrative == 'credit') {
+                    daily = daily.copyWith(credit: daily.credit + amount);
+                  } else {
+                    daily = daily.copyWith(debit: daily.debit + amount);
+                  }
+                  break;
+                }
+              }
+            }
+            // Weekly processing
+            else if (report.periodType == 'weekly') {
+              for (var weekly in weeklyData) {
+                if (isSameWeek(dt, weekly.weekStart)) {
+                  if (report.narrative == 'credit') {
+                    weekly = weekly.copyWith(credit: weekly.credit + amount);
+                  } else {
+                    weekly = weekly.copyWith(debit: weekly.debit + amount);
+                  }
+                  break;
+                }
+              }
+            }
+            // Monthly processing
+            else if (report.periodType == 'monthly') {
+              final monthIndex = dt.month - 1;
+              if (monthIndex >= 0 && monthIndex < 12) {
+                if (report.narrative == 'credit') {
+                  monthlyData[monthIndex] = monthlyData[monthIndex].copyWith(
+                      credit: monthlyData[monthIndex].credit + amount);
+                } else {
+                  monthlyData[monthIndex] = monthlyData[monthIndex]
+                      .copyWith(debit: monthlyData[monthIndex].debit + amount);
+                }
+              }
+            }
+          } catch (e) {
+            log('Error processing ZIG transaction: $e');
+          }
+        }
+      }
+
+      // Populate daily data
+      for (var daily in dailyData) {
+        dailyDepositsZIG_.add(daily.credit);
+        dailyWithdrawalsZIG_.add(daily.debit);
+        dailyLabels.add(DateFormat('E').format(daily.day)); // Mon, Tue, etc.
+      }
+      log('dailyDepositsZIG_: $dailyDepositsZIG_');
+
+      // Populate weekly data
+      for (var weekly in weeklyData) {
+        weeklyDepositsZIG_.add(weekly.credit);
+        weeklyWithdrawalsZIG_.add(weekly.debit);
+        weeklyLabels.add('W${DateFormat('d MMM').format(weekly.weekStart)}');
+      }
+      log('weeklyDepositsZIG_: $weeklyDepositsZIG_');
+
+      // Populate monthly data
+      for (var monthData in monthlyData) {
+        monthlyDepositsZIG_.add(monthData.credit);
+        monthlyWithdrawalsZIG_.add(monthData.debit);
+        monthlyLabels.add(DateFormat('MMM').format(monthData.month));
+      }
+      log('monthlyDepositsZIG_: $monthlyDepositsZIG_');
     }
   }
 
@@ -278,43 +402,38 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
   bool isDownloading = false;
 
   Future<void> downloadReport() async {
-    // TODO: Implement download functionality
     safeSetState(() => isDownloading = true);
     try {
-      final userId = getStorage.read('userId');
-      final response =
-          await supabase.from('transactions').select().eq('wallet_id', userId);
-
-      if (response.isEmpty) {
-        throw Exception('No transactions found');
-      }
-
-      // final transactions = response as List<dynamic>;
-
       String fileContent = '';
+      final currencySymbol = selectedCurrencyValue == 'USD' ? '\$' : 'ZIG';
+
       if (selectedDropdownValue == 'Daily') {
-        fileContent = 'Daily Report\n';
+        fileContent = 'Daily Report ($selectedCurrencyValue)\n';
         fileContent += 'Date,Deposit,Withdrawal\n';
-        for (int i = 0; i < dailyDepositsUSD_.length; i++) {
-          fileContent +=
-              'Day ${i + 1},${dailyDepositsUSD_[i]},${dailyWithdrawalsUSD_[i]}\n';
+        for (int i = 0; i < dailyLabels.length; i++) {
+          fileContent += '${dailyLabels[i]},'
+              '${selectedCurrencyValue == 'USD' ? dailyDepositsUSD_[i] : dailyDepositsZIG_[i]}$currencySymbol,'
+              '${selectedCurrencyValue == 'USD' ? dailyWithdrawalsUSD_[i] : dailyWithdrawalsZIG_[i]}$currencySymbol\n';
         }
       } else {
-        fileContent = 'Monthly Report\n';
+        fileContent = 'Monthly Report ($selectedCurrencyValue)\n';
         fileContent += 'Month,Deposit,Withdrawal\n';
-        for (int i = 0; i < monthlyDepositsUSD_.length; i++) {
-          fileContent +=
-              'Month ${i + 1},${monthlyDepositsUSD_[i]},${monthlyWithdrawalsUSD_[i]}\n';
+        for (int i = 0; i < monthlyLabels.length; i++) {
+          fileContent += '${monthlyLabels[i]},'
+              '${selectedCurrencyValue == 'USD' ? monthlyDepositsUSD_[i] : monthlyDepositsZIG_[i]}$currencySymbol,'
+              '${selectedCurrencyValue == 'USD' ? monthlyWithdrawalsUSD_[i] : monthlyWithdrawalsZIG_[i]}$currencySymbol\n';
         }
       }
 
       final directory = await getApplicationDocumentsDirectory();
       final file = File(
-          '${directory.path}/report_${DateTime.now().millisecondsSinceEpoch}.${selectedCurrencyValue?.toLowerCase() ?? 'csv'}');
+          '${directory.path}/report_${DateTime.now().millisecondsSinceEpoch}_$selectedCurrencyValue.csv');
       await file.writeAsString(fileContent);
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Report downloaded successfully!')),
+        SnackBar(
+            content:
+                Text('$selectedCurrencyValue report downloaded successfully!')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -325,10 +444,6 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
         isDownloading = false;
       });
     }
-
-    setState(() {
-      isDownloading = true;
-    });
   }
 
   void setDropdownValue(String value) {
@@ -336,7 +451,10 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
     setState(() {
       selectedDropdownValue = value;
       if (cooperativeUSDWallet != null) {
-        _fetchFinancialReport().then((_) => createUSDReport());
+        _fetchFinancialReport().then((_) {
+          createUSDReport();
+          createZIGReport();
+        });
       }
     });
     log(selectedDropdownValue!);
@@ -354,10 +472,11 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
     safeSetState(() => _isLoading = true);
     try {
       await _fetchData(); // First load wallets
-      if (!_isDisposed && cooperativeUSDWallet != null) {
+      if (!_isDisposed) {
         await _fetchFinancialReport();
         if (!_isDisposed) {
           createUSDReport();
+          createZIGReport();
         }
       }
     } catch (e) {
@@ -373,6 +492,7 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
 
   @override
   void initState() {
+    log('CoopReports wallet id: ${widget.walletId}');
     super.initState();
     log('Coop reports');
     _initializeData();
@@ -385,17 +505,17 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
     return Container(
       padding: const EdgeInsets.all(8.0),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(1.0),
         child: Column(
           mainAxisSize: MainAxisSize.min, // Prevent column from expanding
           children: [
             // Header Row with controls
             _buildControlsRow(size.width),
-            const SizedBox(height: 16),
+            // const SizedBox(height: 16),
             // Graph Container with fixed height
             Container(
               height: size.height * 0.25, // Reduced from 0.5 to 0.35
-              padding: const EdgeInsets.symmetric(vertical: 4),
+              padding: const EdgeInsets.symmetric(vertical: 1,),
               child: _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : MyBarGraph(
@@ -415,6 +535,7 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
                               : monthlyWithdrawalsZIG_),
                     ),
             ),
+            // Text(weeklyDepositsUSD_.length.toString())
             // Add other content here if needed
           ],
         ),
@@ -430,53 +551,6 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
         _buildCurrencyDropdown(),
         _buildPeriodDropdown(),
       ],
-    );
-  }
-
-  Widget _buildDownloadButton() {
-    return GestureDetector(
-      onTap: () {
-        showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Download Report'),
-            content: const Text('Choose download format'),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  downloadReport();
-                },
-                child: const Text('CSV'),
-              ),
-              TextButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  // Implement PDF download
-                },
-                child: const Text('PDF'),
-              ),
-            ],
-          ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: primaryColor.withAlpha(100),
-          borderRadius: BorderRadius.circular(8),
-        ),
-        child: const Row(
-          children: [
-            Icon(Icons.download, color: Colors.black, size: 16),
-            SizedBox(width: 4),
-            Text(
-              'Download',
-              style: TextStyle(fontSize: 14, color: Colors.black),
-            ),
-          ],
-        ),
-      ),
     );
   }
 

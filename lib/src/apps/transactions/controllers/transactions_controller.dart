@@ -238,10 +238,10 @@ class TransactionController extends MainController {
         throw Exception('User ID not found. Please log in again.');
       }
 
-      transferTransaction.value.account_id = userId; 
+      // transferTransaction.value.account_id = userId;
 
       transferTransaction.value.category = 'transfer';
-
+      log(APP_API_ENDPOINT);
       log('transaction ${transferTransaction.toJson()}');
       var response = await dio.post(
         '$APP_API_ENDPOINT/transactions',
@@ -274,15 +274,15 @@ class TransactionController extends MainController {
             duration: 5);
         authController.initiateNewTransaction.value = false;
         final role = await _getStorage.read('account_type');
-        if (role == 'coop-member') {
-          Get.to(() => BottomBar(
-                role: 'member',
-              ));
-        } else {
-          Get.to(() => BottomBar(
-                role: 'admin',
-              ));
-        }
+        // if (role == 'coop-member') {
+        //   Get.to(() => BottomBar(
+        //         role: 'member',
+        //       ));
+        // } else {
+        //   Get.to(() => BottomBar(
+        //         role: 'admin',
+        //       ));
+        // }
       }
     } on DioException catch (e) {
       isLoading.value = false;
