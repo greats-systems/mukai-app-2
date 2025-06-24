@@ -11,9 +11,11 @@ class MyApp extends StatelessWidget {
   const MyApp({
     super.key,
     required this.settingsController,
+    required this.initialRoute,
   });
 
   final SettingsController settingsController;
+  final String initialRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -29,7 +31,7 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(),
           darkTheme: ThemeData.dark(),
           themeMode: settingsController.themeMode,
-          initialRoute: AppPages.login,
+          initialRoute: initialRoute,
           getPages: AppPages.routes,
           localizationsDelegates: const [
             AppLocalizations.delegate,

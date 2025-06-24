@@ -31,9 +31,9 @@ class CoopLandingScreen extends StatefulWidget {
 }
 
 class _CoopLandingScreenState extends State<CoopLandingScreen> {
-  AuthController get authController => Get.put(AuthController());
-  TransactionController get transactionController =>
-      Get.put(TransactionController());
+  final AuthController authController = Get.find<AuthController>();
+  final TransactionController transactionController =
+      Get.find<TransactionController>();
   late PageController pageController = PageController();
   final GetStorage _getStorage = GetStorage();
   final tabList = ["Dashboard", "Members", "Assets"];
@@ -41,7 +41,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   bool refresh = false;
   late double height;
   late double width;
-  dynamic? walletId;
+  String? walletId;
 
   String? userId;
   String? role;
@@ -55,13 +55,18 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       userId = _getStorage.read('userId');
       role = _getStorage.read('role');
     });
-    final walletJson =
-        await supabase.from('wallets').select('id').eq('profile_id', userId!);
+    final response =
+        await dio.get('$APP_API_ENDPOINT/wallets/coop/${widget.group.id}');
+    final walletJson = response.data['data'];
+    // log('fetchProfile walletJson: ${walletJson['id'].toString()}');
+    // final walletJson =
+    //     await supabase.from('wallets').select('id').eq('profile_id', userId!);
     // .single();
     setState(() {
-      walletId = walletJson;
+      walletId = walletJson['id'];
+      _isLoading = false;
     });
-    log('CoopLandingScreen walletId: $walletId');
+    // log('CoopLandingScreen walletId: $walletId');
 
     // final userjson = await profileController.getUserDetails(userId!);
 
@@ -102,7 +107,11 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                 Get.to(() => AddAssetWidget(group: widget.group));
               },
               backgroundColor: primaryColor,
-              child: const Icon(Icons.add, color: tertiaryColor, size: 36,),
+              child: const Icon(
+                Icons.add,
+                color: tertiaryColor,
+                size: 36,
+              ),
             )
           : null,
       backgroundColor: primaryColor,
@@ -347,7 +356,10 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                     children: [
                       downloadReports(context),
                       SizedBox(
-                          height: height * 0.35, child: CoopReportsWidget()),
+                          height: height * 0.38,
+                          child: _isLoading ? Center(child: CircularProgressIndicator(),) : CoopReportsWidget(
+                            walletId: walletId ?? 'No wallet ID',
+                          )),
                       if (role == 'coop-manager')
                         CoopMemeberAnalytics(group: widget.group),
                       // if (role == 'coop-manager')
@@ -424,6 +436,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
         children: [
           GestureDetector(
             onTap: () {
+              // Get.to(() => TransferTransactionScreen(group: widget.group));
               Get.to(() => MemberPaySubs(group: widget.group));
             },
             child: Container(

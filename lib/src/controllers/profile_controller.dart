@@ -74,7 +74,7 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       Helper.errorSnackBar(
-          title: 'Error', message: error.toString(), duration: 5);
+          title: 'getWalletDetails Error', message: error.toString(), duration: 5);
       return null;
     }
   }
@@ -179,7 +179,7 @@ class ProfileController extends MainController {
       if (error is PostgrestException) {
         debugPrint('PostgrestException ${error.message}');
         Helper.errorSnackBar(
-            title: 'Error', message: error.message, duration: 5);
+            title: 'updateUser PostgrestException', message: error.message, duration: 5);
       }
       isLoading.value = false;
       Helper.errorSnackBar(
@@ -205,7 +205,7 @@ class ProfileController extends MainController {
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
           Helper.errorSnackBar(
-              title: 'Error', message: error.message, duration: 5);
+              title: 'getProfiles PostgrestException', message: error.message, duration: 5);
         }
         return profiles;
       });
@@ -279,7 +279,7 @@ class ProfileController extends MainController {
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
           Helper.errorSnackBar(
-              title: 'Error', message: error.message, duration: 5);
+              title: 'filterProfiles PostgrestException', message: error.message, duration: 5);
         }
         return profiles;
       });
