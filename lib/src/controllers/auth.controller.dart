@@ -17,7 +17,6 @@ import 'package:mukai/src/apps/auth/views/login.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/bottom_bar.dart';
-import 'package:mukai/src/controllers/main.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/constants/hardCodedCities.dart';
@@ -42,7 +41,7 @@ class AuthController extends GetxController  {
   var uuid = const Uuid();
   final dio = Dio();
   final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
-  final GetStorage _storage = GetStorage();
+  // final GetStorage _storage = GetStorage();
   
   @override
   void onInit() {

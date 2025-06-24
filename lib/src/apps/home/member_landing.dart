@@ -17,6 +17,7 @@ import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:io';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
@@ -136,7 +137,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
     preferredSize: Size.fromHeight(
       authController.initiateNewTransaction.value ? 240.0 : 336.0
     ),
-    child: _isLoading ? Center(child: CircularProgressIndicator(),) : Container(
+    child: _isLoading ? Center(child: LoadingShimmerWidget(),) : Container(
       decoration: BoxDecoration(
         boxShadow: [
           BoxShadow(
@@ -196,12 +197,12 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                   child: const HomeAccountWidgetApps(
                     category: 'accountList',
                   )),
-              Container(
-                color: whiteColor,
-                child: const HomeAccountWidgetApps(
-                  category: 'walletList',
-                ),
-              ),
+              // Container(
+              //   color: whiteColor,
+              //   child: const HomeAccountWidgetApps(
+              //     category: 'walletList',
+              //   ),
+              // ),
               Container(
                   color: whiteColor,
                   child: const HomeAccountWidgetApps(

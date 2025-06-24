@@ -18,7 +18,9 @@ class TransferTransactionScreen extends StatefulWidget {
   final Group? group;
   final String? receivingWalletId;
   const TransferTransactionScreen(
-      {super.key, this.purpose, this.receivingWalletId, this.group});
+      {super.key, this.purpose, this.receivingWalletId, 
+      this.group
+      });
 
   @override
   State<TransferTransactionScreen> createState() =>

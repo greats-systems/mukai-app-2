@@ -18,6 +18,8 @@ import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 // import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/helper/helper_controller.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 // import 'package:mukai/utils/utils.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:get/get.dart';
@@ -40,7 +42,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       FinancialReportController();
   final WalletController _walletController = WalletController();
   final List<Map<String, dynamic>> report = [];
-  // final WalletController _groupWalletController = WalletController();
+
   String? userId;
   List<Wallet?>? wallets;
   Wallet? individualUSDWallet;
@@ -417,14 +419,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     // TODO: Implement download functionality
     safeSetState(() => isDownloading = true);
     try {
-      final userId = getStorage.read('userId');
-      final response =
-          await supabase.from('transactions').select().eq('wallet_id', userId);
-
-      if (response.isEmpty) {
-        throw Exception('No transactions found');
-      }
-
       // final transactions = response as List<dynamic>;
 
       String fileContent = '';
@@ -448,10 +442,10 @@ class _ReportsScreenState extends State<ReportsScreen> {
       final file = File(
           '${directory.path}/report_${DateTime.now().millisecondsSinceEpoch}.${selectedCurrencyValue?.toLowerCase() ?? 'csv'}');
       await file.writeAsString(fileContent);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Report downloaded successfully!')),
-      );
+      Helper.successSnackBar(
+          title: 'Download success',
+          message: 'Report downloaded successfully',
+          duration: 5);
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Failed to download report: $e')),
@@ -513,7 +507,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   @override
   void initState() {
     super.initState();
-    log('Coop reports');
+    log('Member reports');
     _initializeData();
     selectedDropdownValue = 'Daily';
   }
@@ -522,25 +516,26 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
     return Scaffold(
-      appBar: AppBar(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20.0), // Adjust the radius as needed
-          ),
-        ),
-        backgroundColor: secondaryColor.withAlpha(50),
-        automaticallyImplyLeading: false,
-        centerTitle: false,
-        titleSpacing: 0.0,
-        toolbarHeight: 80.0,
-        elevation: 0,
-        title: Column(
-          children: [
-            const AppHeaderWidget(),
-            // WalletBalancesWidget(),
-          ],
-        ),
-      ),
+      appBar: _buildAppBar(),
+      // appBar: AppBar(
+      //   shape: const RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.vertical(
+      //       bottom: Radius.circular(20.0), // Adjust the radius as needed
+      //     ),
+      //   ),
+      //   backgroundColor: secondaryColor.withAlpha(50),
+      //   automaticallyImplyLeading: false,
+      //   centerTitle: false,
+      //   titleSpacing: 0.0,
+      //   toolbarHeight: 80.0,
+      //   elevation: 0,
+      //   title: Column(
+      //     children: [
+      //       const AppHeaderWidget(),
+      //       // WalletBalancesWidget(),
+      //     ],
+      //   ),
+      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -550,31 +545,54 @@ class _ReportsScreenState extends State<ReportsScreen> {
             _buildControlsRow(size.width),
             const SizedBox(height: 16),
             // Graph Container with fixed height
-            Container(
-              height: size.height * 0.35, // Reduced from 0.5 to 0.35
-              padding: const EdgeInsets.symmetric(vertical: 8),
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : MyBarGraph(
-                      periodicDeposits: selectedDropdownValue == 'Daily'
-                          ? (selectedCurrencyValue == 'USD'
-                              ? dailyDepositsUSD_
-                              : dailyDepositsZIG_)
-                          : (selectedCurrencyValue == 'USD'
-                              ? monthlyDepositsUSD_
-                              : monthlyDepositsZIG_),
-                      periodicWithdrawals: selectedDropdownValue == 'Daily'
-                          ? (selectedCurrencyValue == 'USD'
-                              ? dailyWithdrawalsUSD_
-                              : dailyWithdrawalsZIG_)
-                          : (selectedCurrencyValue == 'USD'
-                              ? monthlyWithdrawalsUSD_
-                              : monthlyWithdrawalsZIG_),
-                    ),
-            ),
+            _createGraph(),
+            // Container(
+            //   height: size.height * 0.35, // Reduced from 0.5 to 0.35
+            //   padding: const EdgeInsets.symmetric(vertical: 8),
+            //   child: _isLoading
+            //       ? const Center(child: CircularProgressIndicator())
+            //       : MyBarGraph(
+            //           periodicDeposits: selectedDropdownValue == 'Daily'
+            //               ? (selectedCurrencyValue == 'USD'
+            //                   ? dailyDepositsUSD_
+            //                   : dailyDepositsZIG_)
+            //               : (selectedCurrencyValue == 'USD'
+            //                   ? monthlyDepositsUSD_
+            //                   : monthlyDepositsZIG_),
+            //           periodicWithdrawals: selectedDropdownValue == 'Daily'
+            //               ? (selectedCurrencyValue == 'USD'
+            //                   ? dailyWithdrawalsUSD_
+            //                   : dailyWithdrawalsZIG_)
+            //               : (selectedCurrencyValue == 'USD'
+            //                   ? monthlyWithdrawalsUSD_
+            //                   : monthlyWithdrawalsZIG_),
+            //         ),
+            // ),
             // Add other content here if needed
           ],
         ),
+      ),
+    );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(
+          bottom: Radius.circular(20.0), // Adjust the radius as needed
+        ),
+      ),
+      backgroundColor: secondaryColor.withAlpha(50),
+      automaticallyImplyLeading: false,
+      centerTitle: false,
+      titleSpacing: 0.0,
+      toolbarHeight: 80.0,
+      elevation: 0,
+      title: Column(
+        children: [
+          const AppHeaderWidget(),
+          // WalletBalancesWidget(),
+        ],
       ),
     );
   }
@@ -596,7 +614,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
         showDialog(
           context: context,
           builder: (context) => AlertDialog(
-            title: const Text('Download Report'),
+            title: const Text('Download Individual Report'),
             content: const Text('Choose download format'),
             actions: [
               TextButton(
@@ -674,6 +692,32 @@ class _ReportsScreenState extends State<ReportsScreen> {
       onChanged: (String? newValue) {
         setState(() => selectedDropdownValue = newValue);
       },
+    );
+  }
+
+  Widget _createGraph() {
+    final size = MediaQuery.of(context).size;
+    return Container(
+      height: size.height * 0.35, // Reduced from 0.5 to 0.35
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: _isLoading
+          ? const Center(child: LoadingShimmerWidget())
+          : MyBarGraph(
+              periodicDeposits: selectedDropdownValue == 'Daily'
+                  ? (selectedCurrencyValue == 'USD'
+                      ? dailyDepositsUSD_
+                      : dailyDepositsZIG_)
+                  : (selectedCurrencyValue == 'USD'
+                      ? monthlyDepositsUSD_
+                      : monthlyDepositsZIG_),
+              periodicWithdrawals: selectedDropdownValue == 'Daily'
+                  ? (selectedCurrencyValue == 'USD'
+                      ? dailyWithdrawalsUSD_
+                      : dailyWithdrawalsZIG_)
+                  : (selectedCurrencyValue == 'USD'
+                      ? monthlyWithdrawalsUSD_
+                      : monthlyWithdrawalsZIG_),
+            ),
     );
   }
 }
