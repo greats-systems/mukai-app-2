@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/apps/groups/views/screens/group_members.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/group_members.dart';
 import 'package:mukai/src/controllers/main.controller.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:image_picker/image_picker.dart';

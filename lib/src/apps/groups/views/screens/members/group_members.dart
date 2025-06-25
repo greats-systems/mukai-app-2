@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/apps/groups/views/screens/create_group.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
 import 'package:mukai/src/apps/groups/views/widgets/group_members_list.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 // import 'package:mukai/src/controllers/group.controller.dart';

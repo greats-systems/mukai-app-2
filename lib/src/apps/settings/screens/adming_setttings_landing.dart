@@ -5,7 +5,7 @@ import 'package:iconify_flutter_plus/icons/material_symbols.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/apps/groups/views/screens/group_members.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/group_members.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';

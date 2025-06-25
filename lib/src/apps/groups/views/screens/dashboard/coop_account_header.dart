@@ -4,11 +4,11 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class CoopHeaderWidget extends StatefulWidget {
   final String? title;
@@ -61,6 +61,7 @@ class _CoopHeaderWidgetState extends State<CoopHeaderWidget> {
     _isDisposed = true;
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
@@ -68,7 +69,7 @@ class _CoopHeaderWidgetState extends State<CoopHeaderWidget> {
     height = size.height;
     return _isLoading
         ? Center(
-            child: CircularProgressIndicator(),
+            child: LoadingShimmerWidget(),
           )
         : Column(
             children: [
@@ -82,7 +83,6 @@ class _CoopHeaderWidgetState extends State<CoopHeaderWidget> {
                   ],
                 ),
               ),
-        
             ],
           );
   }

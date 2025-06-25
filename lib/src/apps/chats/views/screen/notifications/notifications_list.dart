@@ -120,7 +120,7 @@ class _NotificationsListState extends State<NotificationsList>
     /*
     return Center(
       child: _isLoading
-          ? CircularProgressIndicator()
+          ? LoadingShimmerWidget()
           : _requests != null
               ? NotificationTile(requests: _requests!,)
               : Text('No notifications'),

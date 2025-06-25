@@ -3,22 +3,29 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:mukai/brick/models/financial_report.model.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
-import 'package:mukai/constants.dart';
+import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
 import 'package:mukai/src/apps/reports/widgets/bar_graph.dart';
 import 'package:mukai/src/controllers/financial_report.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 // import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/helper/helper_controller.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 // import 'package:mukai/utils/utils.dart';
 import 'package:path_provider/path_provider.dart';
 
 class CoopReportsWidget extends StatefulWidget {
+  final Group group;
   final String walletId;
-  const CoopReportsWidget({super.key, required this.walletId});
+  const CoopReportsWidget(
+      {super.key, required this.walletId, required this.group});
 
   @override
   State<CoopReportsWidget> createState() => _CoopReportsWidgetState();
@@ -490,6 +497,67 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
     }
   }
 
+  downloadReports(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: GestureDetector(
+        onTap: () {
+          // TODO: Implement download functionality
+          showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text('Download Coperative Report'),
+              content: Text('Choose download format'),
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    downloadReport();
+                    Helper.successSnackBar(
+                        title: 'Success',
+                        message: 'Report downloaded successfully',
+                        duration: 5);
+                    Navigator.pop(context);
+                    // Download as PDF
+                  },
+                  child: Text('PDF'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    downloadReport();
+                    Helper.successSnackBar(
+                        title: 'Success',
+                        message: 'Report downloaded successfully',
+                        duration: 5);
+                    Navigator.pop(context);
+                    // Download as Excel
+                  },
+                  child: Text('Excel'),
+                ),
+              ],
+            ),
+          );
+        },
+        child: Container(
+          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: primaryColor.withAlpha(100),
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Row(
+            children: [
+              Icon(Icons.download, color: Colors.black, size: 16),
+              SizedBox(width: 4),
+              Text(
+                'Download Report',
+                style: TextStyle(fontSize: 14, color: Colors.black),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   void initState() {
     log('CoopReports wallet id: ${widget.walletId}');
@@ -510,47 +578,95 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
           mainAxisSize: MainAxisSize.min, // Prevent column from expanding
           children: [
             // Header Row with controls
-            _buildControlsRow(size.width),
-            // const SizedBox(height: 16),
-            // Graph Container with fixed height
-            Container(
-              height: size.height * 0.25, // Reduced from 0.5 to 0.35
-              padding: const EdgeInsets.symmetric(vertical: 1,),
-              child: _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : MyBarGraph(
-                      periodicDeposits: selectedDropdownValue == 'Daily'
-                          ? (selectedCurrencyValue == 'USD'
-                              ? dailyDepositsUSD_
-                              : dailyDepositsZIG_)
-                          : (selectedCurrencyValue == 'USD'
-                              ? monthlyDepositsUSD_
-                              : monthlyDepositsZIG_),
-                      periodicWithdrawals: selectedDropdownValue == 'Daily'
-                          ? (selectedCurrencyValue == 'USD'
-                              ? dailyWithdrawalsUSD_
-                              : dailyWithdrawalsZIG_)
-                          : (selectedCurrencyValue == 'USD'
-                              ? monthlyWithdrawalsUSD_
-                              : monthlyWithdrawalsZIG_),
-                    ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                paySubscription(context),
+                downloadReports(context),
+              ],
             ),
-            // Text(weeklyDepositsUSD_.length.toString())
-            // Add other content here if needed
+            _buildControlsRow(size.width),
+            _createGraph(),
           ],
         ),
       ),
     );
   }
 
+  Widget _createGraph() {
+    final size = MediaQuery.of(context).size;
+    return Container(
+      height: size.height * 0.25, // Reduced from 0.5 to 0.35
+      padding: const EdgeInsets.symmetric(
+        vertical: 1,
+      ),
+      child: _isLoading
+          ? const Center(child: LoadingShimmerWidget())
+          : MyBarGraph(
+              periodicDeposits: selectedDropdownValue == 'Daily'
+                  ? (selectedCurrencyValue == 'USD'
+                      ? dailyDepositsUSD_
+                      : dailyDepositsZIG_)
+                  : (selectedCurrencyValue == 'USD'
+                      ? monthlyDepositsUSD_
+                      : monthlyDepositsZIG_),
+              periodicWithdrawals: selectedDropdownValue == 'Daily'
+                  ? (selectedCurrencyValue == 'USD'
+                      ? dailyWithdrawalsUSD_
+                      : dailyWithdrawalsZIG_)
+                  : (selectedCurrencyValue == 'USD'
+                      ? monthlyWithdrawalsUSD_
+                      : monthlyWithdrawalsZIG_),
+            ),
+    );
+  }
+
+  Widget paySubscription(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          GestureDetector(
+            onTap: () {
+              // Get.to(() => TransferTransactionScreen(group: widget.group));
+              Get.to(() => MemberPaySubs(group: widget.group));
+            },
+            child: Container(
+              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              decoration: BoxDecoration(
+                color: tertiaryColor.withAlpha(100),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Row(
+                children: [
+                  Text(
+                    'Pay Subscription',
+                    style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.black,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildControlsRow(double width) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-      children: [
-        // _buildDownloadButton(),
-        _buildCurrencyDropdown(),
-        _buildPeriodDropdown(),
-      ],
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 12.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          // _buildDownloadButton(),
+          _buildCurrencyDropdown(),
+          _buildPeriodDropdown(),
+        ],
+      ),
     );
   }
 

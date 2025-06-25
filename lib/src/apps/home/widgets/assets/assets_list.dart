@@ -4,12 +4,13 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
-import 'package:mukai/src/apps/groups/views/screens/asset_detail.dart';
-import 'package:mukai/src/apps/groups/views/screens/asset_item.dart';
+import 'package:mukai/src/apps/groups/views/screens/assets/asset_detail.dart';
+import 'package:mukai/src/apps/groups/views/screens/assets/asset_item.dart';
 // import 'package:mukai/src/apps/home/widgets/transaction_item.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/controllers/asset.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class MemberAssetsList extends StatefulWidget {
   const MemberAssetsList({
@@ -85,7 +86,7 @@ class _MyWidgetState extends State<MemberAssetsList> {
           ),
         ),
         body: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: LoadingShimmerWidget())
             : assets!.isEmpty
                 ? const Center(child: Text('No assets found'))
                 : ListView.builder(

@@ -9,10 +9,11 @@ import 'package:mukai/src/controllers/group.controller.dart';
 import 'dart:developer';
 
 import 'package:get/get.dart';
-import 'package:mukai/src/apps/groups/views/screens/member_detail.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/member_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/member_item.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class MukandoMembersList extends StatefulWidget {
   final Group group;
@@ -41,14 +42,16 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
 
   void _fetchGroupMembers() async {
     if (!mounted) return; // Check if widget is still mounted
-    
+
     setState(() => _isLoading = true);
     try {
-      final members = await _groupController.getMukandoGroupMembers(widget.group.id ?? '');
-      final pendingMembers = await _groupController.getPendingMukandoGroupMembers(widget.group.id ?? '');
-      
+      final members =
+          await _groupController.getMukandoGroupMembers(widget.group.id ?? '');
+      final pendingMembers = await _groupController
+          .getPendingMukandoGroupMembers(widget.group.id ?? '');
+
       if (!mounted) return; // Check again after async operations
-      
+
       setState(() {
         mukandoMembers = members;
         pendingMukandoMembers = pendingMembers;
@@ -103,7 +106,7 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
     }
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: LoadingShimmerWidget());
     }
 
     final membersToShow =
@@ -127,7 +130,7 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
             onTap: () {
               profileController.selectedProfile.value = profile;
               Get.to(() => MemberDetailScreen(
-                groupId: widget.group.id,
+                    groupId: widget.group.id,
                     profile: profile,
                     isActive: _showActiveMembers,
                   ));

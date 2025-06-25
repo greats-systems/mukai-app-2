@@ -1,9 +1,6 @@
-import 'dart:convert';
 import 'dart:developer';
 
-import 'package:dio/dio.dart';
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
@@ -16,6 +13,7 @@ import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/constants/hardCodedCountries.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:mukai/widget/render_supabase_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
@@ -25,30 +23,25 @@ import 'package:iconify_flutter_plus/icons/bx.dart';
 import 'package:iconify_flutter_plus/icons/ic.dart';
 import 'package:iconify_flutter_plus/icons/ph.dart';
 
-class AssetDetailScreen extends StatefulWidget {
-  final Asset asset;
-  final String? status;
-  final Group? group;
+class AddAssetWidget extends StatefulWidget {
+  Group? group;
 
-  const AssetDetailScreen({
+  AddAssetWidget({
     super.key,
-    required this.asset,
-    this.status,
-    this.group,
+    required this.group,
   });
 
   @override
-  State<AssetDetailScreen> createState() => _MemberDetailScreenState();
+  State<AddAssetWidget> createState() => _MemberDetailScreenState();
 }
 
-class _MemberDetailScreenState extends State<AssetDetailScreen> {
+class _MemberDetailScreenState extends State<AddAssetWidget> {
+  TextEditingController firstNameController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController fiatValueController = TextEditingController();
-  TextEditingController nameController = TextEditingController();
-  TextEditingController walletAddressController = TextEditingController();
+
   TextEditingController monthlySubController = TextEditingController();
   TextEditingController totalSubsController = TextEditingController();
-  TextEditingController totalFinesController = TextEditingController();
   TextEditingController cityController = TextEditingController();
   TextEditingController lastNameController = TextEditingController();
   TextEditingController accountTypeController = TextEditingController();
@@ -68,28 +61,10 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
   late double width;
   Map<String, dynamic>? userJson = {};
   bool _isLoading = false;
-  String? role;
-  String? userId;
-  Dio dio = Dio();
 
   @override
   void initState() {
-    assetController.asset.value = widget.asset;
-    userId = GetStorage().read('userId');
-    role = GetStorage().read('role');
-    log('AssetDetailScreen userId: $userId\nrole: $role\ngroup id: ${widget.group!.id}');
-    // getProfile().then((value) {});
-    setDetails();
     super.initState();
-  }
-
-  void setDetails() {
-    if (userJson != null) {
-      nameController.text = widget.asset.assetDescriptiveName ?? 'No name';
-      descriptionController.text =
-          widget.asset.assetDescription ?? 'No description';
-      fiatValueController.text = widget.asset.fiatValue.toString();
-    }
   }
 
   @override
@@ -99,7 +74,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     width = size.width;
     height = size.height;
     return _isLoading
-        ? Center(child: CircularProgressIndicator())
+        ? Center(child: LoadingShimmerWidget())
         : Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
@@ -121,17 +96,9 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                   color: whiteF5Color,
                 ),
               ),
-              title: Column(
-                children: [
-                  Text(
-                    "${Utils.trimp(widget.asset.assetDescriptiveName ?? 'No name')}",
-                    style: semibold18WhiteF5,
-                  ),
-                  Text(
-                    "Asset ID: ${widget.asset.id?.substring(28, 36) ?? ''}",
-                    style: semibold14WhiteF5,
-                  ),
-                ],
+              title: Text(
+                "Add ${Utils.trimp(widget.group?.name ?? '')} Asset",
+                style: semibold18WhiteF5,
               ),
             ),
             body: Container(
@@ -140,6 +107,9 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(fixPadding * 2.0),
                 children: [
+                  // heightBox(20),
+                  // userProfileImage(size),
+                  // heightBox(10),
                   heightBox(10),
                   assetTypeField(),
                   heightBox(10),
@@ -149,174 +119,36 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                   heightBox(10),
                   assetValueField(),
                   heightBox(20),
+                  // const Text(
+                  //   "Location Details",
+                  //   style: semibold14Black,
+                  // ),
+                  // heightSpace,
+                  // country_field(),
+                  // heightBox(15),
+                  // Obx(() => profileController.selectedProfile.value.country
+                  //             ?.toLowerCase() ==
+                  //         'zimbabwe'
+                  //     ? province_field()
+                  //     : cityField()),
+                  // heightBox(10),
+                  // Obx(() => profileController.selectedProfile.value.country
+                  //             ?.toLowerCase() ==
+                  //         'zimbabwe'
+                  //     ? town_cityField()
+                  //     : SizedBox()),
+                  // heightBox(10),
                 ],
               ),
             ),
-            bottomNavigationBar: role == 'coop-member'
-                ? pollSummary(widget.asset)
-                : requestSummary(widget.asset));
-  }
-
-  nameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Asset name',
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            enabled: role == 'coop-member' ? false : true,
-            onChanged: (value) {
-              assetController.asset.value?.assetDescriptiveName = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: nameController,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: 'Enter asset name',
-              hintStyle: semibold14Grey,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  descriptionField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Asset description',
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            enabled: role == 'coop-member' ? false : true,
-            onChanged: (value) {
-              assetController.asset.value?.assetDescription = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            maxLines: 3,
-            keyboardType: TextInputType.name,
-            controller: descriptionController,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: 'Enter asset description',
-              hintStyle: semibold14Grey,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  monthlySubField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Monthly Sub",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: monthlySubController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  assetValueField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Asset Value",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            enabled: role == 'coop-member' ? false : true,
-            onChanged: (value) {
-              assetController.asset.value?.fiatValue = double.parse(value);
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: fiatValueController,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: 'Enter asset market value or purchase price',
-              hintStyle: semibold12Grey,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  assetTypeField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Asset Category",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: DropdownSearch<String>(
-            enabled: role == 'coop-member' ? false : true,
-            onChanged: (value) {
-              if (value != null) {
-                assetController.asset.value?.category = value;
-              }
-            },
-            selectedItem: "Fixed", // Default to Fixed
-            items: (filter, infiniteScrollProps) =>
-                const ["Fixed", "Non-Fixed", "Other"],
-            decoratorProps: DropDownDecoratorProps(
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                hintText: 'Select Asset Type',
-                hintStyle: semibold14Grey,
-                contentPadding: EdgeInsets.all(fixPadding * 1.5),
-              ),
-            ),
-            popupProps: PopupProps.menu(
-              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Text(item, style: semibold14Black),
-              ),
-            ),
-          ),
-        )
-      ],
-    );
+            bottomNavigationBar:
+                Obx(() => assetController.isLoading.value == true
+                    ? const LinearProgressIndicator(
+                        minHeight: 1,
+                        color: whiteColor,
+                      )
+                    : saveButton(context)),
+          );
   }
 
   country_field() {
@@ -345,7 +177,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
 
                   labelText: 'Select Country',
                   labelStyle: const TextStyle(
-                      color: recColor, fontSize: 22), // Black label text
+                      color: recColor, fontSize: 14), // Black label text
                   // border: const OutlineInputBorder(),
                   filled: true,
                   fillColor: recWhiteColor, // White background for input field
@@ -494,12 +326,13 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
-  updateButton(BuildContext context) {
+  saveButton(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: GestureDetector(
         onTap: () {
-          profileController.updateUser();
+          // log(widget.group!.id!);
+          assetController.createAsset(widget.group!.id!, null, 'group');
           Navigator.pop(context);
         },
         child: Obx(() => profileController.isLoading.value == true
@@ -518,77 +351,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                   boxShadow: buttonShadow,
                 ),
                 child: const Text(
-                  "Update",
-                  style: bold18White,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              )),
-      ),
-    );
-  }
-
-  supportButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: GestureDetector(
-        onTap: () {
-          log('${widget.group!.id}');
-          // profileController.updateUser();
-          // Navigator.pop(context);
-        },
-        child: Obx(() => profileController.isLoading.value == true
-            ? const LinearProgressIndicator(
-                color: whiteColor,
-              )
-            : Container(
-                width: double.maxFinite,
-                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
-                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: buttonShadow,
-                ),
-                child: const Text(
-                  "Support",
-                  style: bold18White,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              )),
-      ),
-    );
-  }
-
-  opposeButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: GestureDetector(
-        onTap: () {
-          log('I oppose');
-          // profileController.updateUser();
-          // Navigator.pop(context);
-        },
-        child: Obx(() => profileController.isLoading.value == true
-            ? const LinearProgressIndicator(
-                color: whiteColor,
-              )
-            : Container(
-                width: double.maxFinite,
-                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
-                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: buttonShadow,
-                ),
-                child: const Text(
-                  "Oppose",
+                  "Save Asset",
                   style: bold18White,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,
@@ -623,111 +386,27 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
-  walletAddressField() {
+  nameField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Wallet Address",
+        Text(
+          'Asset name',
           style: semibold14Black,
         ),
         heightSpace,
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              assetController.asset.value?.purpose = value;
+              assetController.asset.value?.assetDescriptiveName = value;
             },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
-            controller: walletAddressController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  totalSubscriptionsPaidField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Total subscriptions paid",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: totalSubsController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  totalFinesIncurredField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Total Fines incurred",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: totalFinesController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  lastNameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Last Name",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: lastNameController,
+            controller: firstNameController,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: userJson?['last_name'] ?? 'No name',
+              hintText: 'Enter asset name',
               hintStyle: semibold14Grey,
               contentPadding: EdgeInsets.all(fixPadding * 1.5),
             ),
@@ -737,27 +416,131 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
-  accountTypeField() {
+  descriptionField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          "Account Type",
+        Text(
+          'Asset description',
           style: semibold14Black,
         ),
         heightSpace,
         boxWidget(
           child: TextField(
-            readOnly: true,
+            onChanged: (value) {
+              assetController.asset.value?.assetDescription = value;
+            },
+            style: semibold14Black,
+            cursorColor: primaryColor,
+            maxLines: 3,
+            keyboardType: TextInputType.name,
+            controller: descriptionController,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Enter asset description',
+              hintStyle: semibold14Grey,
+              contentPadding: EdgeInsets.all(fixPadding * 1.5),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  monthlySubField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Monthly Sub",
+          style: semibold14Black,
+        ),
+        heightSpace,
+        boxWidget(
+          child: TextField(
+            onChanged: (value) {
+              assetController.asset.value?.purpose = value;
+            },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
-            controller: accountTypeController,
-            decoration: InputDecoration(
-              hintText: userJson?['account_type'] ?? 'No account type',
-              hintStyle: medium14Black,
+            controller: monthlySubController,
+            decoration: const InputDecoration(
               border: InputBorder.none,
               contentPadding: EdgeInsets.all(fixPadding * 1.5),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  assetValueField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Asset Value",
+          style: semibold14Black,
+        ),
+        heightSpace,
+        boxWidget(
+          child: TextField(
+            onChanged: (value) {
+              try {
+                assetController.asset.value?.fiatValue = double.parse(value);
+              } on Exception catch (e) {
+                log(e.toString());
+              }
+            },
+            style: semibold14Black,
+            cursorColor: primaryColor,
+            keyboardType: TextInputType.name,
+            controller: fiatValueController,
+            decoration: InputDecoration(
+              border: InputBorder.none,
+              hintText: 'Enter asset market value or purchase price',
+              hintStyle: semibold12Grey,
+              contentPadding: EdgeInsets.all(fixPadding * 1.5),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  assetTypeField() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text(
+          "Asset Category",
+          style: semibold14Black,
+        ),
+        heightSpace,
+        boxWidget(
+          child: DropdownSearch<String>(
+            onChanged: (value) {
+              if (value != null) {
+                assetController.asset.value?.category = value;
+              }
+            },
+            selectedItem: "Fixed", // Default to Fixed
+            items: (filter, infiniteScrollProps) =>
+                const ["Fixed", "Non-Fixed", "Other"],
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Select Asset Type',
+                hintStyle: semibold14Grey,
+                contentPadding: EdgeInsets.all(fixPadding * 1.5),
+              ),
+            ),
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(item, style: semibold14Black),
+              ),
             ),
           ),
         )
@@ -787,23 +570,21 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
   picInfo() {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
-    return Obx(
-        () => profileController.selectedProfile.value.profile_image_url != null
-            ? SizedBox(
-                height: height * 0.2,
-                width: width * 0.3,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: RenderSupabaseImageIdWidget(
-                    filePath: profileController
-                        .selectedProfile.value.profile_image_url!,
-                  ),
-                ),
-              )
-            : const Icon(
-                Icons.person_2_rounded,
-                color: blackOrignalColor,
-              ));
+    return Obx(() => assetController.selectedAsset.value?.imageUrl != null
+        ? SizedBox(
+            height: height * 0.2,
+            width: width * 0.3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: RenderSupabaseImageIdWidget(
+                filePath: assetController.selectedAsset.value?.imageUrl ?? '',
+              ),
+            ),
+          )
+        : const Icon(
+            Icons.person_2_rounded,
+            color: blackOrignalColor,
+          ));
   }
 
   userProfileImage(Size size) {
@@ -874,149 +655,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
-  pollSummary(Asset asset) {
-    return Container(
-      width: double.maxFinite,
-      margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
-          fixPadding * 2.0, fixPadding * 3.0),
-      padding: const EdgeInsets.symmetric(
-          horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-      decoration: BoxDecoration(
-        color: whiteF5Color,
-        borderRadius: BorderRadius.circular(10.0),
-        boxShadow: buttonShadow,
-      ),
-      child: Padding(
-        padding:
-            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-        child: Row(
-          spacing: 10,
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            GestureDetector(
-              onTap: () async {
-                // log('asset id: ${widget.asset.id}');
-
-                var params = {
-                  'group_id': widget.group!.id,
-                  'supporting_votes': userId,
-                  'updated_at': DateTime.now().toIso8601String(),
-                  'asset_id': widget.asset.id,
-                };
-                try {
-                  final response = await dio.patch(
-                      '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
-                      data: params);
-                  log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                  // Navigator.pop(context);
-                  // if (response.data['error']) {
-                  //   Helper.errorSnackBar(
-                  //       title: 'Error',
-                  //       message: response.data['error']['message']);
-                  // }
-                  if (response.data['data'] == "You have voted already") {
-                    Helper.warningSnackBar(
-                        title: 'Duplicate vote',
-                        message: response.data['data'],
-                        duration: 5);
-                  } else {
-                    Helper.successSnackBar(
-                        title: 'Success!',
-                        message: 'You have cast your vote',
-                        duration: 5);
-                  }
-                } on DioException catch (e, s) {
-                  log('DioException encountered when casting vote $e $s');
-                  Helper.errorSnackBar(
-                      title: 'Error', message: e.toString(), duration: 5);
-                  // TODO
-                } on Exception catch (e, s) {
-                  log('Error encountered when casting vote $e $s');
-                  Helper.errorSnackBar(
-                      title: 'Error', message: e.toString(), duration: 5);
-                }
-              },
-              child: Container(
-                  alignment: Alignment(0, 0),
-                  height: height * 0.04,
-                  width: width * 0.25,
-                  // padding: EdgeInsets.all(5),
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 1,
-                    children: [
-                      Text(
-                        'Support',
-                        style: bold16White,
-                      ),
-                    ],
-                  )),
-            ),
-            if (profileController.selectedProfile.value.status == 'declined')
-              SizedBox()
-            else
-              GestureDetector(
-                onTap: () async {
-                  // log('I oppose');
-                  var params = {
-                    'group_id': widget.group!.id,
-                    'opposing_votes': userId,
-                    'updated_at': DateTime.now().toIso8601String(),
-                    'asset_id': widget.asset.id,
-                  };
-                  try {
-                    log(params.toString());
-                    final response = await dio.patch(
-                        '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
-                        data: params);
-                    log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                    // Navigator.pop(context);
-                    if (response.data['data'] == 'You have voted already') {
-                      Helper.warningSnackBar(
-                          title: 'Duplicate vote',
-                          message: response.data['data'],
-                          duration: 5);
-                    } else {
-                      Helper.successSnackBar(
-                          title: 'Success!',
-                          message: 'You have cast your vote',
-                          duration: 5);
-                    }
-                  } on Exception catch (e, s) {
-                    log('Error casting opposing vote: $e $s');
-                  }
-                },
-                child: Container(
-                    alignment: Alignment(0, 0),
-                    height: height * 0.04,
-                    width: width * 0.25,
-                    // padding: EdgeInsets.all(5),
-                    decoration: BoxDecoration(
-                      color: redColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 1,
-                      children: [
-                        Text(
-                          'Oppose',
-                          style: bold16White,
-                        ),
-                      ],
-                    )),
-              ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  requestSummary(Asset asset) {
+  requestSummary(Profile asset) {
     return Container(
       width: double.maxFinite,
       margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
@@ -1042,16 +681,18 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                     middleTextStyle: TextStyle(color: blackColor, fontSize: 14),
                     buttonColor: primaryColor,
                     backgroundColor: tertiaryColor,
-                    title: 'Update Asset',
+                    title: 'Membership Request',
                     middleText:
-                        'Are you sure you want to update ${asset.assetDescriptiveName ?? 'No name'.toUpperCase()} ${asset.assetDescription ?? 'No name'.toUpperCase()} ${asset.id?.substring(28, 36) ?? ''}?',
-                    textConfirm: 'Yes, Update',
+                        'Are you sure you want to accept ${asset.first_name ?? 'No name'.toUpperCase()} ${asset.last_name ?? 'No name'.toUpperCase()} Membership Request ID ${asset.id ?? 'No ID'.substring(0, 8)}?',
+                    textConfirm: 'Yes, Accept',
                     confirmTextColor: whiteColor,
                     onConfirm: () async {
                       if (asset.id != null) {
-                        await assetController.updateAsset(asset.id!);
+                        await profileController.updateMemberRequest(
+                            asset.id!, 'accepted');
+                        // Get.to(() => AdminLandingScreen(role));
+                        // Get.back();
                         Navigator.pop(context);
-                        Get.back();
                       } else {
                         Helper.errorSnackBar(
                             title: 'Blank ID',
@@ -1080,7 +721,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                     spacing: 1,
                     children: [
                       Text(
-                        'Update',
+                        'Accept',
                         style: bold16White,
                       ),
                     ],
@@ -1092,25 +733,19 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
               GestureDetector(
                 onTap: () {
                   Get.defaultDialog(
-                      barrierDismissible: true,
                       middleTextStyle:
                           TextStyle(color: blackColor, fontSize: 14),
                       buttonColor: primaryColor,
                       backgroundColor: tertiaryColor,
-                      title: 'Delete Asset',
+                      title: 'Membership Request',
                       middleText:
-                          'Are you sure you want to delete ${asset.assetDescriptiveName!.toUpperCase()} ${asset.id?.substring(28, 36) ?? ''}?',
-                      textConfirm: 'Yes, Delete',
+                          'Are you sure you want to decline ${asset.first_name!.toUpperCase()} ${asset.last_name!.toUpperCase()} Request ID ${asset.id!.substring(0, 8)}?',
+                      textConfirm: 'Yes, Decline',
                       confirmTextColor: whiteColor,
                       onConfirm: () async {
-                        await assetController.deleteAsset(asset.id!);
-                        Navigator.pop(context);
-                        Navigator.pop(context);
-
+                        await profileController.updateMemberRequest(
+                            asset.id!, 'declined');
                         // Navigator.pop(context);
-                        // if (Get.isDialogOpen!) {
-                        //   Get.back();
-                        // }
                       },
                       cancelTextColor: redColor,
                       onCancel: () {
@@ -1133,12 +768,31 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                       spacing: 1,
                       children: [
                         Text(
-                          'Delete',
+                          'Decline',
                           style: bold16White,
                         ),
                       ],
                     )),
               ),
+            Container(
+                alignment: Alignment(0, 0),
+                height: height * 0.04,
+                width: width * 0.25,
+                padding: EdgeInsets.all(5),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  spacing: 5,
+                  children: [
+                    Text(
+                      'Message',
+                      style: bold16White,
+                    ),
+                  ],
+                )),
           ],
         ),
       ),

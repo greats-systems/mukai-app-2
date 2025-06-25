@@ -9,6 +9,7 @@ import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class CoopMemeberAnalytics extends StatefulWidget {
   final Group? group;
@@ -125,11 +126,11 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
     width = MediaQuery.of(context).size.width;
 
     return _isLoading
-        ? Center(child: CircularProgressIndicator())
+        ? Center(child: LoadingShimmerWidget())
         : Padding(
             padding: const EdgeInsets.only(top: 10.0, left: 10, right: 10),
             child: Container(
-              height: height * 0.5,
+              height: height * 0.125,
               width: width * 0.9,
               padding: EdgeInsets.all(10),
               decoration: BoxDecoration(

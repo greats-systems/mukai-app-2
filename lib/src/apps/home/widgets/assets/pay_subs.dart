@@ -16,6 +16,7 @@ import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class MemberPaySubs extends StatefulWidget {
   MemberPaySubs({super.key, required this.group});
@@ -168,34 +169,6 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     height = size.height;
     return Scaffold(
         appBar: MyAppBar(title: 'Pay Subscription'),
-        // appBar: AppBar(
-        //   shape: const RoundedRectangleBorder(
-        //     borderRadius: BorderRadius.vertical(
-        //       bottom: Radius.circular(20.0), // Adjust the radius as needed
-        //     ),
-        //   ),
-        //   elevation: 0,
-        //   backgroundColor: primaryColor,
-        //   automaticallyImplyLeading: false,
-        //   leading: IconButton(
-        //     onPressed: () {
-        //       Navigator.pop(context);
-        //     },
-        //     icon: const Icon(
-        //       Icons.arrow_back,
-        //       color: whiteF5Color,
-        //     ),
-        //   ),
-        //   centerTitle: false,
-        //   titleSpacing: 20.0,
-        //   toolbarHeight: 70.0,
-        //   title: const SizedBox(
-        //     child: Text(
-        //       'Pay Cooperative Subscription',
-        //       style: medium18WhiteF5,
-        //     ),
-        //   ),
-        // ),
         body: Container(
           color: whiteF5Color,
           child: Column(
@@ -227,20 +200,23 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                                     PaySubTransDetail(group: widget.group),
                                     heightBox(10),
                                     accountWallets(),
-                                    _isLoading ? Center(child: CircularProgressIndicator(),) :
-                                    ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                          backgroundColor: primaryColor,
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius:
-                                                BorderRadius.circular(10),
-                                          ),
-                                        ),
-                                        onPressed: processPayment,
-                                        child: Text(
-                                          'Pay Subscription',
-                                          style: semibold12White,
-                                        )),
+                                    _isLoading
+                                        ? Center(
+                                            child: LoadingShimmerWidget(),
+                                          )
+                                        : ElevatedButton(
+                                            style: ElevatedButton.styleFrom(
+                                              backgroundColor: primaryColor,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(10),
+                                              ),
+                                            ),
+                                            onPressed: processPayment,
+                                            child: Text(
+                                              'Pay Subscription',
+                                              style: semibold12White,
+                                            )),
                                   ],
                                 ),
                               )
@@ -262,8 +238,8 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
   void processPayment() async {
     try {
       setState(() {
-  _isLoading = true;
-});
+        _isLoading = true;
+      });
       transactionController.transferTransaction.value.amount =
           widget.group.monthly_sub;
       transactionController.transferTransaction.value.sending_wallet =
@@ -284,10 +260,10 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
       log('processPayment error: $e $s');
     } finally {
       if (mounted) {
-  setState(() {
-    _isLoading = false;
-  });
-}
+        setState(() {
+          _isLoading = false;
+        });
+      }
     }
   }
 
