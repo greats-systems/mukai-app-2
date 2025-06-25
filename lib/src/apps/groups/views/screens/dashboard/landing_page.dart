@@ -16,7 +16,9 @@ import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_memeber_analy
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_reports.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_wallet_balances.dart';
 import 'package:mukai/src/apps/groups/views/screens/drawer/contribution/make_contribution.dart';
+import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_landing_page.dart';
 import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_application.dart';
+import 'package:mukai/src/apps/groups/views/screens/drawer/subscriptions/subscriptions.dart';
 // import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
@@ -132,7 +134,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Iconify(
-                  Ri.money_dollar_box_line,
+                  Ri.bank_line,
                   color: primaryColor,
                 ),
                 SizedBox(
@@ -145,7 +147,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               ],
             ),
             onTap: () {
-              Get.to(()=> LoanApplicationScreen());
+              Get.to(()=> LoanLandingPageScreen());
             },
           ),
           ListTile(
@@ -153,20 +155,20 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               // mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Iconify(
-                  Ri.bank_line,
+                  Ri.money_dollar_box_line,
                   color: primaryColor,
                 ),
                 SizedBox(
                   width: size.width / 24,
                 ),
                 const Text(
-                  'Assets',
+                  'Subscriptions',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             onTap: () {
-              log('Tapped');
+              Get.to(()=> MySubscriptionsScreen());
             },
           ),
           ListTile(
@@ -181,7 +183,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                   width: size.width / 24,
                 ),
                 const Text(
-                  'Contribute',
+                  'Contributions',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -501,7 +503,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     );
   }
 
-  tabBar() {
+  Widget tabBar() {
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(

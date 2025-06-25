@@ -7,6 +7,7 @@ import 'dart:developer';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
 import 'package:mukai/src/apps/groups/views/widgets/group_members_list.dart';
@@ -55,30 +56,31 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-      appBar: AppBar(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20.0),
-          ),
-        ),
-        elevation: 0,
-        backgroundColor: primaryColor,
-        automaticallyImplyLeading: false,
-        leading: IconButton(
-          onPressed: () => Navigator.pop(context),
-          icon: const Icon(
-            Icons.arrow_back,
-            color: whiteF5Color,
-          ),
-        ),
-        centerTitle: false,
-        titleSpacing: 20.0,
-        toolbarHeight: 70.0,
-        title: Text(
-          Utils.trimp('Group Members'),
-          style: bold18WhiteF5,
-        ),
-      ),
+      appBar: MyAppBar(title: 'Group Members'),
+      // appBar: AppBar(
+      //   shape: const RoundedRectangleBorder(
+      //     borderRadius: BorderRadius.vertical(
+      //       bottom: Radius.circular(20.0),
+      //     ),
+      //   ),
+      //   elevation: 0,
+      //   backgroundColor: primaryColor,
+      //   automaticallyImplyLeading: false,
+      //   leading: IconButton(
+      //     onPressed: () => Navigator.pop(context),
+      //     icon: const Icon(
+      //       Icons.arrow_back,
+      //       color: whiteF5Color,
+      //     ),
+      //   ),
+      //   centerTitle: false,
+      //   titleSpacing: 20.0,
+      //   toolbarHeight: 70.0,
+      //   title: Text(
+      //     Utils.trimp('Group Members'),
+      //     style: bold18WhiteF5,
+      //   ),
+      // ),
       body: SingleChildScrollView(
         child: Column(
           children: [
@@ -150,10 +152,6 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                               category: 'accepted',
                             ),
                           ),
-                          // ElevatedButton(
-                          //   onPressed: () => Get.to(() => CreateGroup()),
-                          //   child: const Icon(Icons.add),
-                          // ),
                         ],
                       ),
                     ),
