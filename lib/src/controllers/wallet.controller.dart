@@ -12,7 +12,8 @@ class WalletController {
   var selectedWallet = Wallet().obs;
   Future<List<Wallet>?> getWalletsByProfileID(String userId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$userId');
       // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
       final List<dynamic> walletList = response.data['data'];
       return walletList.map((item) => Wallet.fromJson(item)).toList();
@@ -24,7 +25,8 @@ class WalletController {
 
   Future<List<Wallet>?> getIndividualWallets(String userId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/wallets/$userId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/wallets/member/$userId');
       // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
       final List<dynamic> walletList = response.data['data'];
       return walletList.map((item) => Wallet.fromJson(item)).toList();
@@ -38,7 +40,7 @@ class WalletController {
     log('--------- getWalletLikeID $id ----------');
     try {
       final response =
-          await dio.get('$APP_API_ENDPOINT/wallet/like/$id');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallet/like/$id');
       final dynamic json = response.data;
       log(JsonEncoder.withIndent(' ').convert(json));
       final wallet = Wallet.fromJson(json);

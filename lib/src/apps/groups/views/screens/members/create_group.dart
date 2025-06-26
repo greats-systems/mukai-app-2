@@ -17,6 +17,7 @@ import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class CreateGroup extends StatefulWidget {
   // final List<Profile> acceptedUsers;
@@ -199,7 +200,7 @@ class _CreateGroupState extends State<CreateGroup> {
                         ),
                       ),
                       child: _isLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
+                          ? const LoadingShimmerWidget()
                           : Text(
                               'Create Group',
                               style: bold16White,
@@ -353,53 +354,54 @@ class _CreateGroupState extends State<CreateGroup> {
   }
 
   Widget category() {
-  return Container(
-    width: double.maxFinite,
-    clipBehavior: Clip.hardEdge,
-    decoration: bgBoxDecoration,
-    child: Obx(() => DropdownSearch<String>(
-          onChanged: (value) => {
-            authController.cooperative_category.value = value!,
-            authController.filterCooperatives()
-          },
-          selectedItem: Utils.trimp(authController.cooperative_category.value),
-          items: (filter, infiniteScrollProps) =>
-              authController.cooperative_category_options,
-          decoratorProps: DropDownDecoratorProps(
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              focusedBorder: OutlineInputBorder(
-                borderSide: BorderSide(color: primaryColor),
-                borderRadius: BorderRadius.circular(10.0),
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Obx(() => DropdownSearch<String>(
+            onChanged: (value) => {
+              authController.cooperative_category.value = value!,
+              authController.filterCooperatives()
+            },
+            selectedItem:
+                Utils.trimp(authController.cooperative_category.value),
+            items: (filter, infiniteScrollProps) =>
+                authController.cooperative_category_options,
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: primaryColor),
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+                labelText: 'Select Cooperative Category',
+                labelStyle: const TextStyle(
+                    height: 10,
+                    color: blackColor, // Changed from whiteColor
+                    fontSize: 22),
+                filled: true,
+                fillColor: whiteColor,
               ),
-              labelText: 'Select Cooperative Category',
-              labelStyle: const TextStyle(
-                  height: 10,
-                  color: blackColor,  // Changed from whiteColor
-                  fontSize: 22),
-              filled: true,
-              fillColor: whiteColor,
+              baseStyle: const TextStyle(
+                  color: blackColor, // Changed from whiteColor
+                  fontSize: 18),
             ),
-            baseStyle: const TextStyle(
-                color: blackColor,  // Changed from whiteColor
-                fontSize: 18),
-          ),
-          popupProps: PopupProps.menu(
-            itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-              padding: const EdgeInsets.all(10.0),
-              child: Text(
-                Utils.trimp(item),
-                style: const TextStyle(color: blackColor, fontSize: 18),
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(
+                  Utils.trimp(item),
+                  style: const TextStyle(color: blackColor, fontSize: 18),
+                ),
+              ),
+              menuProps: const MenuProps(
+                backgroundColor: whiteF5Color, // Changed from Colors.white
+                elevation: 4,
               ),
             ),
-            menuProps: const MenuProps(
-              backgroundColor: whiteF5Color,  // Changed from Colors.white
-              elevation: 4,
-            ),
-          ),
-        )),
-  );
-}
+          )),
+    );
+  }
 
   Widget province_field() {
     return Container(

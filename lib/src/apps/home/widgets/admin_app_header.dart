@@ -8,6 +8,7 @@ import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class AdminAppHeaderWidget extends StatefulWidget {
   final String? title;
@@ -70,7 +71,7 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
     height = size.height;
     return _isLoading
         ? Center(
-            child: CircularProgressIndicator(),
+            child: LoadingShimmerWidget(),
           )
         : Column(
             children: [

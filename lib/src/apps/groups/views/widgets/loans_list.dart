@@ -2,62 +2,77 @@ import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mukai/brick/models/profile.model.dart';
+import 'package:get_storage/get_storage.dart';
+import 'package:mukai/brick/models/loan.model.dart';
+import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/member_detail.dart';
+import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
 import 'package:mukai/src/apps/groups/views/widgets/member_item.dart';
-import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
-class GroupMembersList extends StatefulWidget {
+class LoansList extends StatefulWidget {
   final String groupId;
   String? category;
 
-  GroupMembersList({super.key, required this.groupId, this.category});
+  LoansList({super.key, required this.groupId, this.category});
 
   @override
-  State<GroupMembersList> createState() => _GroupMembersListState();
+  State<LoansList> createState() => _LoansListState();
 }
 
-class _GroupMembersListState extends State<GroupMembersList> {
+class _LoansListState extends State<LoansList> {
   int? selectedCategory;
-  String category = '1 day';
+  // String category = '1 day';
   late double height;
   late double width;
 
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  ProfileController get profileController => Get.put(ProfileController());
-  late final Stream<List<Profile>> _membersStream;
+  // LoanController get loanController => Get.put(LoanController());
+  late final Stream<List<Loan>> _loansStream;
+  String? userId;
+  final GetStorage _getStorage = GetStorage();
 
   @override
   void initState() {
-    log('Getting data for coop_member_requests for group${widget.groupId}');
-    _membersStream = supabase
-        .from('cooperative_member_requests')
+    _fetchId();
+    _initializeStream();
+    super.initState();
+  }
+
+  void _fetchId() async {
+    final id = await _getStorage.read('userId');
+    setState(() {
+      userId = id;
+    });
+  }
+
+  void _initializeStream() {
+    log('Getting loans for user $userId');
+    _loansStream = supabase
+        .from('loans')
         .stream(primaryKey: ['id'])
         .eq('id', widget.groupId)
         .order('created_at')
         .asyncMap((maps) async {
-          List<Profile> profiles = [];
+          List<Loan> loans = [];
           try {
-            profiles = await Future.wait(
+            loans = await Future.wait(
               maps.map((map) async {
-                Profile profile = Profile.fromMap(map);
-                log('profile ${profile.toMap()}');
-                return profile;
+                Loan loan = Loan.fromMap(map);
+                log('loan ${loan.toJson()}');
+                return loan;
               }).toList(),
             );
-            return profiles;
+            return loans;
           } catch (error) {
-            log(' profiles  error ${error}');
-            return profiles;
+            log(' loans  error ${error}');
+            return loans;
           }
         });
-
-    super.initState();
   }
 
   @override
@@ -65,10 +80,14 @@ class _GroupMembersListState extends State<GroupMembersList> {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
+    return body();
+  }
+
+  Widget body() {
     return Column(
       children: [
-        StreamBuilder<List<Profile>>(
-            stream: _membersStream,
+        StreamBuilder<List<Loan>>(
+            stream: _loansStream,
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
@@ -81,27 +100,30 @@ class _GroupMembersListState extends State<GroupMembersList> {
                 );
               }
               if (snapshot.hasData) {
-                final profiles = snapshot.data!;
-                return profiles.isEmpty
+                final loans = snapshot.data!;
+                return loans.isEmpty
                     ? const Center(
-                        child: Text('No Transaction found'),
+                        child: Text('No Loans yet'),
                       )
                     : ListView.builder(
                         shrinkWrap: true,
                         // physics: const AlwaysScrollableScrollPhysics(),
-                        itemCount: profiles.length,
+                        itemCount: loans.length,
                         itemBuilder: (context, index) {
-                          Profile profile = profiles[index];
+                          Loan loan = loans[index];
                           return Padding(
                             padding: const EdgeInsets.all(8.0),
                             child: GestureDetector(
                               onTap: () {
-                                profileController.selectedProfile.value =
-                                    profile;
+                                log('Tapped');
+                                /*
+                                loanController.selectedLoan.value =
+                                    loan;
                                 Get.to(() => MemberDetailScreen(
                                       groupId: widget.groupId,
-                                      profile: profile,
+                                      loan: loan,
                                     ));
+                                    */
                               },
                               child: Container(
                                 width: double.maxFinite,
@@ -120,8 +142,8 @@ class _GroupMembersListState extends State<GroupMembersList> {
                                     borderRadius: BorderRadius.circular(10.0),
                                     color: whiteColor.withOpacity(0.1),
                                   ),
-                                  child: MemberItemWidget(
-                                    profile: profile,
+                                  child: LoanItemWidget(
+                                    loan: loan,
                                   ),
                                 ),
                               ),

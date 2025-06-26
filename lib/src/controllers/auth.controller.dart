@@ -37,12 +37,12 @@ class AuthBind extends Bindings {
   }
 }
 
-class AuthController extends GetxController  {
+class AuthController extends GetxController {
   var uuid = const Uuid();
   final dio = Dio();
   final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
   // final GetStorage _storage = GetStorage();
-  
+
   @override
   void onInit() {
     super.onInit();
@@ -66,7 +66,8 @@ class AuthController extends GetxController  {
 
   Future<void> _loadUserData(String userId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/auth/profiles/$userId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$userId');
       // Update your profile controller with the user data
       profileController.profile.value = Profile.fromMap(response.data);
     } catch (e, s) {
@@ -584,7 +585,8 @@ class AuthController extends GetxController  {
     log('getAcountCooperatives profileID userId: $userId');
     try {
       isLoading.value = true;
-      final response = await dio.get('$APP_API_ENDPOINT/cooperatives/$userId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/cooperatives/$userId');
       if (response.statusCode == 200) {
         var data = response.data['data'];
         final List<dynamic> json = data;
@@ -654,7 +656,7 @@ class AuthController extends GetxController  {
     try {
       isLoading.value = true;
       var isNetworkConnected = await _networkService.isConnected();
-      final response = await GetConnect().get(APP_API_ENDPOINT);
+      final response = await GetConnect().get(EnvConstants.APP_API_ENDPOINT);
       log('isNetworkConnected && response.statusCode $isNetworkConnected ${response.statusCode!}');
 
       if (isNetworkConnected && response.statusCode != null) {
@@ -761,7 +763,7 @@ class AuthController extends GetxController  {
       log('Attempting login with email: ${email.value}');
 
       final response = await dio.post(
-        '$APP_API_ENDPOINT/auth/login',
+        '${EnvConstants.APP_API_ENDPOINT}/auth/login',
         data: {
           'email': email.value,
           'password': password.value,
@@ -981,7 +983,7 @@ class AuthController extends GetxController  {
       isLoading.value = true;
       log('wallet docs ${phoneNumber.value} ${fullName.value}');
       var isNetworkConnected = await _networkService.isConnected();
-      final response = await GetConnect().get(APP_API_ENDPOINT);
+      final response = await GetConnect().get(EnvConstants.APP_API_ENDPOINT);
       if (isNetworkConnected && response.statusCode != null) {
         Map<String, dynamic> token = {};
         final AuthResponse res = await supabase.auth.verifyOTP(
@@ -1038,7 +1040,7 @@ class AuthController extends GetxController  {
 
   Future<void> updateAccount(String userId) async {
     var response = await dio.put(
-      '$APP_API_ENDPOINT/auth/update-account/$userId',
+      '${EnvConstants.APP_API_ENDPOINT}/auth/update-account/$userId',
       data: {
         'id': userId,
         'avatar':
@@ -1083,9 +1085,9 @@ class AuthController extends GetxController  {
         'avatar': null,
       };
 
-      log('Auth data: $APP_API_ENDPOINT');
+      // log('Auth data: ${EnvConstants.APP_API_ENDPOINT}');
       var auth_response = await dio.post(
-        '$APP_API_ENDPOINT/auth/create-account',
+        '${EnvConstants.APP_API_ENDPOINT}/auth/create-account',
         data: auth_data,
         options: Options(
           validateStatus: (status) {
@@ -1114,9 +1116,10 @@ class AuthController extends GetxController  {
         'default_currency': 'usd',
         'is_group_wallet': false,
       };
-      await dio.post('$APP_API_ENDPOINT/chats', data: chatParams);
+      await dio.post('${EnvConstants.APP_API_ENDPOINT}/chats',
+          data: chatParams);
       // final walletJson =
-      //     await dio.post('$APP_API_ENDPOINT/wallets', data: walletParams);
+      //     await dio.post('${EnvConstants.APP_API_ENDPOINT}/wallets', data: walletParams);
       // await _getStorage.write('walletId', walletJson.data['id']);
       if (auth_response.statusCode == 201) {
         await _getStorage.write(
@@ -1212,7 +1215,7 @@ class AuthController extends GetxController  {
 
       log('req_data: $req_data');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/cooperatives',
+        '${EnvConstants.APP_API_ENDPOINT}/cooperatives',
         data: req_data,
         options: Options(
           validateStatus: (status) {
@@ -1265,9 +1268,9 @@ class AuthController extends GetxController  {
         'category': cooperative_category.value
       };
       log('req_data: $req_data');
-      log('${APP_API_ENDPOINT}/cooperative_member_requests');
+      // log('${APP_API_ENDPOINT}/cooperative_member_requests');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/cooperative_member_requests',
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests',
         data: req_data,
       );
       log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
@@ -1341,7 +1344,7 @@ class AuthController extends GetxController  {
 
       log('Auth data: $auth_data');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/accounts/create-account',
+        '${EnvConstants.APP_API_ENDPOINT}/accounts/create-account',
         data: auth_data,
         options: Options(
           validateStatus: (status) {
@@ -1361,7 +1364,7 @@ class AuthController extends GetxController  {
         }
         if (profileImageUrl.value.isNotEmpty || nIDFile.value.path.isNotEmpty) {
           var response = await dio.put(
-            '$APP_API_ENDPOINT/accounts/update-account/${new_auth_data.data.userId}',
+            '${EnvConstants.APP_API_ENDPOINT}/accounts/update-account/${new_auth_data.data.userId}',
             data: {
               'id': new_auth_data.data.userId,
               'avatar': profileImageUrl.value.isNotEmpty
@@ -1431,7 +1434,8 @@ class AuthController extends GetxController  {
       //     .signUp(email: email.value, password: password.value, data: auth_data);
       log(' auth_data: $auth_data');
 
-      var response = await dio.post('$APP_API_ENDPOINT/accounts/create-account',
+      var response = await dio.post(
+          '${EnvConstants.APP_API_ENDPOINT}/accounts/create-account',
           data: auth_data);
       log('response user: ${response.data}');
       if (response.data['statusCode'] == 200) {
@@ -1475,7 +1479,7 @@ class AuthController extends GetxController  {
       // 2. Call logout endpoint with raw user ID in URL
       final response = await dio
           .post(
-            '$APP_API_ENDPOINT/auth/logout/$userId',
+            '${EnvConstants.APP_API_ENDPOINT}/auth/logout/$userId',
             options: Options(
               headers: {
                 'Content-Type': 'application/json',
@@ -1509,44 +1513,6 @@ class AuthController extends GetxController  {
     await _getStorage.erase();
     // Clear any other local repositories if needed
   }
-
-  /*
-  Future<void> logout() async {
-    // Get.to(() => LoginScreen());
-    try {
-      final id = await _getStorage.read('userId');
-      log('$APP_API_ENDPOINT/auth/logout/$id');
-      final response =
-          await dio.post('$APP_API_ENDPOINT/auth/logout/$id');
-      // log('$APP_API_ENDPOINT/auth/logout/${userId.value}');
-      // final response =
-      //     await dio.post('$APP_API_ENDPOINT/auth/logout/${userId.value}');
-      log(response.data);
-      isLoading.value = true;
-      // await supabase.auth.signOut();
-      await _getStorage.erase();
-      // await ProfileRepository().clearAllObjects();
-      // await BusinessRepository().clearAllObjects();
-      // await ProductRepository().clearAllObjects();
-      update();
-      isLoading.value = false;
-      // Get.to(() => LoginScreen());
-    } catch (error) {
-      isLoading.value = false;
-      log('error $error');
-      if (error is PostgrestException) {
-        debugPrint('PostgrestException ${error.message}');
-        Helper.errorSnackBar(
-            title: 'Error', message: error.message, duration: 5);
-      }
-      // Get.to(() => LoginScreen());
-      
-    }
-    finally{
-        Get.to(() => LoginScreen());
-      }
-  }
-  */
 
   Future<void> checkAccount() async {
     isLoading.value = true;

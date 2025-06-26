@@ -98,7 +98,7 @@ class _AssetItemWidgetState extends State<AssetItemWidget> {
                               child: Center(
                                 child: Text(asset.hasReceivedVote!
                                     ? 'Voting underway'
-                                    : 'Pending vote', style: TextStyle(fontSize: 12),),
+                                    : 'Pending vote', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),),
                               ),
                             ),
                           ),

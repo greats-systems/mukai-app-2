@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/src/controllers/cooperative-member-requests.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class ProcessRequest extends StatefulWidget {
   final CooperativeMemberRequest request;
@@ -82,7 +83,7 @@ class _ProcessRequestState extends State<ProcessRequest> {
       ),
       body: _isLoading == true
           ? Center(
-              child: CircularProgressIndicator(),
+              child: LoadingShimmerWidget(),
             )
           : requestDetails != null
               ? Padding(
@@ -134,8 +135,10 @@ class _ProcessRequestState extends State<ProcessRequest> {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(request['profiles']['first_name'] ?? 'No first name'),
-                            Text(request['profiles']['first_name'] ?? 'No last name'),
+                            Text(request['profiles']['first_name'] ??
+                                'No first name'),
+                            Text(request['profiles']['first_name'] ??
+                                'No last name'),
                             // Text(request['profiles'] ?? 'No request type'),
                           ],
                         ),
