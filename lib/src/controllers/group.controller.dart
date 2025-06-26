@@ -15,8 +15,8 @@ class GroupController {
     // log(group.toJson().toString());
     // List<String?> walletIDs = [];
     try {
-      final response =
-          await dio.patch('$APP_API_ENDPOINT/cooperatives', data: group);
+      final response = await dio
+          .patch('${EnvConstants.APP_API_ENDPOINT}/cooperatives', data: group);
       final groupCreated = Group.fromMap(response.data);
       log(groupCreated.toString());
       return {'statusCode': 200, 'message': 'Group created'};
@@ -76,7 +76,7 @@ class GroupController {
 
   Future<List<Group>> getGroups() async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/groups');
+      final response = await dio.get('${EnvConstants.APP_API_ENDPOINT}/groups');
       /*
       final response = await supabase
           .from('group')
@@ -97,7 +97,7 @@ class GroupController {
 
       // Make the API request
       final response = await dio.get(
-        '$APP_API_ENDPOINT/cooperatives/$groupId/members',
+        '${EnvConstants.APP_API_ENDPOINT}/cooperatives/$groupId/members',
         options: Options(
           validateStatus: (status) => status! < 500, // Accept <500 status codes
         ),
@@ -145,53 +145,52 @@ class GroupController {
   }
 
   Future<List<Profile>?> getPendingMukandoGroupMembers(String groupId) async {
-  try {
-    final response = await dio.get(
-      '$APP_API_ENDPOINT/cooperative_member_requests/$groupId/unresolved'
-    );
+    try {
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$groupId/unresolved');
 
-    log('Pending members raw response: ${response.data}');
+      log('Pending members raw response: ${response.data}');
 
-    // 1. Check if response data exists
-    if (response.data == null || response.data['data'] == null) {
-      log('No pending members found for group $groupId');
-      return [];
-    }
-
-    final responseData = response.data['data'] as List;
-    log('Found ${responseData.length} pending member records');
-
-    // 2. Process all members consistently
-    final profiles = <Profile>[];
-    
-    for (final item in responseData) {
-      try {
-        if (item['profiles'] != null) {
-          final profile = Profile.fromMap(item['profiles']);
-          if (profile.id != null) {
-            profiles.add(profile);
-          }
-        }
-      } catch (e, s) {
-        log('Error processing member record: $item', error: e, stackTrace: s);
+      // 1. Check if response data exists
+      if (response.data == null || response.data['data'] == null) {
+        log('No pending members found for group $groupId');
+        return [];
       }
+
+      final responseData = response.data['data'] as List;
+      log('Found ${responseData.length} pending member records');
+
+      // 2. Process all members consistently
+      final profiles = <Profile>[];
+
+      for (final item in responseData) {
+        try {
+          if (item['profiles'] != null) {
+            final profile = Profile.fromMap(item['profiles']);
+            if (profile.id != null) {
+              profiles.add(profile);
+            }
+          }
+        } catch (e, s) {
+          log('Error processing member record: $item', error: e, stackTrace: s);
+        }
+      }
+
+      log('Successfully parsed ${profiles.length} pending members');
+      return profiles;
+    } on DioException catch (e) {
+      log('API error fetching pending members: ${e.message}', error: e);
+      return null;
+    } catch (e, s) {
+      log('Unexpected error fetching pending members', error: e, stackTrace: s);
+      return null;
     }
-
-    log('Successfully parsed ${profiles.length} pending members');
-    return profiles;
-
-  } on DioException catch (e) {
-    log('API error fetching pending members: ${e.message}', error: e);
-    return null;
-  } catch (e, s) {
-    log('Unexpected error fetching pending members', error: e, stackTrace: s);
-    return null;
   }
-}
 
   Future<Wallet?> getGroupWallet(String groupId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/groups/$groupId');
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/groups/$groupId');
       /*
       final response = await supabase
           .from('wallets')
@@ -212,7 +211,8 @@ class GroupController {
 
   Future<List<Wallet>?> getChildrenWallets(String walletId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/wallets/$walletId');
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$walletId');
       return response.data.map((wallet) => Wallet.fromJson(wallet)).toList();
       /*
       final walletsIds = await supabase
@@ -235,7 +235,8 @@ class GroupController {
       final response =
           await supabase.from('group').select().eq('id', id).single();
       */
-      final response = await dio.get('$APP_API_ENDPOINT/groups/$groupId');
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/groups/$groupId');
       if (response.data.isNotEmpty) {
         return Group.fromMap(response.data);
       }
@@ -248,8 +249,9 @@ class GroupController {
 
   Future<void> updateGroup(Group group) async {
     try {
-      final response =
-          await dio.patch('$APP_API_ENDPOINT/groups/${group.id}', data: group);
+      final response = await dio.patch(
+          '${EnvConstants.APP_API_ENDPOINT}/groups/${group.id}',
+          data: group);
       log(response.data);
     } catch (e, s) {
       log('updateGroup error: $e $s');
@@ -258,7 +260,8 @@ class GroupController {
 
   Future<void> deleteGroup(Group group) async {
     try {
-      final response = await dio.delete('$APP_API_ENDPOINT/groups/${group.id}');
+      final response = await dio
+          .delete('${EnvConstants.APP_API_ENDPOINT}/groups/${group.id}');
       log(response.data);
     } catch (e, s) {
       log('updateGroup error: $e $s');
@@ -305,7 +308,7 @@ class GroupController {
     try {
       final Group group;
       group
-      final response = await dio.patch('$APP_API_ENDPOINT/groups/$groupId');
+      final response = await dio.patch('${EnvConstants.APP_API_ENDPOINT}/groups/$groupId');
       /*
       await supabase.from('group_member').insert({
         'group_id': groupId,

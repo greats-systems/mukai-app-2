@@ -906,7 +906,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                 };
                 try {
                   final response = await dio.patch(
-                      '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
+                      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${widget.group!.id}',
                       data: params);
                   log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
                   // Navigator.pop(context);
@@ -972,7 +972,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                   try {
                     log(params.toString());
                     final response = await dio.patch(
-                        '$APP_API_ENDPOINT/cooperative_member_approvals/coop/${widget.group!.id}',
+                        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${widget.group!.id}',
                         data: params);
                     log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
                     // Navigator.pop(context);

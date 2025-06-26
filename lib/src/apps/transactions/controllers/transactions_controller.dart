@@ -75,7 +75,7 @@ class TransactionController extends MainController {
   Future<dynamic> getFinancialReport(String walletId) async {
     try {
       final response =
-          await dio.get('$APP_API_ENDPOINT/transactions/report/$walletId');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId');
       return response.data;
     } catch (e, s) {
       log('getFinancialReport error: $e $s');
@@ -87,7 +87,7 @@ class TransactionController extends MainController {
     log('--------- getMemberLikeID $id ----------');
     try {
       final response =
-          await dio.get('$APP_API_ENDPOINT/auth/profiles/like/$id');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
       final List<dynamic> jsonList = response.data;
       log(JsonEncoder.withIndent(' ').convert(jsonList));
       profilesList = jsonList.map((item) => Profile.fromMap(item)).toList();
@@ -99,7 +99,7 @@ class TransactionController extends MainController {
         isLoading.value = false;
         transactions.refresh();
         final walletJson =
-            await dio.get('$APP_API_ENDPOINT/wallets/${jsonList[0]['id']}');
+            await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/${jsonList[0]['id']}');
         // log(JsonEncoder.withIndent(' ').convert(walletJson.data['id']));
         transferTransaction.value.receiving_wallet = walletJson.data['id'];
         log(transferTransaction.value.receiving_wallet.toString());
@@ -121,7 +121,7 @@ class TransactionController extends MainController {
     log('--------- get profile wallet id $id ----------');
     try {
       final response =
-          await dio.get('$APP_API_ENDPOINT/auth/profiles/like/$id');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
       final List<dynamic> jsonList = response.data;
 
       if (jsonList.isNotEmpty) {
@@ -151,7 +151,7 @@ class TransactionController extends MainController {
     log('--------- get profile wallet id $id ----------');
     try {
       final response = await dio
-          .get('$APP_API_ENDPOINT/wallets/get_profile_by_wallet_id/$id');
+          .get('${EnvConstants.APP_API_ENDPOINT}/wallets/get_profile_by_wallet_id/$id');
       var data = response.data['data'];
       log('data ${data}');
       if (data != null) {
@@ -173,7 +173,7 @@ class TransactionController extends MainController {
     log('--------- getAllMembers ----------');
     try {
       final response =
-          await dio.get('${constants.APP_API_ENDPOINT}/auth/profiles');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles');
       // log(JsonEncoder.withIndent(' ').convert(response.data));
       final List<dynamic> jsonList = response.data;
       profilesList = jsonList.map((item) => Profile.fromMap(item)).toList();
@@ -241,10 +241,10 @@ class TransactionController extends MainController {
       // transferTransaction.value.account_id = userId;
 
       transferTransaction.value.category = 'transfer';
-      log(APP_API_ENDPOINT);
+      // log(APP_API_ENDPOINT);
       log('transaction ${transferTransaction.toJson()}');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/transactions',
+        '${EnvConstants.APP_API_ENDPOINT}/transactions',
         data: transferTransaction.toJson(),
         options: Options(
           validateStatus: (status) {

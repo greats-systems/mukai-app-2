@@ -8,7 +8,8 @@ class CooperativeMemberRequestController {
   final dio = Dio();
   Future<List<CooperativeMemberRequest>?> getUnresolvedRequests() async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/unresolved');
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/unresolved');
       /*
       final response = await supabase
           .from('cooperative_member_requests')
@@ -29,8 +30,8 @@ class CooperativeMemberRequestController {
 
   Future<Map<String, dynamic>?> viewRequestDetails(String memberId) async {
     try {
-      final response = await dio
-          .get('$APP_API_ENDPOINT/cooperative_member_requests/$memberId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$memberId');
       /*
       final response = await supabase
           .from('cooperative_member_requests')
@@ -49,7 +50,7 @@ class CooperativeMemberRequestController {
     var params = {'status': 'resolved'};
     try {
       final response = await dio.patch(
-          '$APP_API_ENDPOINT/cooperative_member_requests/$memberId',
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$memberId',
           data: params);
       log(response.data);
 

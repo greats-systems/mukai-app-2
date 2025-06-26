@@ -54,7 +54,7 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
       });
 
       final response = await dio.get(
-          '$APP_API_ENDPOINT/wallets/coop/${widget.group?.id ?? 'No wallet ID'}');
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group?.id ?? 'No wallet ID'}');
 
       log('Wallet Data: ${response.data}');
 

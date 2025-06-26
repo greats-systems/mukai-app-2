@@ -279,7 +279,7 @@ class _MessageBarState extends State<_MessageBar> {
     String text,
   ) async {
     await GetConnect().post(
-      '${constants.APP_API_ENDPOINT}/notify/v1/message_notification',
+      '${EnvConstants.APP_API_ENDPOINT}/notify/v1/message_notification',
       {
         "user_id": accountController.person.value.id,
         "message": "message notification",

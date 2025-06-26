@@ -9,7 +9,8 @@ class LoanController {
 
   Future<void> createLoan(Loan loan) async {
     try {
-      final response = await dio.post('$APP_API_ENDPOINT/loans', data: loan);
+      final response =
+          await dio.post('${EnvConstants.APP_API_ENDPOINT}/loans', data: loan);
       log('createLoan data: ${response.data}');
       return;
     } catch (e, s) {
@@ -21,8 +22,8 @@ class LoanController {
   Future<List<Loan>?> getProfileLoans(String profileId) async {
     List<Loan>? loans = [];
     try {
-      final response =
-          await dio.get('$APP_API_ENDPOINT/loans/profile/$profileId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/loans/profile/$profileId');
       final List<dynamic> json = response.data;
       log(json.toString());
       if (json.isNotEmpty) {

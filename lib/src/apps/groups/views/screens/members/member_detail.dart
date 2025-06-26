@@ -1069,17 +1069,17 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       var profileParams = {'cooperative_id': widget.groupId, 'id': member_id};
 
       await dio.patch(
-        '$APP_API_ENDPOINT/cooperative_member_requests/${widget.groupId}',
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/${widget.groupId}',
         data: coopRequestUpdateParams,
       );
 
       await dio.post(
-        '$APP_API_ENDPOINT/group_members',
+        '${EnvConstants.APP_API_ENDPOINT}/group_members',
         data: groupMemberParams,
       );
 
       await dio.patch(
-        '$APP_API_ENDPOINT/auth/update-account/$member_id',
+        '${EnvConstants.APP_API_ENDPOINT}/auth/update-account/$member_id',
         data: profileParams,
       );
 

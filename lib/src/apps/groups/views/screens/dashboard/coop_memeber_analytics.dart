@@ -65,7 +65,7 @@ class _CoopMemeberAnalyticsState extends State<CoopMemeberAnalytics> {
 
     try {
       final response = await dio.get(
-        '$APP_API_ENDPOINT/group_members/${widget.group!.id}/members',
+        '${EnvConstants.APP_API_ENDPOINT}/group_members/${widget.group!.id}/members',
         cancelToken: _cancelToken,
       );
 

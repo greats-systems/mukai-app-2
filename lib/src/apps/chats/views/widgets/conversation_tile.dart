@@ -4,7 +4,7 @@ import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
-import 'package:mukai/constants.dart' as constants;
+import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/chats/schema/chat.dart';
 import 'package:mukai/src/apps/chats/views/screen/conversation.dart';
 // import 'package:mukai/src/apps/chats/views/screen/conversation.dart';
@@ -129,7 +129,7 @@ class ConversationTile extends StatelessWidget {
   }
 
   Widget cachedImage(String id) {
-    final url = '${constants.APP_API_ENDPOINT}/assets/$id';
+    final url = '${EnvConstants.APP_API_ENDPOINT}/assets/$id';
     return CachedNetworkImage(
       width: 60.0,
       height: 60.0,
