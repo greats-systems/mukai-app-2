@@ -49,3 +49,7 @@ app.*.map.json
 
 # Constants
 constants.dart
+
+# Environment variables
+
+key/

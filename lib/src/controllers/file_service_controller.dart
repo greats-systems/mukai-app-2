@@ -220,7 +220,8 @@ class FileServiceController extends GetxController {
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse("${CMS_ENDPOINT}/files"),
+        // Uri.parse("${CMS_ENDPOINT}/files"),
+        Uri.parse("${EnvConstants.CMS_ENDPOINT}/files")
       );
       request.fields['type'] = "image/jpeg";
       if (title != null) {
@@ -299,7 +300,7 @@ class FileServiceController extends GetxController {
     try {
       final request = http.MultipartRequest(
         'POST',
-        Uri.parse("${CMS_ENDPOINT}/files"),
+        Uri.parse("${EnvConstants.CMS_ENDPOINT}/files"),
       );
       request.fields['type'] = "image/jpeg";
       if (title != null) {

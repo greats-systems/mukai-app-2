@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -11,6 +10,7 @@ import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/messages_shimmer.dart';
 
 class CoopWalletBalancesWidget extends StatefulWidget {
   final Group? group;
@@ -54,31 +54,35 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
       });
 
       final response = await dio.get(
-          '$APP_API_ENDPOINT/wallets/coop/${widget.group?.id ?? 'No wallet ID'}');
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group?.id ?? 'No wallet ID'}');
 
       log('Wallet Data: ${response.data}');
 
-      if (response.data != null && response.data['data'] != null) {
-        final walletData = response.data['data'];
-        setState(() {
-          // Create wallet maps based on the currency
-          if (walletData['default_currency']?.toLowerCase() == 'usd') {
-            usdWallet = {
-              'balance': walletData['balance']?.toStringAsFixed(2) ?? '0.00',
-              'default_currency': 'USD'
-            };
-            zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
-          } else if (walletData['default_currency']?.toLowerCase() == 'zig') {
-            zigWallet = {
-              'balance': walletData['balance']?.toStringAsFixed(2) ?? '0.00',
-              'default_currency': 'ZIG'
-            };
-            usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
-          }
+      if (response.data['data'] != 'No wallet found') {
+        if (response.data != null && response.data['data'] != null) {
+          final walletData = response.data['data'];
+          setState(() {
+            // Create wallet maps based on the currency
+            if (walletData['default_currency']?.toLowerCase() == 'usd') {
+              usdWallet = {
+                'balance': walletData['balance']?.toStringAsFixed(2) ?? '0.00',
+                'default_currency': 'USD'
+              };
+              zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
+            } else if (walletData['default_currency']?.toLowerCase() == 'zig') {
+              zigWallet = {
+                'balance': walletData['balance']?.toStringAsFixed(2) ?? '0.00',
+                'default_currency': 'ZIG'
+              };
+              usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
+            }
 
-          log('USD Wallet: $usdWallet');
-          log('ZIG Wallet: $zigWallet');
-        });
+            log('USD Wallet: $usdWallet');
+            log('ZIG Wallet: $zigWallet');
+          });
+        }
+      } else {
+        log('No wallet');
       }
     } catch (e, s) {
       log('Error fetching wallet data: $e $s');
@@ -111,6 +115,10 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
   Widget build(BuildContext context) {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
+    return _isLoading ? LoadingMessagesShimmerWidget() : body();
+  }
+
+  Widget body() {
     return Padding(
       padding: const EdgeInsets.only(top: 20.0, left: 20, right: 20),
       child: Container(

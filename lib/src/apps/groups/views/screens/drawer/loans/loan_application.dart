@@ -1,6 +1,27 @@
+/*
+import 'package:flutter/material.dart';
+
+class LoanApplicationScreen extends StatefulWidget {
+  const LoanApplicationScreen({super.key});
+
+  @override
+  State<LoanApplicationScreen> createState() => _LoanApplicationScreenState();
+}
+
+class _LoanApplicationScreenState extends State<LoanApplicationScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      // appBar: MyAppBar(title: 'Loan Application'),
+      body: Center(child: Text('Loan application')));
+  }
+}
+*/
+
 import 'dart:developer';
 
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
@@ -13,6 +34,7 @@ import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/constants/hardCodedCountries.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:mukai/widget/render_supabase_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
@@ -22,21 +44,18 @@ import 'package:iconify_flutter_plus/icons/bx.dart';
 import 'package:iconify_flutter_plus/icons/ic.dart';
 import 'package:iconify_flutter_plus/icons/ph.dart';
 
-class AddAssetWidget extends StatefulWidget {
-  Group? group;
-
-  AddAssetWidget({
+class LoanApplicationScreen extends StatefulWidget {
+  LoanApplicationScreen({
     super.key,
-    required this.group,
   });
 
   @override
-  State<AddAssetWidget> createState() => _MemberDetailScreenState();
+  State<LoanApplicationScreen> createState() => LoanApplicationScreenState();
 }
 
-class _MemberDetailScreenState extends State<AddAssetWidget> {
-  TextEditingController firstNameController = TextEditingController();
-  TextEditingController descriptionController = TextEditingController();
+class LoanApplicationScreenState extends State<LoanApplicationScreen> {
+  TextEditingController principalAmountController = TextEditingController();
+  TextEditingController loanTermDaysController = TextEditingController();
   TextEditingController fiatValueController = TextEditingController();
 
   TextEditingController monthlySubController = TextEditingController();
@@ -73,33 +92,8 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
     width = size.width;
     height = size.height;
     return _isLoading
-        ? Center(child: CircularProgressIndicator())
+        ? Center(child: LoadingShimmerWidget())
         : Scaffold(
-            appBar: AppBar(
-              automaticallyImplyLeading: false,
-              shape: const RoundedRectangleBorder(
-                borderRadius: BorderRadius.vertical(
-                  bottom: Radius.circular(20.0), // Adjust the radius as needed
-                ),
-              ),
-              elevation: 0,
-              backgroundColor: primaryColor,
-              titleSpacing: 0.0,
-              centerTitle: false,
-              leading: IconButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                icon: const Icon(
-                  Icons.arrow_back,
-                  color: whiteF5Color,
-                ),
-              ),
-              title: Text(
-                "Add ${Utils.trimp(widget.group?.name ?? '')} Asset",
-                style: semibold18WhiteF5,
-              ),
-            ),
             body: Container(
               color: whiteF5Color,
               child: ListView(
@@ -329,9 +323,11 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: GestureDetector(
-        onTap: () {
-          // log(widget.group!.id!);
-          assetController.createAsset(widget.group!.id!, null, 'group');
+        onTap: () async {
+          GetStorage _getStorage = GetStorage();
+          final userId = await _getStorage.read('userId');
+
+          assetController.createAsset(null, userId, 'profile');
           Navigator.pop(context);
         },
         child: Obx(() => profileController.isLoading.value == true
@@ -398,11 +394,12 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
           child: TextField(
             onChanged: (value) {
               assetController.asset.value?.assetDescriptiveName = value;
+              assetController.asset.refresh();
             },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
-            controller: firstNameController,
+            controller: principalAmountController,
             decoration: InputDecoration(
               border: InputBorder.none,
               hintText: 'Enter asset name',
@@ -428,12 +425,13 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
           child: TextField(
             onChanged: (value) {
               assetController.asset.value?.assetDescription = value;
+              assetController.asset.refresh();
             },
             style: semibold14Black,
             cursorColor: primaryColor,
             maxLines: 3,
             keyboardType: TextInputType.name,
-            controller: descriptionController,
+            controller: loanTermDaysController,
             decoration: InputDecoration(
               border: InputBorder.none,
               hintText: 'Enter asset description',
@@ -486,15 +484,12 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              try {
-                assetController.asset.value?.fiatValue = double.parse(value);
-              } on Exception catch (e) {
-                log(e.toString());
-              }
+              assetController.asset.value?.fiatValue = double.parse(value);
+              assetController.asset.refresh();
             },
             style: semibold14Black,
             cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
+            keyboardType: TextInputType.number,
             controller: fiatValueController,
             decoration: InputDecoration(
               border: InputBorder.none,

@@ -213,7 +213,7 @@ class _RealTimeConversationsListState extends State<RealTimeConversationsList>
   }
 
   Widget cachedImage(String id) {
-    var url = '${constants.APP_API_ENDPOINT}/assets/${id}';
+    var url = '${EnvConstants.APP_API_ENDPOINT}/assets/${id}';
     return CachedNetworkImage(
       width: 60.0,
       height: 60.0,

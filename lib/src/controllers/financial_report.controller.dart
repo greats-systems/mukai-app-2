@@ -8,10 +8,10 @@ class FinancialReportController {
   final dio = Dio();
   Future<List<FinancialReport>?> getFinancialReport(String walletId) async {
     try {
-      final response =
-          await dio.get('$APP_API_ENDPOINT/transactions/report/$walletId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId');
       // final response = await dio
-      //     .get('$APP_API_ENDPOINT/transactions/report/individual/$walletId');
+      //     .get('${EnvConstants.APP_API_ENDPOINT}/transactions/report/individual/$walletId');
       final List<dynamic> json = response.data;
       final report =
           json.map((item) => FinancialReport.fromJson(item)).toList();
@@ -25,10 +25,10 @@ class FinancialReportController {
   Future<List<FinancialReport>?> getUSDFinancialReport(String walletId) async {
     try {
       final List<dynamic> usdComponent;
-      final response =
-          await dio.get('$APP_API_ENDPOINT/transactions/report/$walletId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId');
       // final response =
-      //     await dio.get('$APP_API_ENDPOINT/transactions/report/coop/$walletId');
+      //     await dio.get('${EnvConstants.APP_API_ENDPOINT}/transactions/report/coop/$walletId');
       final List<dynamic> json = response.data;
       final report =
           json.map((item) => FinancialReport.fromJson(item)).toList();
@@ -41,10 +41,10 @@ class FinancialReportController {
 
   Future<List<FinancialReport>?> getZIGFinancialReport(String walletId) async {
     try {
-      final response =
-          await dio.get('$APP_API_ENDPOINT/transactions/report/$walletId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId');
       // final response =
-      //     await dio.get('$APP_API_ENDPOINT/transactions/report/coop/$walletId');
+      //     await dio.get('${EnvConstants.APP_API_ENDPOINT}/transactions/report/coop/$walletId');
       final List<dynamic> json = response.data;
       final report =
           json.map((item) => FinancialReport.fromJson(item)).toList();

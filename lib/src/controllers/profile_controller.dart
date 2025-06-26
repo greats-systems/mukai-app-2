@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/apps/groups/views/screens/group_members.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/group_members.dart';
 import 'package:mukai/src/controllers/main.controller.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:image_picker/image_picker.dart';
@@ -47,7 +47,8 @@ class ProfileController extends MainController {
 
   Future<Map<String, dynamic>?> getUserDetails(String id) async {
     try {
-      final profileJson = await dio.get('$APP_API_ENDPOINT/auth/profiles/$id');
+      final profileJson =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$id');
       /*
       final profileJson =
           await supabase.from('profiles').select().eq('id', id).single();
@@ -74,7 +75,9 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       Helper.errorSnackBar(
-          title: 'getWalletDetails Error', message: error.toString(), duration: 5);
+          title: 'getWalletDetails Error',
+          message: error.toString(),
+          duration: 5);
       return null;
     }
   }
@@ -83,11 +86,12 @@ class ProfileController extends MainController {
     List<dynamic>? profileWallet = [];
     log('getProfileWallets profile_id: $id');
     try {
-      final walletJson = await dio.get('$APP_API_ENDPOINT/wallets/$id');
+      final walletJson =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id');
       log('getProfileWallets walletJson: ${JsonEncoder.withIndent(' ').convert(walletJson.data['data'])}');
       if (walletJson.data.isNotEmpty) {
         final json = [walletJson.data['data'][0]];
-        profileWallet= json.map((item) => item).toList();
+        profileWallet = json.map((item) => item).toList();
         /*
       final profileJson =
           await supabase.from('wallets').select().eq('profile_id', id);
@@ -112,7 +116,7 @@ class ProfileController extends MainController {
     log('getProfileWallets profile_id: $id');
     try {
       final profileJson =
-          await dio.get('$APP_API_ENDPOINT/wallets/$id');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id');
       log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
       if (profileJson.data.isNotEmpty) {
         final json = profileJson.data['data'];
@@ -139,7 +143,7 @@ class ProfileController extends MainController {
     List<Map<String, dynamic>> profileWallets = [];
     log('getProfileWallets profile_id: $id');
     try {
-      final profileJson = await dio.get('$APP_API_ENDPOINT/wallets/$id');
+      final profileJson = await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id');
       log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
       final json = profileJson.data['data'];
       /*
@@ -179,7 +183,9 @@ class ProfileController extends MainController {
       if (error is PostgrestException) {
         debugPrint('PostgrestException ${error.message}');
         Helper.errorSnackBar(
-            title: 'updateUser PostgrestException', message: error.message, duration: 5);
+            title: 'updateUser PostgrestException',
+            message: error.message,
+            duration: 5);
       }
       isLoading.value = false;
       Helper.errorSnackBar(
@@ -205,7 +211,9 @@ class ProfileController extends MainController {
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
           Helper.errorSnackBar(
-              title: 'getProfiles PostgrestException', message: error.message, duration: 5);
+              title: 'getProfiles PostgrestException',
+              message: error.message,
+              duration: 5);
         }
         return profiles;
       });
@@ -279,7 +287,9 @@ class ProfileController extends MainController {
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
           Helper.errorSnackBar(
-              title: 'filterProfiles PostgrestException', message: error.message, duration: 5);
+              title: 'filterProfiles PostgrestException',
+              message: error.message,
+              duration: 5);
         }
         return profiles;
       });

@@ -4,7 +4,7 @@ import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/src/apps/groups/views/screens/create_group.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
 import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
 import 'package:mukai/src/apps/reports/views/reports_screen.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';

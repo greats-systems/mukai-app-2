@@ -45,7 +45,7 @@ class SessionManager {
   Future<bool> _refreshSession(String refreshToken) async {
     try {
       final response = await _dio.post(
-        '$APP_API_ENDPOINT/auth/refresh',
+        '${EnvConstants.APP_API_ENDPOINT}/auth/refresh',
         data: {'refreshToken': refreshToken},
       );
       
@@ -122,7 +122,7 @@ class SessionManager {
         
         try {
           // Validate token with server
-          await _dio.get('$APP_API_ENDPOINT/auth/validate');
+          await _dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/validate');
         } catch (e) {
           await clearSession();
           throw Exception('Session validation failed');

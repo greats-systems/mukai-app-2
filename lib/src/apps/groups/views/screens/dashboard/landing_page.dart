@@ -5,21 +5,28 @@ import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
+import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
-import 'package:mukai/src/apps/groups/views/screens/add_asset.dart';
-import 'package:mukai/src/apps/groups/views/screens/coop_assets.dart';
-import 'package:mukai/src/apps/groups/views/screens/coop_memeber_analytics.dart';
-import 'package:mukai/src/apps/groups/views/screens/coop_reports.dart';
-import 'package:mukai/src/apps/groups/views/screens/coop_wallet_balances.dart';
-import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
+import 'package:mukai/src/apps/groups/views/screens/assets/add_asset.dart';
+import 'package:mukai/src/apps/groups/views/screens/assets/coop_assets.dart';
+import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_memeber_analytics.dart';
+import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_reports.dart';
+import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_wallet_balances.dart';
+import 'package:mukai/src/apps/groups/views/screens/drawer/contribution/make_contribution.dart';
+import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_landing_page.dart';
+import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_application.dart';
+import 'package:mukai/src/apps/groups/views/screens/drawer/subscriptions/subscriptions.dart';
+// import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 
 class CoopLandingScreen extends StatefulWidget {
@@ -31,6 +38,7 @@ class CoopLandingScreen extends StatefulWidget {
 }
 
 class _CoopLandingScreenState extends State<CoopLandingScreen> {
+  final GlobalKey<ScaffoldState> _scaffoldKey = GlobalKey<ScaffoldState>();
   final AuthController authController = Get.find<AuthController>();
   final TransactionController transactionController =
       Get.find<TransactionController>();
@@ -55,26 +63,28 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       userId = _getStorage.read('userId');
       role = _getStorage.read('role');
     });
-    final response =
-        await dio.get('$APP_API_ENDPOINT/wallets/coop/${widget.group.id}');
-    final walletJson = response.data['data'];
-    // log('fetchProfile walletJson: ${walletJson['id'].toString()}');
-    // final walletJson =
-    //     await supabase.from('wallets').select('id').eq('profile_id', userId!);
-    // .single();
-    setState(() {
-      walletId = walletJson['id'];
-      _isLoading = false;
-    });
-    // log('CoopLandingScreen walletId: $walletId');
-
-    // final userjson = await profileController.getUserDetails(userId!);
-
-    if (_isDisposed) return;
-    setState(() {
-      // userProfile = userjson;
-      _isLoading = false;
-    });
+    try {
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group.id}');
+      log(response.data.toString());
+      if (response.data['data'] != 'No wallet found') {
+        final walletJson = response.data['data'];
+        setState(() {
+          walletId = walletJson['id'];
+          _isLoading = false;
+        });
+      } else {
+        log('No wallet found');
+      }
+    } on Exception catch (e, s) {
+      log('CoopLandingScreen fetchProfile error: $e $s');
+      if (_isDisposed) return;
+    } finally {
+      setState(() {
+        // userProfile = userjson;
+        _isLoading = false;
+      });
+    }
   }
 
   @override
@@ -101,92 +111,195 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-      floatingActionButton: role == 'coop-manager' && selectedTab == 2
-          ? FloatingActionButton(
-              onPressed: () {
-                Get.to(() => AddAssetWidget(group: widget.group));
-              },
-              backgroundColor: primaryColor,
-              child: const Icon(
-                Icons.add,
-                color: tertiaryColor,
-                size: 36,
-              ),
-            )
-          : null,
+      key: _scaffoldKey,
+      floatingActionButtonLocation: floatingActionButtonLocation(),
+      floatingActionButton: floatingActionButton(),
       backgroundColor: primaryColor,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(150.0), // Match the toolbarHeight
-        child: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2), // Shadow color
-                blurRadius: 8.0, // Blur radius
-                spreadRadius: 2.0, // Spread radius
-                offset: const Offset(0, 4), // Shadow position (bottom)
-              ),
-            ],
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            automaticallyImplyLeading: false,
-            centerTitle: false,
-            titleSpacing: 0.0,
-            toolbarHeight: 150.0,
-            elevation: 0,
-            title: _isLoading
-                ? Center(
-                    child: CircularProgressIndicator(),
-                  )
-                : Column(
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.all(20.0),
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                profileButton(),
-                                logoButton(),
-                              ],
-                            ),
-                            heightBox(20),
-                            tabBar(),
-                            heightBox(20),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-          ),
-        ),
-      ),
-      body: Container(
-          padding: EdgeInsets.all(2),
-          decoration: BoxDecoration(
-            color: whiteF5Color,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(5),
-              topRight: Radius.circular(5),
-            ),
-          ),
-          child: ListView(
-            children: [adminOptions()],
-          )),
+      appBar: appBar(),
+      body: buildBody(),
+      drawer: openDrawer(),
     );
   }
 
-  logoButton() {
+  Widget openDrawer() {
+    final size = MediaQuery.of(context).size;
+    return Drawer(
+      backgroundColor: whiteColor,
+      child: ListView(
+        // Important: Remove any padding from the ListView.
+        // padding: EdgeInsets.symmetric(vertical: 5),
+        children: [
+          ListTile(
+            title: Row(
+              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Iconify(
+                  Ri.bank_line,
+                  color: primaryColor,
+                ),
+                SizedBox(
+                  width: size.width / 24,
+                ),
+                const Text(
+                  'Loans',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            onTap: () {
+              Get.to(()=> LoanLandingPageScreen());
+            },
+          ),
+          ListTile(
+            title: Row(
+              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Iconify(
+                  Ri.money_dollar_box_line,
+                  color: primaryColor,
+                ),
+                SizedBox(
+                  width: size.width / 24,
+                ),
+                const Text(
+                  'Subscriptions',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            onTap: () {
+              Get.to(()=> MySubscriptionsScreen());
+            },
+          ),
+          ListTile(
+            title: Row(
+              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Iconify(
+                  Ri.hand_coin_line,
+                  color: primaryColor,
+                ),
+                SizedBox(
+                  width: size.width / 24,
+                ),
+                const Text(
+                  'Contributions',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            onTap: () {
+             Get.to(()=>MakeContributionScreen());
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  FloatingActionButtonLocation floatingActionButtonLocation() {
+    return selectedTab == 0
+        ? FloatingActionButtonLocation.startFloat
+        : FloatingActionButtonLocation.endFloat;
+  }
+
+  FloatingActionButton? floatingActionButton() {
+    return role == 'coop-manager' && selectedTab == 2
+        ? FloatingActionButton(
+            onPressed: () {
+              Get.to(() => AddAssetWidget(group: widget.group));
+            },
+            backgroundColor: primaryColor,
+            child: const Icon(
+              Icons.add,
+              color: tertiaryColor,
+              size: 36,
+            ),
+          )
+        : null;
+  }
+
+  Widget buildBody() {
+    return Container(
+        padding: EdgeInsets.all(2),
+        decoration: BoxDecoration(
+          color: whiteF5Color,
+          borderRadius: BorderRadius.only(
+            topLeft: Radius.circular(5),
+            topRight: Radius.circular(5),
+          ),
+        ),
+        child: ListView(
+          children: [adminOptions()],
+        ));
+  }
+
+  PreferredSizeWidget appBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(150.0), // Match the toolbarHeight
+      child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2), // Shadow color
+              blurRadius: 8.0, // Blur radius
+              spreadRadius: 2.0, // Spread radius
+              offset: const Offset(0, 4), // Shadow position (bottom)
+            ),
+          ],
+        ),
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          titleSpacing: 0.0,
+          toolbarHeight: 150.0,
+          elevation: 0,
+          title: _isLoading
+              ? Center(
+                  child: LoadingShimmerWidget(),
+                )
+              : Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              profileButton(),
+                              IconButton(
+                                // Menu button on the right
+                                icon: const Icon(
+                                  Icons.menu,
+                                  color: Colors.white,
+                                  size: 30,
+                                ),
+                                onPressed: () {
+                                  _scaffoldKey.currentState?.openDrawer();
+                                },
+                              ),
+                            ],
+                          ),
+                          heightBox(20),
+                          tabBar(),
+                          heightBox(20),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+        ),
+      ),
+    );
+  }
+
+  Widget logoButton() {
     return GestureDetector(
       onTap: () {
         log('CoopHeaderWidget\nuserId: $userId\nrole: $role');
-        if (role == 'coop-manager') {
-          Get.to(() => BottomBar());
-        } else {
-          Get.to(() => BottomBar());
-        }
+        Get.to(() => BottomBar());
       },
       child: Container(
         height: 55.0,
@@ -354,19 +467,27 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                 children: [
                   Column(
                     children: [
-                      downloadReports(context),
+                      // paySubscription(context),
                       SizedBox(
-                          height: height * 0.38,
-                          child: _isLoading ? Center(child: CircularProgressIndicator(),) : CoopReportsWidget(
-                            walletId: walletId ?? 'No wallet ID',
-                          )),
+                          height: height * 0.4125,
+                          child: _isLoading
+                              ? Center(
+                                  child: LoadingShimmerWidget(),
+                                )
+                              : walletId != null
+                                  ? CoopReportsWidget(
+                                      walletId: walletId!,
+                                      group: widget.group,
+                                    )
+                                  : Center(
+                                      child: Text('Nothing to display'),
+                                    )),
                       if (role == 'coop-manager')
                         CoopMemeberAnalytics(group: widget.group),
                       // if (role == 'coop-manager')
                       CoopWalletBalancesWidget(group: widget.group),
                     ],
                   ),
-                  //  GroupMembersList(groupId: widget.group.id!, category: 'accepted',),
                   MukandoMembersList(
                     group: widget.group,
                   ),
@@ -382,7 +503,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     );
   }
 
-  tabBar() {
+  Widget tabBar() {
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
@@ -424,86 +545,6 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
             );
           },
         ),
-      ),
-    );
-  }
-
-  downloadReports(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(8.0),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          GestureDetector(
-            onTap: () {
-              // Get.to(() => TransferTransactionScreen(group: widget.group));
-              Get.to(() => MemberPaySubs(group: widget.group));
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: tertiaryColor.withAlpha(100),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Text(
-                    'Pay Subscription',
-                    style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.black,
-                        fontWeight: FontWeight.bold),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          GestureDetector(
-            onTap: () {
-              // TODO: Implement download functionality
-              showDialog(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: Text('Download Coperative Report'),
-                  content: Text('Choose download format'),
-                  actions: [
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Download as PDF
-                      },
-                      child: Text('PDF'),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        Navigator.pop(context);
-                        // Download as Excel
-                      },
-                      child: Text('Excel'),
-                    ),
-                  ],
-                ),
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              decoration: BoxDecoration(
-                color: primaryColor.withAlpha(100),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.download, color: Colors.black, size: 16),
-                  SizedBox(width: 4),
-                  Text(
-                    'Download Report',
-                    style: TextStyle(fontSize: 14, color: Colors.black),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ],
       ),
     );
   }

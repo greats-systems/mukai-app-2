@@ -1,7 +1,6 @@
 import 'dart:developer';
 
 import 'package:dropdown_search/dropdown_search.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
@@ -24,16 +23,19 @@ import 'package:iconify_flutter_plus/icons/bx.dart';
 import 'package:iconify_flutter_plus/icons/ic.dart';
 import 'package:iconify_flutter_plus/icons/ph.dart';
 
-class AddMemberAssetWidget extends StatefulWidget {
-  AddMemberAssetWidget({
+class AddAssetWidget extends StatefulWidget {
+  Group? group;
+
+  AddAssetWidget({
     super.key,
+    required this.group,
   });
 
   @override
-  State<AddMemberAssetWidget> createState() => _MemberDetailScreenState();
+  State<AddAssetWidget> createState() => _MemberDetailScreenState();
 }
 
-class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
+class _MemberDetailScreenState extends State<AddAssetWidget> {
   TextEditingController firstNameController = TextEditingController();
   TextEditingController descriptionController = TextEditingController();
   TextEditingController fiatValueController = TextEditingController();
@@ -95,7 +97,7 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
                 ),
               ),
               title: Text(
-                "Add ${Utils.trimp(profileController.profile.value.first_name ?? '')} ${Utils.trimp(profileController.profile.value.last_name ?? '')}'s Asset",
+                "Add ${Utils.trimp(widget.group?.name ?? '')} Asset",
                 style: semibold18WhiteF5,
               ),
             ),
@@ -328,11 +330,9 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: GestureDetector(
-        onTap: () async {
-          GetStorage _getStorage = GetStorage();
-          final userId = await _getStorage.read('userId');
-
-          assetController.createAsset(null, userId, 'profile');
+        onTap: () {
+          // log(widget.group!.id!);
+          assetController.createAsset(widget.group!.id!, null, 'group');
           Navigator.pop(context);
         },
         child: Obx(() => profileController.isLoading.value == true
@@ -399,7 +399,6 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
           child: TextField(
             onChanged: (value) {
               assetController.asset.value?.assetDescriptiveName = value;
-              assetController.asset.refresh();
             },
             style: semibold14Black,
             cursorColor: primaryColor,
@@ -430,7 +429,6 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
           child: TextField(
             onChanged: (value) {
               assetController.asset.value?.assetDescription = value;
-              assetController.asset.refresh();
             },
             style: semibold14Black,
             cursorColor: primaryColor,
@@ -489,12 +487,15 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              assetController.asset.value?.fiatValue = double.parse(value);
-              assetController.asset.refresh();
+              try {
+                assetController.asset.value?.fiatValue = double.parse(value);
+              } on Exception catch (e) {
+                log(e.toString());
+              }
             },
             style: semibold14Black,
             cursorColor: primaryColor,
-            keyboardType: TextInputType.number,
+            keyboardType: TextInputType.name,
             controller: fiatValueController,
             decoration: InputDecoration(
               border: InputBorder.none,

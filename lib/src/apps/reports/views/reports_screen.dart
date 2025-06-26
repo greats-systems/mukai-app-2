@@ -517,25 +517,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
     final size = MediaQuery.of(context).size;
     return Scaffold(
       appBar: _buildAppBar(),
-      // appBar: AppBar(
-      //   shape: const RoundedRectangleBorder(
-      //     borderRadius: BorderRadius.vertical(
-      //       bottom: Radius.circular(20.0), // Adjust the radius as needed
-      //     ),
-      //   ),
-      //   backgroundColor: secondaryColor.withAlpha(50),
-      //   automaticallyImplyLeading: false,
-      //   centerTitle: false,
-      //   titleSpacing: 0.0,
-      //   toolbarHeight: 80.0,
-      //   elevation: 0,
-      //   title: Column(
-      //     children: [
-      //       const AppHeaderWidget(),
-      //       // WalletBalancesWidget(),
-      //     ],
-      //   ),
-      // ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
@@ -546,28 +527,6 @@ class _ReportsScreenState extends State<ReportsScreen> {
             const SizedBox(height: 16),
             // Graph Container with fixed height
             _createGraph(),
-            // Container(
-            //   height: size.height * 0.35, // Reduced from 0.5 to 0.35
-            //   padding: const EdgeInsets.symmetric(vertical: 8),
-            //   child: _isLoading
-            //       ? const Center(child: CircularProgressIndicator())
-            //       : MyBarGraph(
-            //           periodicDeposits: selectedDropdownValue == 'Daily'
-            //               ? (selectedCurrencyValue == 'USD'
-            //                   ? dailyDepositsUSD_
-            //                   : dailyDepositsZIG_)
-            //               : (selectedCurrencyValue == 'USD'
-            //                   ? monthlyDepositsUSD_
-            //                   : monthlyDepositsZIG_),
-            //           periodicWithdrawals: selectedDropdownValue == 'Daily'
-            //               ? (selectedCurrencyValue == 'USD'
-            //                   ? dailyWithdrawalsUSD_
-            //                   : dailyWithdrawalsZIG_)
-            //               : (selectedCurrencyValue == 'USD'
-            //                   ? monthlyWithdrawalsUSD_
-            //                   : monthlyWithdrawalsZIG_),
-            //         ),
-            // ),
             // Add other content here if needed
           ],
         ),

@@ -1,25 +1,27 @@
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/src/apps/chats/views/screen/conversation.dart';
-import 'package:mukai/src/controllers/profile_controller.dart';
+import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
 import 'package:mukai/widget/render_supabase_image.dart';
 import 'package:uuid/uuid.dart';
 
-class MemberItemWidget extends StatefulWidget {
-  final Profile? profile;
-  const MemberItemWidget({super.key, required this.profile});
+class LoanItemWidget extends StatefulWidget {
+  final Loan? loan;
+  const LoanItemWidget({super.key, required this.loan});
 
   @override
-  State<MemberItemWidget> createState() => _MemberItemWidgetState();
+  State<LoanItemWidget> createState() => _LoanItemWidgetState();
 }
 
-class _MemberItemWidgetState extends State<MemberItemWidget> {
-  ProfileController get profileController => Get.put(ProfileController());
+class _LoanItemWidgetState extends State<LoanItemWidget> {
+  LoanController get loanController => Get.put(LoanController());
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +29,9 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         heightSpace,
-        _buildMemberDetail(widget.profile),
+        _buildLoanDetail(widget.loan),
         heightSpace,
-        _buildStatusSection(widget.profile),
+        _buildStatusSection(widget.loan),
         heightSpace,
         LinearProgressIndicator(
           value: 1,
@@ -41,44 +43,45 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
     );
   }
 
-  Widget _buildStatusSection(Profile? profile) {
-    if (profile != null) {
-      switch (profile.status) {
+  Widget _buildStatusSection(Loan? loan) {
+    if (loan != null) {
+      switch (loan.status) {
         case 'request':
         case 'declined':
-          return _buildRequestSummary(profile);
+          return _buildRequestSummary(loan);
         default:
-          return _buildAccountSummary(profile);
+          return _buildAccountSummary(loan);
       }
     } else {
       return Center(
-        child: Text('No profile'),
+        child: Text('No loan'),
       );
     }
   }
 
-  Widget _buildMemberDetail(Profile? profile) {
-    return profile != null
+  Widget _buildLoanDetail(Loan? loan) {
+    return loan != null
         ? Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Row(
                   children: [
-                    _buildProfileImage(profile),
-                    widthSpace,
-                    width5Space,
+                    // _buildLoanImage(loan),
+                    // widthSpace,
+                    // width5Space,
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            _formatName(profile),
+                            // _formatName(loan),
+                            loan.loanPurpose ?? 'No loan purpose',
                             style: semibold12black,
                             overflow: TextOverflow.ellipsis,
                           ),
                           height5Space,
-                          _buildAccountInfo(profile),
+                          _buildPrincipalAmountInfo(loan),
                         ],
                       ),
                     ),
@@ -88,13 +91,13 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
             ],
           )
         : Center(
-            child: Text('No profile'),
+            child: Text('No loan'),
           );
   }
-
-  Widget _buildProfileImage(Profile? profile) {
-    if (profile != null) {
-      final imageUrl = profile.profile_image_url;
+  /*
+  Widget _buildLoanImage(Loan? loan) {
+    if (loan != null) {
+      final imageUrl = loan.loan_image_url;
       return SizedBox(
         height: 50,
         width: 50,
@@ -107,31 +110,33 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
       );
     } else {
       return Center(
-        child: Text('No profile image'),
+        child: Text('No loan image'),
       );
     }
   }
+  
 
-  String _formatName(Profile? profile) {
-    if (profile != null) {
-      final firstName = profile.first_name?.toUpperCase() ?? 'N';
-      final lastName = profile.last_name?.toUpperCase() ?? '';
-      final idSnippet = profile.id ?? '';
+  String _formatName(Loan? loan) {
+    if (loan != null) {
+      final firstName = loan.first_name?.toUpperCase() ?? 'N';
+      final lastName = loan.last_name?.toUpperCase() ?? '';
+      final idSnippet = loan.id ?? '';
       return '$firstName $lastName';
     } else {
       return 'No name to format in member_item';
     }
   }
+  */
 
-  Widget _buildAccountInfo(Profile? profile) {
-    return profile != null
+  Widget _buildPrincipalAmountInfo(Loan? loan) {
+    return loan != null
         ? Column(
             children: [
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    Utils.trimp(profile.account_type ?? ''),
+                    loan.principalAmount.toString(),
                     style: semibold14Primary,
                   ),
                 ],
@@ -139,9 +144,9 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('Phone', style: semibold14Primary),
+                  const Text('Interest', style: semibold14Primary),
                   Text(
-                    Utils.trimp(profile.phone ?? ''),
+                    loan.interestRate.toString(),
                     style: semibold14Primary,
                   ),
                 ],
@@ -153,8 +158,8 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
           );
   }
 
-  Widget _buildAccountSummary(Profile? profile) {
-    return profile != null
+  Widget _buildAccountSummary(Loan? loan) {
+    return loan != null
         ? Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -162,12 +167,12 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
                 spacing: 20,
                 children: [
                   _buildInfoColumn(
-                      'Subs Balance', profile.wallet_balance.toString()),
+                      'Remaining Balance', loan.remainingBalance.toString()),
                   _buildInfoColumn('Account ID',
-                      profile.id != null ? profile.id!.substring(0, 8) : 'N/A'),
+                      loan.id != null ? loan.id!.substring(0, 8) : 'N/A'),
                 ],
               ),
-              _buildChatButton(profile),
+              // _buildChatButton(loan),
             ],
           )
         : Center(
@@ -186,12 +191,13 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
     );
   }
 
-  Widget _buildChatButton(Profile? profile) {
+  Widget _buildChatButton(Loan? loan) {
     final size = MediaQuery.sizeOf(context);
     final width = size.width;
     final height = size.height;
     return InkWell(
-      onTap: () => _navigateToConversation(profile),
+      onTap: () => log('Tapped'),
+      // onTap: () => _navigateToConversation(loan),
       child: Container(
         alignment: Alignment.center,
         height: height * 0.04,
@@ -206,26 +212,26 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
     );
   }
 
-  Widget _buildRequestSummary(Profile? profile) {
-    return profile != null
+  Widget _buildRequestSummary(Loan? loan) {
+    return loan != null
         ? Padding(
             padding: const EdgeInsets.all(8.0),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (widget.profile!.status != 'declined') ...[
+                if (widget.loan!.status != 'declined') ...[
                   _buildActionButton(
                     'Accept',
                     primaryColor,
-                    () => _showConfirmationDialog(profile, true),
+                    () => _showConfirmationDialog(loan, true),
                   ),
                   _buildActionButton(
                     'Decline',
                     redColor,
-                    () => _showConfirmationDialog(profile, false),
+                    () => _showConfirmationDialog(loan, false),
                   ),
                 ],
-                _buildChatButton(profile),
+                _buildChatButton(loan),
               ],
             ),
           )
@@ -253,45 +259,49 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
     );
   }
 
-  void _showConfirmationDialog(Profile? profile, bool isAccept) {
+  void _showConfirmationDialog(Loan? loan, bool isAccept) {
     final action = isAccept ? 'accept' : 'decline';
-    final name = '${profile?.first_name?.toUpperCase() ?? ''} '
-        '${profile?.last_name?.toUpperCase() ?? ''}';
-    final id = profile?.id?.substring(0, 8) ?? '';
+    final name = loan?.profileId;
+    final id = loan?.id?.substring(0, 8) ?? '';
 
     Get.defaultDialog(
       middleTextStyle: const TextStyle(color: blackColor, fontSize: 14),
       buttonColor: primaryColor,
       backgroundColor: tertiaryColor,
-      title: 'Membership Request',
+      title: 'Loanship Request',
       middleText: 'Are you sure you want to $action $name Request ID $id?',
       textConfirm: 'Yes, ${isAccept ? 'Accept' : 'Decline'}',
       confirmTextColor: whiteColor,
       onConfirm: () async {
-        if (profile?.id != null) {
-          await profileController.updateMemberRequest(
-              profile?.id, isAccept ? 'accepted' : 'declined');
+        if (loan?.id != null) {
+          log('Accepted');
+          /*
+          await loanController.updateLoanRequest(
+              loan?.id, isAccept ? 'accepted' : 'declined');
+              */
         }
       },
       cancelTextColor: redColor,
       onCancel: () => Get.back(),
     );
   }
-  void _navigateToConversation(Profile? profile) {
+  /*
+  void _navigateToConversation(Loan? loan) {
     Get.to(() => ConversationPage(
-        firstName: _getFullName(profile),
-        receiverId: profile?.id ?? Uuid().v4(),
+        firstName: _getFullName(loan),
+        receiverId: loan?.id ?? Uuid().v4(),
         conversationId: Uuid().v4(),
-        receiverFirstName: _getFirstName(profile),
-        receiverLastName: profile?.last_name ?? ''));
+        receiverFirstName: _getFirstName(loan),
+        receiverLastName: loan?.last_name ?? ''));
   }
 
-  String _getFullName(Profile? profile) {
-    return '${Utils.trimp(profile?.first_name ?? '')} '
-        '${Utils.trimp(profile?.last_name ?? '')}';
+  String _getFullName(Loan? loan) {
+    return '${Utils.trimp(loan?.first_name ?? '')} '
+        '${Utils.trimp(loan?.last_name ?? '')}';
   }
 
-  String _getFirstName(Profile? profile) {
-    return Utils.trimp(profile?.first_name ?? '');
+  String _getFirstName(Loan? loan) {
+    return Utils.trimp(loan?.first_name ?? '');
   }
+  */
 }
