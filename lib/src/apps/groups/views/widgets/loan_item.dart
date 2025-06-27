@@ -57,50 +57,56 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
 
   Widget _buildLoanDetail(Loan? loan) {
     // final size = MediaQuery.of(context).size;
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
     return loan != null
         ? Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // _buildLoanImage(loan),
-                    // widthSpace,
-                    // width5Space,
-                    Expanded(
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                // _formatName(loan),
-                                loan.loanPurpose ?? 'No loan purpose',
-                                style: semibold12black,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              height5Space,
-                              _buildPrincipalAmountInfo(loan),
-                            ],
-                          ),
-                          // Column(
-                          //   crossAxisAlignment: CrossAxisAlignment.start,
-                          //   children: [
-                          //     Text(
-                          //       // _formatName(loan),
-                          //       'Interest rate',
-                          //       style: semibold12black,
-                          //       overflow: TextOverflow.ellipsis,
-                          //     ),
-                          //     height5Space,
-                          //     _buildInterestInfo(loan),
-                          //   ],
-                          // ),
-                          // SizedBox(width: size.width/20,)
-                        ],
-                      ),
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          // _formatName(loan),
+                          loan.loanPurpose ?? 'No loan purpose',
+                          style: semibold12black,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        height5Space,
+                        _buildPrincipalAmountInfo(loan),
+                      ],
                     ),
+                    // SizedBox(
+                    //         width: height/8,
+                    //         height: width/8,
+                    //         child: Card(
+                    //           color: loan.hasReceivedVote!
+                    //               ? tertiaryColor
+                    //               : primaryColor,
+                    //           child: Center(
+                    //             child: Text(loan.hasReceivedVote!
+                    //                 ? 'Voting underway'
+                    //                 : 'Pending vote', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),),
+                    //           ),
+                    //         ),
+                    //       ),
+                    // Column(
+                    //   crossAxisAlignment: CrossAxisAlignment.start,
+                    //   children: [
+                    //     Text(
+                    //       // _formatName(loan),
+                    //       loan.loanPurpose ?? 'No loan purpose',
+                    //       style: semibold12black,
+                    //       overflow: TextOverflow.ellipsis,
+                    //     ),
+                    //     height5Space,
+                    //     _buildPrincipalAmountInfo(loan),
+                    //   ],
+                    // ),
                   ],
                 ),
               ),

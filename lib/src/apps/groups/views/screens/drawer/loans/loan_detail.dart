@@ -11,6 +11,7 @@ import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
+import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:mukai/utils/utils.dart';
@@ -39,6 +40,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
   TextEditingController principalAmountController = TextEditingController();
   TextEditingController repaymentAmountController = TextEditingController();
   LoanController loanController = Get.put(LoanController());
+  // ProfileController profileController = Get.put(ProfileController());
   late double height;
   late double width;
   String? userId;
@@ -96,7 +98,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
               const SizedBox(height: 16),
               _buildDetailField(
                 label: 'Principal Amount',
-                value: '\$${principalAmountController.text}',
+                value: '${principalAmountController.text}',
               ),
               const SizedBox(height: 16),
               _buildDetailField(
@@ -106,7 +108,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
               const SizedBox(height: 16),
               _buildDetailField(
                 label: 'Total Repayment Amount',
-                value: '\$${repaymentAmountController.text}',
+                value: repaymentAmountController.text,
               ),
               if (widget.loan.collateralDescription?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
@@ -380,23 +382,17 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
             GestureDetector(
               onTap: () async {
                 // log('loan id: ${widget.loan.id}');
-
-                var params = {
-                  'group_id': widget.group!.id,
-                  'supporting_votes': userId,
-                  'updated_at': DateTime.now().toIso8601String(),
-                  'loan_id': widget.loan.id,
-                };
-                log(params.toString());
+                loanController.selectedLoan.value.id = widget.loan.id;
+                loanController.selectedCoop.value.id = widget.group!.id;
+                loanController.selectedProfile.value.id = userId;
+                loanController.isSupporting.value = true;
                 try {
-                  final response = await dio.patch(
-                      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${widget.group!.id}/loans',
-                      data: params);
-                  log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                  if (response.data['data'] == "You have voted already") {
+                  final response = await loanController.updateLoanApproval();
+                  // log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
+                  if (response!['data'] == "You have voted already") {
                     Helper.warningSnackBar(
                         title: 'Duplicate vote',
-                        message: response.data['data'],
+                        message: response['data'],
                         duration: 5);
                   } else {
                     Helper.successSnackBar(
@@ -438,23 +434,19 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
             GestureDetector(
               onTap: () async {
                 // log('I oppose');
-                var params = {
-                  'group_id': widget.group!.id,
-                  'opposing_votes': userId,
-                  'updated_at': DateTime.now().toIso8601String(),
-                  'loan_id': widget.loan.id,
-                };
+                loanController.selectedLoan.value.id = widget.loan.id;
+                loanController.selectedCoop.value.id = widget.group!.id;
+                loanController.selectedProfile.value.id = userId;
+                loanController.isSupporting.value = false;
                 try {
-                  log(params.toString());
-                  final response = await dio.patch(
-                      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${widget.group!.id}',
-                      data: params);
-                  log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
+                  // log(params.toString());
+                  final response = await loanController.updateLoanApproval();
+                  // log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
                   // Navigator.pop(context);
-                  if (response.data['data'] == 'You have voted already') {
+                  if (response!['data'] == 'You have voted already') {
                     Helper.warningSnackBar(
                         title: 'Duplicate vote',
-                        message: response.data['data'],
+                        message: response['data'],
                         duration: 5);
                   } else {
                     Helper.successSnackBar(

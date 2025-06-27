@@ -27,6 +27,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
   String? profileId;
   String? cooperativeId;
   String? updatedAt;
+  bool? hasReceivedVote;
 
   Loan({
     this.id,
@@ -47,30 +48,32 @@ class Loan extends OfflineFirstWithSupabaseModel {
     this.profileId,
     this.cooperativeId,
     this.updatedAt,
+    this.hasReceivedVote,
   });
 
   factory Loan.fromMap(Map<String, dynamic> json) {
+    log('Loan.fromMap json $json');
     try {
       return Loan(
-        id: json["id"],
-        createdAt: json['created_at'],
-        borrowerWalletId: json['borrower_wallet_id'],
-        lenderWalletId: json['lender_wallet_id'],
-        principalAmount: json['principal_amount'],
-        interestRate: json['interest_rate'],
-        loanTermMonths: json['loan_term_months'],
-        dueDate: json['due_date'],
-        status: json['status'],
-        remainingBalance: json['remaining_balance'],
-        lastPaymentDate: json['last_payment_date'],
-        nextPaymentDate: json['next_payment_date'],
-        paymentAmount: json['payment_amount'],
-        loanPurpose: json['loan_purpose'],
-        collateralDescription: json['collateral_description'],
-        profileId: json['profile_id'],
-        cooperativeId: json['cooperative_id'],
-        updatedAt: json['updated_at'],
-      );
+          id: json["id"],
+          createdAt: json['created_at'],
+          borrowerWalletId: json['borrower_wallet_id'],
+          lenderWalletId: json['lender_wallet_id'],
+          principalAmount: json['principal_amount'],
+          interestRate: json['interest_rate'],
+          loanTermMonths: json['loan_term_months'],
+          dueDate: json['due_date'],
+          status: json['status'],
+          remainingBalance: json['remaining_balance'],
+          lastPaymentDate: json['last_payment_date'],
+          nextPaymentDate: json['next_payment_date'],
+          paymentAmount: json['payment_amount'],
+          loanPurpose: json['loan_purpose'],
+          collateralDescription: json['collateral_description'],
+          profileId: json['profile_id'],
+          cooperativeId: json['cooperative_id'],
+          updatedAt: json['updated_at'],
+          hasReceivedVote: json['has_received_vote']);
     } catch (error, st) {
       log('Loan.fromMap error: $error\n$st');
       return Loan(id: null);
@@ -97,6 +100,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
       'profile_id': profileId,
       'cooperative_id': cooperativeId,
       'updated_at': updatedAt,
+      'has_received_vote': hasReceivedVote
     };
   }
 }
