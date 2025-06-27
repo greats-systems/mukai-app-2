@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/components/app_bar.dart';
@@ -17,7 +18,8 @@ import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
 class LoanLandingPageScreen extends StatefulWidget {
-  const LoanLandingPageScreen({super.key});
+  final Group group;
+  const LoanLandingPageScreen({super.key, required this.group});
 
   @override
   State<LoanLandingPageScreen> createState() => _LoanLandingPageScreenState();
@@ -54,11 +56,11 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
-    height = size.height;    
+    height = size.height;
     return Scaffold(
-        appBar: MyAppBar(title: 'Loans'),
-        body: buildBody(),);
-        
+      appBar: MyAppBar(title: 'Loans'),
+      body: buildBody(),
+    );
   }
 
   Widget buildBody() {
@@ -176,7 +178,7 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
     );
   }
 
- Widget tabPreviews() {
+  Widget tabPreviews() {
     return SizedBox(
       height: height,
       child: Padding(
@@ -195,8 +197,8 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
                     refresh = false;
                   });
                 },
-                children: [                  
-                  LoanApplicationScreen(),
+                children: [
+                  LoanApplicationScreen(group: widget.group),
                   LoansScreen(),
                 ],
               ),
@@ -206,5 +208,4 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
       ),
     );
   }
-
 }

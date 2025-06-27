@@ -5,12 +5,8 @@ import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/loan.model.dart';
-import 'package:mukai/src/apps/chats/views/screen/conversation.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:mukai/utils/utils.dart';
-import 'package:mukai/widget/render_supabase_image.dart';
-import 'package:uuid/uuid.dart';
 
 class LoanItemWidget extends StatefulWidget {
   final Loan? loan;
@@ -94,39 +90,6 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
             child: Text('No loan'),
           );
   }
-  /*
-  Widget _buildLoanImage(Loan? loan) {
-    if (loan != null) {
-      final imageUrl = loan.loan_image_url;
-      return SizedBox(
-        height: 50,
-        width: 50,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: imageUrl != null && imageUrl.isNotEmpty
-              ? RenderSupabaseImageIdWidget(filePath: imageUrl)
-              : const Icon(Icons.image, size: 50.0, color: Colors.grey),
-        ),
-      );
-    } else {
-      return Center(
-        child: Text('No loan image'),
-      );
-    }
-  }
-  
-
-  String _formatName(Loan? loan) {
-    if (loan != null) {
-      final firstName = loan.first_name?.toUpperCase() ?? 'N';
-      final lastName = loan.last_name?.toUpperCase() ?? '';
-      final idSnippet = loan.id ?? '';
-      return '$firstName $lastName';
-    } else {
-      return 'No name to format in member_item';
-    }
-  }
-  */
 
   Widget _buildPrincipalAmountInfo(Loan? loan) {
     return loan != null
@@ -186,7 +149,7 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
       children: [
         Text(label, style: semibold12black),
         height5Space,
-        Text(value, style: semibold16Primary),
+        Text('\$$value', style: semibold16Primary),
       ],
     );
   }

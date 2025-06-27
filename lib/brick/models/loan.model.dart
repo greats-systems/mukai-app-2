@@ -9,22 +9,23 @@ import 'package:brick_supabase/brick_supabase.dart';
 )
 class Loan extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final String? id;
-  final String? createdAt;
-  final String? borrowerWalletId;
-  final String? lenderWalletId;
-  final num? principalAmount;
-  final num? interestRate;
-  final num? loanTermDays;
-  final String? dueDate;
-  final String? status;
-  final num? remainingBalance;
-  final String? lastPaymentDate;
-  final String? nextPaymentDate;
-  final num? paymentAmount;
-  final String? loanPurpose;
-  final String? collateralDescription;
-  final String? profileId;
+  String? id;
+  String? createdAt;
+  String? borrowerWalletId;
+  String? lenderWalletId;
+  num? principalAmount;
+  num? interestRate;
+  num? loanTermMonths;
+  String? dueDate;
+  String? status;
+  num? remainingBalance;
+  String? lastPaymentDate;
+  String? nextPaymentDate;
+  num? paymentAmount;
+  String? loanPurpose;
+  String? collateralDescription;
+  String? profileId;
+  String? cooperativeId;
 
   Loan({
     this.id,
@@ -33,7 +34,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
     this.lenderWalletId,
     this.principalAmount,
     this.interestRate,
-    this.loanTermDays,
+    this.loanTermMonths,
     this.dueDate,
     this.status,
     this.remainingBalance,
@@ -43,6 +44,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
     this.loanPurpose,
     this.collateralDescription,
     this.profileId,
+    this.cooperativeId,
   });
 
   factory Loan.fromMap(Map<String, dynamic> json) {
@@ -54,7 +56,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
         lenderWalletId: json['lender_wallet_id'],
         principalAmount: json['principal_amount'],
         interestRate: json['interest_rate'],
-        loanTermDays: json['loan_term_days'],
+        loanTermMonths: json['loan_term_days'],
         dueDate: json['due_date'],
         status: json['status'],
         remainingBalance: json['remaining_balance'],
@@ -64,6 +66,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
         loanPurpose: json['loan_purpose'],
         collateralDescription: json['collateral_description'],
         profileId: json['profile_id'],
+        cooperativeId: json['cooperative_id'],
       );
     } catch (error, st) {
       log('Loan.fromMap error: $error\n$st');
@@ -75,20 +78,21 @@ class Loan extends OfflineFirstWithSupabaseModel {
     return {
       'id': id,
       'created_at': createdAt,
-        'borrower_wallet_id': borrowerWalletId,
-        'lender_wallet_id': lenderWalletId,
-        'principal_amount': principalAmount,
-        'interest_rate': interestRate,
-        'loan_term_days': loanTermDays,
-        'due_date': dueDate,
-        'status': status,
-        'remaining_balance': remainingBalance,
-        'last_payment_date': lastPaymentDate,
-        'next_payment_date': nextPaymentDate,
-        'payment_amount': paymentAmount,
-        'loan_purpose': loanPurpose,
-        'collateral_description': collateralDescription,
-        'profile_id': profileId,
+      'borrower_wallet_id': borrowerWalletId,
+      'lender_wallet_id': lenderWalletId,
+      'principal_amount': principalAmount,
+      'interest_rate': interestRate,
+      'loan_term_months': loanTermMonths,
+      'due_date': dueDate,
+      'status': status,
+      'remaining_balance': remainingBalance,
+      'last_payment_date': lastPaymentDate,
+      'next_payment_date': nextPaymentDate,
+      'payment_amount': paymentAmount,
+      'loan_purpose': loanPurpose,
+      'collateral_description': collateralDescription,
+      'profile_id': profileId,
+      'cooperative_id': cooperativeId,
     };
   }
 }
