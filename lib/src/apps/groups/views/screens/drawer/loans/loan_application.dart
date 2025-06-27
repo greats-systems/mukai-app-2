@@ -82,19 +82,24 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
   double? loanRequestAmount;
   int? paybackPeriodMonths;
   String? userId;
+  String? role;
   List<Wallet>? senderWallet;
   Wallet? receiverWallet;
   GetStorage _getStorage = GetStorage();
+  num? interestRate;
+  String? collateral;
 
   void fetchData() async {
     try {
       final id = await _getStorage.read('userId');
+      final _role = await _getStorage.read('role');
       final senderWalletJson = await walletController.getIndividualWallets(id);
       final receivingWalletJson =
           await walletController.getGroupWallet(widget.group.id!);
       if (mounted) {
         setState(() {
           userId = id;
+          role = _role;
           senderWallet = senderWalletJson;
           receiverWallet = receivingWalletJson;
         });
@@ -144,7 +149,51 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                   heightBox(20),
                   collateralSwitch(),
                   heightBox(20),
-                  if (_hasCollateral) collateralField(),
+                  if (_hasCollateral)
+                    _buildDropdownField(
+                      label: 'Collateral',
+                      value: collateral ?? '',
+                      options: [
+                        'Car',
+                        'House',
+                        'Savings account',
+                      ],
+                      onChanged: (newValue) {
+                        // Handle dropdown selection
+                        setState(() {
+                          collateral = newValue;
+                        });
+                      },
+                    ),
+                  if (role == 'coop-manager')
+                    _buildInterestDropdownField(
+                      label: 'Monthly interest rate',
+                      value: collateral ?? '',
+                      options: [
+                        '0.01',
+                        '0.02',
+                        '0.05',
+                      ],
+                      onChanged: (newValue) {
+                        // Handle dropdown selection
+                        try {
+                          setState(() {
+                            interestRate = num.parse(newValue!);
+                          });
+                          loanController.selectedLoan.value.interestRate =
+                              interestRate;
+                          loanController.selectedLoan.value.updatedAt =
+                              DateTime.now().toIso8601String();
+                          loanController.selectedCoop.value.id =
+                              widget.group.id;
+                          loanController.updateCoopLoan();
+                          loanController.calculateRepayAmount();
+                          log(interestRate.toString());
+                        } on Exception catch (e) {
+                          log(e.toString());
+                        }
+                      },
+                    ),
                   Text('*based on 2% monthly compound interest')
                 ],
               ),
@@ -233,6 +282,131 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
       ],
     );
   }
+
+  Widget _buildInterestDropdownField({
+    required String label,
+    required String value,
+    required List<String> options,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: semibold14Black),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: DropdownButtonFormField<String>(
+            value: value.isNotEmpty ? value : null,
+            decoration: const InputDecoration(
+              border: InputBorder.none,
+              contentPadding: EdgeInsets.symmetric(horizontal: 12),
+            ),
+            hint: Text(
+              'Select interest rate',
+              style: TextStyle(color: Colors.black),
+            ),
+            items: options.map((String value) {
+              return DropdownMenuItem<String>(
+                value: value,
+                child: Text(
+                  '${(num.parse(value) * 100).toStringAsFixed(0)}%', // Show as percentage
+                  style: TextStyle(color: Colors.black),
+                ),
+              );
+            }).toList(),
+            onChanged: onChanged,
+            validator: (value) {
+              if (value == null || value.isEmpty) {
+                return 'Please select an interest rate';
+              }
+              return null;
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdownField({
+    required String label,
+    required String value,
+    required List<String> options,
+    required ValueChanged<String?> onChanged,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: semibold14Black,
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black12,
+                blurRadius: 4,
+                offset: Offset(0, 2),
+              ),
+            ],
+          ),
+          child: DropdownButton<String>(
+            value: value.isNotEmpty ? value : null,
+            hint: Text(
+              'Select an option',
+              style: TextStyle(color: Colors.black),
+            ),
+            isExpanded: true,
+            underline: const SizedBox(), // Remove default underline
+            items: options.map((String option) {
+              return DropdownMenuItem<String>(
+                value: option,
+                child: Text(
+                  option,
+                  style: TextStyle(color: Colors.black),
+                ),
+              );
+            }).toList(),
+            onChanged: onChanged,
+          ),
+        ),
+      ],
+    );
+  }
+
+  // _buildDropdownField(
+  //                 label: 'Collateral',
+  //                 value: widget.loan.collateralDescription ?? '',
+  //                 options: [
+  //                   'Car',
+  //                   'House',
+  //                   'Savings account',
+  //                 ],
+  //                 onChanged: (newValue) {
+  //                   // Handle dropdown selection
+  //                   setState(() {
+  //                     widget.loan.status = newValue;
+  //                   });
+  //                 },
+  //               )
 
   collateralField() {
     return Column(

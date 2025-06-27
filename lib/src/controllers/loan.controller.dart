@@ -19,7 +19,10 @@ class LoanController extends GetxController {
   final selectedProfile = Profile().obs;
   final isLoading = Rx<bool>(false);
   final isSupporting = Rx<bool>(false);
-  final dio = Dio();
+  final dio = Dio(BaseOptions(baseUrl: EnvConstants.APP_API_ENDPOINT, headers: {
+    'Content-Type': 'application/json', // Explicit content-type
+    'Accept': 'application/json',
+  }));
 
   void calculateRepayAmount() {
     final principal = selectedLoan.value.principalAmount ?? 0;
@@ -31,8 +34,8 @@ class LoanController extends GetxController {
       return;
     }
 
-    const monthlyRate = 0.02; // 2% monthly interest
-    final repayAmount = principal * pow(1 + monthlyRate, months);
+    var monthlyRate = selectedLoan.value.interestRate; // 2% monthly interest
+    final repayAmount = principal * pow(1 + monthlyRate!, months);
 
     selectedLoan.update((loan) {
       loan?.paymentAmount = repayAmount;
@@ -126,7 +129,20 @@ class LoanController extends GetxController {
     try {
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/loans/${selectedLoan.value.id}',
-          data: selectedLoan);
+          data: selectedLoan.value.toJson());
+      dev.log(response.data.toString());
+      return response.data;
+    } catch (error) {
+      'updateLoan error: $error';
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> updateCoopLoan() async {
+    try {
+      final response = await dio.patch(
+          '${EnvConstants.APP_API_ENDPOINT}/loans/coop/${selectedCoop.value.id}',
+          data: selectedLoan.value.toJson());
       dev.log(response.data.toString());
       return response.data;
     } catch (error) {
