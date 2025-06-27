@@ -82,13 +82,15 @@ class EnvConstants {
     try {
       log(envFile);
       await dotenv.load(fileName: envFile);
-
-      ENV = dotenv.get('ENV');
       LOCAL_SUPABASE_URL = dotenv.get('LOCAL_SUPABASE_URL');
       SUPABASE_URL = dotenv.get('SUPABASE_URL');
       LOCAL_SERVICE_ROLE_KEY = dotenv.get('LOCAL_SERVICE_ROLE_KEY');
       SUPABASE_ROLE_KEY = dotenv.get('SUPABASE_ROLE_KEY');
-      API_ENV = dotenv.get('API_ENV');
+      API_ENV = dotenv.get('ENV') == 'localhost'
+          ? dotenv.get('DEVICE') == 'physical'
+              ? dotenv.get('LOCAL_NETWORK_ENDPOINT')
+              : dotenv.get('LOCAL_API_ENDPOINT')
+          : dotenv.get('PRODUCTION_API_ENDPOINT');
       APP_API_ENDPOINT = dotenv.get('APP_API_ENDPOINT');
       CMS_ENDPOINT = dotenv.get('CMS_ENDPOINT');
       GRAPH_API_TOKEN = dotenv.get('GRAPH_API_TOKEN');

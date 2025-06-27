@@ -19,7 +19,6 @@ import 'package:mukai/src/controllers/auth.controller.dart';
 import 'injection_container.dart' as injection_container;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase_flutter;
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:sqflite/sqflite.dart' show databaseFactory;
 import 'package:supabase/supabase.dart';
 import 'package:brick_supabase/brick_supabase.dart';
