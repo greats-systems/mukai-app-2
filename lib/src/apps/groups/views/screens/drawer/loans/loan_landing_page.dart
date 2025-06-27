@@ -8,9 +8,10 @@ import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/components/app_bar.dart';
+import 'package:mukai/src/apps/groups/views/screens/drawer/loans/coop_loans.dart';
 import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_application.dart';
 import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_detail.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loans.dart';
+import 'package:mukai/src/apps/groups/views/screens/drawer/loans/my_loans.dart';
 import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
@@ -26,7 +27,7 @@ class LoanLandingPageScreen extends StatefulWidget {
 }
 
 class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
-  final tabList = ["Create Loan", "My Loans"];
+  final tabList = ["Create Loan", "My Loans", "Coop Loans"];
   int selectedTab = 0;
   final GetStorage _getStorage = GetStorage();
   final WalletController _walletController = WalletController();
@@ -199,7 +200,8 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
                 },
                 children: [
                   LoanApplicationScreen(group: widget.group),
-                  LoansScreen(),
+                  MyLoansScreen(),
+                  CoopLoansScreen(group: widget.group),
                 ],
               ),
             ),

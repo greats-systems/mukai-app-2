@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:math';
 
@@ -66,12 +65,12 @@ class LoanController extends GetxController {
       loanToCreate.lenderWalletId = sendingWallet.value.id;
       loanToCreate.interestRate = 0.02;
       loanToCreate.nextPaymentDate = nextMonthDate.toString().substring(0, 10);
-      loanToCreate.status = 'pending approval';
+      loanToCreate.status = 'pending';
       loanToCreate.remainingBalance =
           num.parse(selectedLoan.value.paymentAmount!.toStringAsFixed(2));
-      loanToCreate.dueDate = calculateDueDate(loanToCreate.loanTermMonths!)
-          .toString()
-          .substring(0, 10);
+      // loanToCreate.dueDate = calculateDueDate(loanToCreate.loanTermMonths!)
+      //     .toString()
+      //     .substring(0, 10);
       // dev.log(JsonEncoder.withIndent(' ').convert(loanToCreate.toJson()));
 
       final response = await dio.post(
@@ -88,10 +87,6 @@ class LoanController extends GetxController {
     }
   }
 
-  Future<void> updateLoan(String loanId) async {
-    try {} catch (error) {}
-  }
-
   Future<List<Loan>?> getProfileLoans(String profileId) async {
     try {
       final response = await dio
@@ -104,5 +99,25 @@ class LoanController extends GetxController {
       dev.log('Error fetching loans: $e', stackTrace: s);
       return null;
     }
+  }
+
+  Future<List<Loan>?> getCoopLoans(String coopId, String profileId) async {
+    var params = {
+      'profile_id': profileId,
+    };
+    try {
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/loans/coop/$coopId',
+          data: params);
+      final List<dynamic> json = response.data;
+      return json.map((item) => Loan.fromMap(item)).toList();
+    } catch (error) {
+      dev.log('getCoopLoans error: $error');
+      return null;
+    }
+  }
+
+  Future<void> updateLoan() async {
+    try {} catch (error) {}
   }
 }

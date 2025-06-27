@@ -26,6 +26,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
   String? collateralDescription;
   String? profileId;
   String? cooperativeId;
+  String? updatedAt;
 
   Loan({
     this.id,
@@ -45,6 +46,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
     this.collateralDescription,
     this.profileId,
     this.cooperativeId,
+    this.updatedAt,
   });
 
   factory Loan.fromMap(Map<String, dynamic> json) {
@@ -56,7 +58,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
         lenderWalletId: json['lender_wallet_id'],
         principalAmount: json['principal_amount'],
         interestRate: json['interest_rate'],
-        loanTermMonths: json['loan_term_days'],
+        loanTermMonths: json['loan_term_months'],
         dueDate: json['due_date'],
         status: json['status'],
         remainingBalance: json['remaining_balance'],
@@ -67,6 +69,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
         collateralDescription: json['collateral_description'],
         profileId: json['profile_id'],
         cooperativeId: json['cooperative_id'],
+        updatedAt: json['updated_at'],
       );
     } catch (error, st) {
       log('Loan.fromMap error: $error\n$st');
@@ -93,6 +96,7 @@ class Loan extends OfflineFirstWithSupabaseModel {
       'collateral_description': collateralDescription,
       'profile_id': profileId,
       'cooperative_id': cooperativeId,
+      'updated_at': updatedAt,
     };
   }
 }

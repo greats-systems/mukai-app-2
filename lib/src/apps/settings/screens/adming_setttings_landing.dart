@@ -114,48 +114,6 @@ class _AdmingSetttingsLandingScreenState
         child: Column(
           spacing: 5,
           children: [
-            /*
-            GestureDetector(
-              onTap: () {
-                Get.to(() => GroupMembersScreen(
-                      initialselectedTab: 0,
-                      profiles: profiles!
-                    ));
-              },
-              child: Row(
-                spacing: 10,
-                children: [
-                  Iconify(
-                    Ri.account_circle_fill,
-                    color: primaryColor,
-                  ),
-                  Text(
-                    'Group Memebers',
-                    style: bold16Black,
-                  )
-                ],
-              ),
-            ),
-            Divider(
-              color: greyColor.withValues(alpha: 0.2),
-            ),
-            Row(
-              spacing: 10,
-              children: [
-                Iconify(
-                  Ri.history_line,
-                  color: primaryColor,
-                ),
-                Text(
-                  'Group history',
-                  style: bold16Black,
-                )
-              ],
-            ),
-            Divider(
-              color: greyColor.withValues(alpha: 0.2),
-            ),
-            */
             Row(
               spacing: 10,
               children: [
