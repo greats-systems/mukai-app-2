@@ -96,7 +96,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
               const SizedBox(height: 16),
               _buildDetailField(
                 label: 'Principal Amount',
-                value: '\$${principalAmountController.text}',
+                value: '${principalAmountController.text}',
               ),
               const SizedBox(height: 16),
               _buildDetailField(
@@ -106,7 +106,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
               const SizedBox(height: 16),
               _buildDetailField(
                 label: 'Total Repayment Amount',
-                value: '\$${repaymentAmountController.text}',
+                value: repaymentAmountController.text,
               ),
               if (widget.loan.collateralDescription?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
@@ -380,23 +380,16 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
             GestureDetector(
               onTap: () async {
                 // log('loan id: ${widget.loan.id}');
-
-                var params = {
-                  'group_id': widget.group!.id,
-                  'supporting_votes': userId,
-                  'updated_at': DateTime.now().toIso8601String(),
-                  'loan_id': widget.loan.id,
-                };
-                log(params.toString());
+                loanController.selectedLoan.value.id = widget.loan.id;
+                // loanController.selectedLoan.value
                 try {
-                  final response = await dio.patch(
-                      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${widget.group!.id}/loans',
-                      data: params);
-                  log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                  if (response.data['data'] == "You have voted already") {
+                  final response = await loanController.updateLoanApproval(
+                      widget.group!.id!, userId!, true);
+                  // log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
+                  if (response!['data'] == "You have voted already") {
                     Helper.warningSnackBar(
                         title: 'Duplicate vote',
-                        message: response.data['data'],
+                        message: response['data'],
                         duration: 5);
                   } else {
                     Helper.successSnackBar(
@@ -438,23 +431,16 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
             GestureDetector(
               onTap: () async {
                 // log('I oppose');
-                var params = {
-                  'group_id': widget.group!.id,
-                  'opposing_votes': userId,
-                  'updated_at': DateTime.now().toIso8601String(),
-                  'loan_id': widget.loan.id,
-                };
                 try {
-                  log(params.toString());
-                  final response = await dio.patch(
-                      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${widget.group!.id}',
-                      data: params);
-                  log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
+                  // log(params.toString());
+                  final response = await loanController.updateLoanApproval(
+                      widget.group!.id!, userId!, false);
+                  // log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
                   // Navigator.pop(context);
-                  if (response.data['data'] == 'You have voted already') {
+                  if (response!['data'] == 'You have voted already') {
                     Helper.warningSnackBar(
                         title: 'Duplicate vote',
-                        message: response.data['data'],
+                        message: response['data'],
                         duration: 5);
                   } else {
                     Helper.successSnackBar(

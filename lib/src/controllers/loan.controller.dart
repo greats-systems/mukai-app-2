@@ -117,7 +117,46 @@ class LoanController extends GetxController {
     }
   }
 
-  Future<void> updateLoan() async {
-    try {} catch (error) {}
+  Future<Map<String, dynamic>?> updateLoan() async {
+    try {
+      final response = await dio.patch(
+          '${EnvConstants.APP_API_ENDPOINT}/loans/${selectedLoan.value.id}',
+          data: selectedLoan);
+      dev.log(response.data.toString());
+      return response.data;
+    } catch (error) {
+      'updateLoan error: $error';
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> updateLoanApproval(
+      String groupId, String userId, bool isSupporting) async {
+    Map<String, dynamic> params = {};
+    if (isSupporting) {
+      params = {
+        'group_id': groupId,
+        'supporting_votes': userId,
+        'updated_at': DateTime.now().toIso8601String(),
+        'loan_id': userId,
+      };
+    } else {
+      params = {
+        'group_id': groupId,
+        'opposing_votes': userId,
+        'updated_at': DateTime.now().toIso8601String(),
+        'loan_id': userId,
+      };
+    }
+    try {
+      final response = await dio.patch(
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${groupId}/loans',
+          data: params);
+      dev.log('updateLoanApproval response: ${response.data.toString()}');
+      return response.data;
+    } catch (error) {
+      'updateLoan error: $error';
+      return null;
+    }
   }
 }
