@@ -11,6 +11,7 @@ import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
+import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:mukai/utils/utils.dart';
@@ -39,6 +40,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
   TextEditingController principalAmountController = TextEditingController();
   TextEditingController repaymentAmountController = TextEditingController();
   LoanController loanController = Get.put(LoanController());
+  // ProfileController profileController = Get.put(ProfileController());
   late double height;
   late double width;
   String? userId;
@@ -381,10 +383,11 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
               onTap: () async {
                 // log('loan id: ${widget.loan.id}');
                 loanController.selectedLoan.value.id = widget.loan.id;
-                // loanController.selectedLoan.value
+                loanController.selectedCoop.value.id = widget.group!.id;
+                loanController.selectedProfile.value.id = userId;
+                loanController.isSupporting.value = true;
                 try {
-                  final response = await loanController.updateLoanApproval(
-                      widget.group!.id!, userId!, true);
+                  final response = await loanController.updateLoanApproval();
                   // log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
                   if (response!['data'] == "You have voted already") {
                     Helper.warningSnackBar(
@@ -431,10 +434,13 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
             GestureDetector(
               onTap: () async {
                 // log('I oppose');
+                loanController.selectedLoan.value.id = widget.loan.id;
+                loanController.selectedCoop.value.id = widget.group!.id;
+                loanController.selectedProfile.value.id = userId;
+                loanController.isSupporting.value = false;
                 try {
                   // log(params.toString());
-                  final response = await loanController.updateLoanApproval(
-                      widget.group!.id!, userId!, false);
+                  final response = await loanController.updateLoanApproval();
                   // log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
                   // Navigator.pop(context);
                   if (response!['data'] == 'You have voted already') {
