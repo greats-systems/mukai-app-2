@@ -112,10 +112,27 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
               ),
               if (widget.loan.collateralDescription?.isNotEmpty ?? false) ...[
                 const SizedBox(height: 16),
+                /*
                 _buildDetailField(
                   label: 'Collateral Description',
                   value: collateralDescriptionController.text,
                 ),
+                */
+                // _buildDropdownField(
+                //   label: 'Collateral',
+                //   value: widget.loan.collateralDescription ?? '',
+                //   options: [
+                //     'Car',
+                //     'House',
+                //     'Savings account',
+                //   ],
+                //   onChanged: (newValue) {
+                //     // Handle dropdown selection
+                //     setState(() {
+                //       widget.loan.status = newValue;
+                //     });
+                //   },
+                // )
               ],
               const SizedBox(height: 24),
               Text(

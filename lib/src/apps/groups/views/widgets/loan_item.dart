@@ -19,6 +19,11 @@ class LoanItemWidget extends StatefulWidget {
 class _LoanItemWidgetState extends State<LoanItemWidget> {
   LoanController get loanController => Get.put(LoanController());
 
+  void initState() {
+    super.initState();
+    log('LoanItemWidget loan: ${widget.loan?.hasReceivedVote}');
+  }
+
   @override
   Widget build(BuildContext context) {
     return Column(
@@ -56,66 +61,59 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
   }
 
   Widget _buildLoanDetail(Loan? loan) {
-    // final size = MediaQuery.of(context).size;
-    final width = MediaQuery.of(context).size.width;
-    final height = MediaQuery.of(context).size.height;
-    return loan != null
-        ? Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Expanded(
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          // _formatName(loan),
-                          loan.loanPurpose ?? 'No loan purpose',
-                          style: semibold12black,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        height5Space,
-                        _buildPrincipalAmountInfo(loan),
-                      ],
+  final width = MediaQuery.of(context).size.width;
+  final height = MediaQuery.of(context).size.height;
+  
+  if (loan == null) {
+    return Center(child: Text('No loan'));
+  }
+
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Expanded(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  loan.loanPurpose ?? 'No loan purpose',
+                  style: semibold12black,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                height5Space,
+                _buildPrincipalAmountInfo(loan),
+              ],
+            ),
+            SizedBox(
+              width: height/8,
+              height: width/8,
+              child: Card(
+                color: loan.hasReceivedVote ?? false
+                    ? tertiaryColor
+                    : primaryColor,
+                child: Center(
+                  child: Text(
+                    loan.hasReceivedVote ?? false
+                        ? 'Voting underway'
+                        : 'Pending vote', 
+                    style: TextStyle(
+                      fontSize: 12, 
+                      fontWeight: FontWeight.bold,
+                      color: whiteColor
                     ),
-                    // SizedBox(
-                    //         width: height/8,
-                    //         height: width/8,
-                    //         child: Card(
-                    //           color: loan.hasReceivedVote!
-                    //               ? tertiaryColor
-                    //               : primaryColor,
-                    //           child: Center(
-                    //             child: Text(loan.hasReceivedVote!
-                    //                 ? 'Voting underway'
-                    //                 : 'Pending vote', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),),
-                    //           ),
-                    //         ),
-                    //       ),
-                    // Column(
-                    //   crossAxisAlignment: CrossAxisAlignment.start,
-                    //   children: [
-                    //     Text(
-                    //       // _formatName(loan),
-                    //       loan.loanPurpose ?? 'No loan purpose',
-                    //       style: semibold12black,
-                    //       overflow: TextOverflow.ellipsis,
-                    //     ),
-                    //     height5Space,
-                    //     _buildPrincipalAmountInfo(loan),
-                    //   ],
-                    // ),
-                  ],
+                  ),
                 ),
               ),
-            ],
-          )
-        : Center(
-            child: Text('No loan'),
-          );
-  }
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
 
   Widget _buildInterestInfo(Loan? loan) {
     return loan != null
@@ -125,7 +123,7 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    '${(loan.interestRate!*100).toStringAsFixed(0)}%',
+                    '${(loan.interestRate! * 100).toStringAsFixed(0)}%',
                     style: semibold14Primary,
                   ),
                 ],
@@ -181,7 +179,7 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
                       'Remaining Balance', loan.remainingBalance.toString()),
                   _buildInfoColumn('Account ID',
                       loan.id != null ? loan.id!.substring(0, 8) : 'N/A'),
-                      _buildInfoColumn('Loan term (months)',
+                  _buildInfoColumn('Loan term (months)',
                       loan.loanTermMonths.toString() ?? 'N/A'),
                 ],
               ),
