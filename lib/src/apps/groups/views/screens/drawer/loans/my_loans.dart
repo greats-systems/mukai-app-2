@@ -5,23 +5,21 @@ import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'dart:developer';
-import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_detail.dart';
-import 'package:mukai/src/apps/groups/views/screens/members/member_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
-class LoansScreen extends StatefulWidget {
-  const LoansScreen({super.key});
+class MyLoansScreen extends StatefulWidget {
+  const MyLoansScreen({super.key});
 
   @override
-  State<LoansScreen> createState() => _LoansScreenState();
+  State<MyLoansScreen> createState() => _LoansScreenState();
 }
 
-class _LoansScreenState extends State<LoansScreen> {
+class _LoansScreenState extends State<MyLoansScreen> {
   final GetStorage _getStorage = GetStorage();
   final WalletController _walletController = WalletController();
   final LoanController _loanController = LoanController();
@@ -76,7 +74,7 @@ class _LoansScreenState extends State<LoansScreen> {
         ? Center(
             child: LoadingShimmerWidget(),
           )
-        : loans == null
+        : loans == null || loans!.isEmpty
             ? Center(
                 child: Text('No loans yet'),
               )
@@ -118,10 +116,5 @@ class _LoansScreenState extends State<LoansScreen> {
                   );
                 },
               );
-    /*
-    return Scaffold(
-      appBar: MyAppBar(title: 'Loan Status'),
-      body: Center(child: Text('Loan status')));
-      */
   }
 }

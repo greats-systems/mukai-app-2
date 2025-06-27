@@ -51,5 +51,7 @@ app.*.map.json
 constants.dart
 
 # Environment variables
+.env
+.env.*
 
 key/

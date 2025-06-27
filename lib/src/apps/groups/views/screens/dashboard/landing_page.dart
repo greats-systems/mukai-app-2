@@ -147,7 +147,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               ],
             ),
             onTap: () {
-              Get.to(()=> LoanLandingPageScreen());
+              Get.to(()=> LoanLandingPageScreen(group: widget.group,));
             },
           ),
           ListTile(

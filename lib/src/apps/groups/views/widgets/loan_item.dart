@@ -5,12 +5,8 @@ import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/loan.model.dart';
-import 'package:mukai/src/apps/chats/views/screen/conversation.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:mukai/utils/utils.dart';
-import 'package:mukai/widget/render_supabase_image.dart';
-import 'package:uuid/uuid.dart';
 
 class LoanItemWidget extends StatefulWidget {
   final Loan? loan;
@@ -60,6 +56,7 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
   }
 
   Widget _buildLoanDetail(Loan? loan) {
+    // final size = MediaQuery.of(context).size;
     return loan != null
         ? Row(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -71,17 +68,36 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
                     // widthSpace,
                     // width5Space,
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            // _formatName(loan),
-                            loan.loanPurpose ?? 'No loan purpose',
-                            style: semibold12black,
-                            overflow: TextOverflow.ellipsis,
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                // _formatName(loan),
+                                loan.loanPurpose ?? 'No loan purpose',
+                                style: semibold12black,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              height5Space,
+                              _buildPrincipalAmountInfo(loan),
+                            ],
                           ),
-                          height5Space,
-                          _buildPrincipalAmountInfo(loan),
+                          // Column(
+                          //   crossAxisAlignment: CrossAxisAlignment.start,
+                          //   children: [
+                          //     Text(
+                          //       // _formatName(loan),
+                          //       'Interest rate',
+                          //       style: semibold12black,
+                          //       overflow: TextOverflow.ellipsis,
+                          //     ),
+                          //     height5Space,
+                          //     _buildInterestInfo(loan),
+                          //   ],
+                          // ),
+                          // SizedBox(width: size.width/20,)
                         ],
                       ),
                     ),
@@ -94,39 +110,26 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
             child: Text('No loan'),
           );
   }
-  /*
-  Widget _buildLoanImage(Loan? loan) {
-    if (loan != null) {
-      final imageUrl = loan.loan_image_url;
-      return SizedBox(
-        height: 50,
-        width: 50,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: imageUrl != null && imageUrl.isNotEmpty
-              ? RenderSupabaseImageIdWidget(filePath: imageUrl)
-              : const Icon(Icons.image, size: 50.0, color: Colors.grey),
-        ),
-      );
-    } else {
-      return Center(
-        child: Text('No loan image'),
-      );
-    }
-  }
-  
 
-  String _formatName(Loan? loan) {
-    if (loan != null) {
-      final firstName = loan.first_name?.toUpperCase() ?? 'N';
-      final lastName = loan.last_name?.toUpperCase() ?? '';
-      final idSnippet = loan.id ?? '';
-      return '$firstName $lastName';
-    } else {
-      return 'No name to format in member_item';
-    }
+  Widget _buildInterestInfo(Loan? loan) {
+    return loan != null
+        ? Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    '${(loan.interestRate!*100).toStringAsFixed(0)}%',
+                    style: semibold14Primary,
+                  ),
+                ],
+              ),
+            ],
+          )
+        : Center(
+            child: Text('No account info to build'),
+          );
   }
-  */
 
   Widget _buildPrincipalAmountInfo(Loan? loan) {
     return loan != null
@@ -136,11 +139,12 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    loan.principalAmount.toString(),
+                    '\$${loan.principalAmount.toString()}',
                     style: semibold14Primary,
                   ),
                 ],
               ),
+              /*
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
@@ -151,6 +155,7 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
                   ),
                 ],
               ),
+              */
             ],
           )
         : Center(
@@ -166,10 +171,12 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
               Row(
                 spacing: 20,
                 children: [
-                  _buildInfoColumn(
+                  _buildMoneyColumn(
                       'Remaining Balance', loan.remainingBalance.toString()),
                   _buildInfoColumn('Account ID',
                       loan.id != null ? loan.id!.substring(0, 8) : 'N/A'),
+                      _buildInfoColumn('Loan term (months)',
+                      loan.loanTermMonths.toString() ?? 'N/A'),
                 ],
               ),
               // _buildChatButton(loan),
@@ -187,6 +194,17 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
         Text(label, style: semibold12black),
         height5Space,
         Text(value, style: semibold16Primary),
+      ],
+    );
+  }
+
+  Widget _buildMoneyColumn(String label, String value) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: semibold12black),
+        height5Space,
+        Text('\$$value', style: semibold16Primary),
       ],
     );
   }

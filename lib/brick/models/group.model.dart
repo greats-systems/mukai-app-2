@@ -12,14 +12,14 @@ import 'package:mukai/brick/models/profile.model.dart';
 )
 class Group extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
-  final String? id;
-  final String? admin_id;
+  String? id;
+  String? admin_id;
   String? wallet_id;
-  final String? name;
-  final String? city;
-  final String? country;
-  final double monthly_sub;
-  final List<Profile>? members;
+  String? name;
+  String? city;
+  String? country;
+  double monthly_sub;
+  List<Profile>? members;
 
   Group({
     this.id,
