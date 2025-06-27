@@ -3,8 +3,10 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
+import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
 
@@ -13,7 +15,10 @@ class LoanController extends GetxController {
   final receivingWallet = Wallet().obs;
   final selectedLoan = Loan().obs; // Initialize with empty Loan
   final selectedCoop = Group().obs;
+  final selectedPoll = CooperativeMemberApproval().obs;
+  final selectedProfile = Profile().obs;
   final isLoading = Rx<bool>(false);
+  final isSupporting = Rx<bool>(false);
   final dio = Dio();
 
   void calculateRepayAmount() {
@@ -117,7 +122,45 @@ class LoanController extends GetxController {
     }
   }
 
-  Future<void> updateLoan() async {
-    try {} catch (error) {}
+  Future<Map<String, dynamic>?> updateLoan() async {
+    try {
+      final response = await dio.patch(
+          '${EnvConstants.APP_API_ENDPOINT}/loans/${selectedLoan.value.id}',
+          data: selectedLoan);
+      dev.log(response.data.toString());
+      return response.data;
+    } catch (error) {
+      'updateLoan error: $error';
+      return null;
+    }
+  }
+
+  Future<Map<String, dynamic>?> updateLoanApproval() async {
+    Map<String, dynamic> params = {};
+    if (isSupporting.value) {
+      params = {
+        'group_id': selectedCoop.value.id,
+        'supporting_votes': selectedProfile.value.id,
+        'updated_at': DateTime.now().toIso8601String(),
+        'loan_id': selectedLoan.value.id,
+      };
+    } else {
+      params = {
+        'group_id': selectedCoop.value.id,
+        'opposing_votes': selectedProfile.value.id,
+        'updated_at': DateTime.now().toIso8601String(),
+        'loan_id': selectedLoan.value.id,
+      };
+    }
+    try {
+      final response = await dio.patch(
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${selectedCoop.value.id}/loans',
+          data: params);
+      dev.log('updateLoanApproval response: ${response.data.toString()}');
+      return response.data;
+    } catch (error) {
+      'updateLoan error: $error';
+      return null;
+    }
   }
 }
