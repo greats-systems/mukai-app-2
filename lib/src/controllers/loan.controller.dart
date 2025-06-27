@@ -1,39 +1,123 @@
-import 'dart:developer';
+import 'dart:developer' as dev;
+import 'dart:math';
 
 import 'package:dio/dio.dart';
+import 'package:get/get.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
+import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
 
-class LoanController {
+class LoanController extends GetxController {
+  final sendingWallet = Wallet().obs;
+  final receivingWallet = Wallet().obs;
+  final selectedLoan = Loan().obs; // Initialize with empty Loan
+  final selectedCoop = Group().obs;
+  final isLoading = Rx<bool>(false);
   final dio = Dio();
 
-  Future<void> createLoan(Loan loan) async {
+  void calculateRepayAmount() {
+    final principal = selectedLoan.value.principalAmount ?? 0;
+    final months = selectedLoan.value.loanTermMonths ?? 0;
+
+    if (principal <= 0 || months <= 0) {
+      selectedLoan.value.paymentAmount = 0;
+      selectedLoan.refresh();
+      return;
+    }
+
+    const monthlyRate = 0.02; // 2% monthly interest
+    final repayAmount = principal * pow(1 + monthlyRate, months);
+
+    selectedLoan.update((loan) {
+      loan?.paymentAmount = repayAmount;
+    });
+  }
+
+  DateTime calculateDueDate(num months) {
+    DateTime today = DateTime.now();
+
+// Calculate next month's date
+    DateTime dueDate = DateTime(
+      today.year,
+      today.month + int.parse(months.toString()), // Adds 1 to current month
+      today.day,
+    );
+    return dueDate;
+  }
+
+  Future<void> createLoan(String userId) async {
     try {
-      final response =
-          await dio.post('${EnvConstants.APP_API_ENDPOINT}/loans', data: loan);
-      log('createLoan data: ${response.data}');
-      return;
+      DateTime today = DateTime.now();
+
+// Calculate next month's date
+      DateTime nextMonthDate = DateTime(
+        today.year,
+        today.month + 1, // Adds 1 to current month
+        today.day,
+      );
+      isLoading.value = true;
+      final loanToCreate = selectedLoan.value;
+      loanToCreate.profileId = userId;
+      loanToCreate.createdAt = DateTime.now().toIso8601String();
+      loanToCreate.cooperativeId = selectedCoop.value.id;
+      loanToCreate.borrowerWalletId = receivingWallet.value.id;
+      loanToCreate.lenderWalletId = sendingWallet.value.id;
+      loanToCreate.interestRate = 0.02;
+      loanToCreate.nextPaymentDate = nextMonthDate.toString().substring(0, 10);
+      loanToCreate.status = 'pending';
+      loanToCreate.remainingBalance =
+          num.parse(selectedLoan.value.paymentAmount!.toStringAsFixed(2));
+      // loanToCreate.dueDate = calculateDueDate(loanToCreate.loanTermMonths!)
+      //     .toString()
+      //     .substring(0, 10);
+      // dev.log(JsonEncoder.withIndent(' ').convert(loanToCreate.toJson()));
+
+      final response = await dio.post(
+        '${EnvConstants.APP_API_ENDPOINT}/loans',
+        data: loanToCreate.toJson(),
+      );
+
+      dev.log('Loan created: ${response.data}');
     } catch (e, s) {
-      log('createLoan error: $e $s');
-      return;
+      dev.log('Error creating loan: $e', stackTrace: s);
+      Get.snackbar('Error', 'Failed to create loan');
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<List<Loan>?> getProfileLoans(String profileId) async {
-    List<Loan>? loans = [];
     try {
       final response = await dio
           .get('${EnvConstants.APP_API_ENDPOINT}/loans/profile/$profileId');
-      final List<dynamic> json = response.data;
-      log(json.toString());
-      if (json.isNotEmpty) {
-        loans = json.map((item) => Loan.fromMap(item)).toList();
-        return loans;
+      for (var loan in response.data) {
+        dev.log(loan['loan_term_months'].toString());
       }
-      return null;
+      return (response.data as List).map((item) => Loan.fromMap(item)).toList();
     } catch (e, s) {
-      log('getProfileLoan error: $e $s');
+      dev.log('Error fetching loans: $e', stackTrace: s);
       return null;
     }
+  }
+
+  Future<List<Loan>?> getCoopLoans(String coopId, String profileId) async {
+    var params = {
+      'profile_id': profileId,
+    };
+    try {
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/loans/coop/$coopId',
+          data: params);
+      final List<dynamic> json = response.data;
+      return json.map((item) => Loan.fromMap(item)).toList();
+    } catch (error) {
+      dev.log('getCoopLoans error: $error');
+      return null;
+    }
+  }
+
+  Future<void> updateLoan() async {
+    try {} catch (error) {}
   }
 }

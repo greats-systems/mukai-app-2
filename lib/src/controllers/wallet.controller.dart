@@ -36,6 +36,23 @@ class WalletController {
     }
   }
 
+  Future<Wallet?> getGroupWallet(String groupId) async {
+    try {
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/groups/$groupId/wallet');
+      // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
+      if (response.data!=null) {
+        // log(response.data['data']);
+        return Wallet.fromJson(response.data);
+      }
+      log(response.data.toString());
+      return null;
+    } catch (e, s) {
+      log('getIndividualWallets error: $e $s');
+      return null;
+    }
+  }
+
   Future<Wallet?> getWalletLikeID(String id) async {
     log('--------- getWalletLikeID $id ----------');
     try {

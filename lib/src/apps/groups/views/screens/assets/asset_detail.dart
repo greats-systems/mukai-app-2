@@ -909,12 +909,6 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                       '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${widget.group!.id}',
                       data: params);
                   log('AssetDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                  // Navigator.pop(context);
-                  // if (response.data['error']) {
-                  //   Helper.errorSnackBar(
-                  //       title: 'Error',
-                  //       message: response.data['error']['message']);
-                  // }
                   if (response.data['data'] == "You have voted already") {
                     Helper.warningSnackBar(
                         title: 'Duplicate vote',
