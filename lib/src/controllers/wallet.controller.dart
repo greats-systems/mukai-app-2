@@ -2,13 +2,17 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/brick/models/saving.model.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
 
 class WalletController {
-  final dio = Dio();
+  final dio = DioClient().dio;
+  final setSaving = Saving().obs;
+  var isLoading = false.obs;
   var selectedWallet = Wallet().obs;
   Future<List<Wallet>?> getWalletsByProfileID(String userId) async {
     try {
@@ -41,7 +45,7 @@ class WalletController {
       final response = await dio
           .get('${EnvConstants.APP_API_ENDPOINT}/groups/$groupId/wallet');
       // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
-      if (response.data!=null) {
+      if (response.data != null) {
         // log(response.data['data']);
         return Wallet.fromJson(response.data);
       }
@@ -78,6 +82,20 @@ class WalletController {
       log('createGroupWallet data: $json');
     } catch (e, s) {
       log('createGroupWallet error: $e $s');
+    }
+  }
+
+  Future<void> setSavingPlan() async {
+    try {
+      log('setSavingPlan data: ${setSaving.value.toJson()}');
+      final json = await supabase
+          .from('savings_plans')
+          .insert(setSaving.value.toJson())
+          .select()
+          .single();
+      log('setSavingPlan data: $json');
+    } catch (e, s) {
+      log('setSavingPlan error: $e $s');
     }
   }
 }

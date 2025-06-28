@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:mukai/brick/models/auth.model.dart';
 import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
@@ -39,7 +40,7 @@ class AuthBind extends Bindings {
 
 class AuthController extends GetxController {
   var uuid = const Uuid();
-  final dio = Dio();
+  final dio = DioClient().dio;
   final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
   // final GetStorage _storage = GetStorage();
 
@@ -1650,7 +1651,12 @@ class AuthController extends GetxController {
       final fileExt = file.path.split('.').last;
       final fileName = '${uuid.v4()}.$fileExt';
       final filePath = 'images/$fileName';
-      return supabase.storage.from('kycfiles').upload(filePath, file);
+      var url = await supabase.storage.from('kycfiles').upload(filePath, file);
+      log('uploadImages url: $url');
+      if (url.isNotEmpty) {
+        return url;
+      }
+      return null;
     } catch (e, s) {
       log('uploadImages error: $e $s');
       return null;

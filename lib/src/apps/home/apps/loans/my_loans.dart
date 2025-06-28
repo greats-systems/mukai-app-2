@@ -2,26 +2,24 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'dart:developer';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_detail.dart';
+import 'package:mukai/src/apps/home/apps/loans/loan_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
-class CoopLoansScreen extends StatefulWidget {
-  final Group group;
-  const CoopLoansScreen({super.key, required this.group});
+class MyLoansScreen extends StatefulWidget {
+  const MyLoansScreen({super.key});
 
   @override
-  State<CoopLoansScreen> createState() => _LoansScreenState();
+  State<MyLoansScreen> createState() => _LoansScreenState();
 }
 
-class _LoansScreenState extends State<CoopLoansScreen> {
+class _LoansScreenState extends State<MyLoansScreen> {
   final GetStorage _getStorage = GetStorage();
   final WalletController _walletController = WalletController();
   final LoanController _loanController = LoanController();
@@ -49,8 +47,7 @@ class _LoansScreenState extends State<CoopLoansScreen> {
       setState(() {
         wallets = walletData;
       });
-      final loansData =
-          await _loanController.getCoopLoans(widget.group.id!, userId!);
+      final loansData = await _loanController.getProfileLoans(userId!);
       if (!mounted) return;
       setState(() {
         loans = loansData;
@@ -77,9 +74,9 @@ class _LoansScreenState extends State<CoopLoansScreen> {
         ? Center(
             child: LoadingShimmerWidget(),
           )
-        : loans == null
+        : loans == null || loans!.isEmpty
             ? Center(
-                child: Text('No coop loans yet'),
+                child: Text('No loans yet'),
               )
             : ListView.builder(
                 itemCount: loans!.length,
@@ -89,10 +86,9 @@ class _LoansScreenState extends State<CoopLoansScreen> {
                     padding: const EdgeInsets.all(8.0),
                     child: GestureDetector(
                       onTap: () {
-                        log(widget.group.toJson().toString());
                         // loanController.selectedLoan.value = loan;
                         Get.to(() => LoanDetailScreen(
-                              group: widget.group,
+                              // groupId: widget.group.id,
                               loan: loan,
                               // isActive: _showActiveMembers,
                             ));
@@ -120,10 +116,5 @@ class _LoansScreenState extends State<CoopLoansScreen> {
                   );
                 },
               );
-    /*
-    return Scaffold(
-      appBar: CoopAppBar(title: 'Loan Status'),
-      body: Center(child: Text('Loan status')));
-      */
   }
 }

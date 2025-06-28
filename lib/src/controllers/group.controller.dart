@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:developer';
 // import 'dart:convert';
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
@@ -10,7 +11,7 @@ import 'package:mukai/constants.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GroupController {
-  final dio = Dio();
+  final dio = DioClient().dio;
   Future<Map<String, dynamic>> createGroup(Group group) async {
     // log(group.toJson().toString());
     // List<String?> walletIDs = [];

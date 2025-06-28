@@ -17,19 +17,20 @@ import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
-class TransferTransactionScreen extends StatefulWidget {
+class PayBillsTransactionsScreen extends StatefulWidget {
   final String? purpose;
   final Group? group;
   final String? receivingWalletId;
-  const TransferTransactionScreen(
+  const PayBillsTransactionsScreen(
       {super.key, this.purpose, this.receivingWalletId, this.group});
 
   @override
-  State<TransferTransactionScreen> createState() =>
-      _TransferTransactionScreenState();
+  State<PayBillsTransactionsScreen> createState() =>
+      _PayBillsTransactionsScreenState();
 }
 
-class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
+class _PayBillsTransactionsScreenState
+    extends State<PayBillsTransactionsScreen> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
   final WalletController walletController = WalletController();
@@ -42,39 +43,33 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
   final activeList = [
     {
       "image": "assets/addAccount/account-16.png",
-      "option": 'wallet',
+      "option": 'zesa',
       "category": 'internal',
-      "title": "Internal Wallet"
+      "title": "Zesa"
     },
     {
       "image": "assets/addAccount/account-16.png",
-      "option": 'ecocash',
+      "option": 'dstv',
       "category": 'mobile_money',
-      "title": "Ecocash"
+      "title": "DSTV"
     },
     {
       "image": "assets/addAccount/account-16.png",
-      "option": 'innbucks',
+      "option": 'mancipality',
       "category": 'money_wallet',
-      "title": "InnBucks"
+      "title": "Mancipality"
     },
     {
       "image": "assets/addAccount/account-16.png",
-      "option": 'Omari',
+      "option": 'telone',
       "category": 'money_wallet',
-      "title": "O'Mari"
+      "title": "Telone"
     },
     {
       "image": "assets/addAccount/account-16.png",
-      "option": 'one_money',
+      "option": 'liquid_telecoms',
       "category": 'mobile_money',
-      "title": "One Money"
-    },
-    {
-      "image": "assets/addAccount/account-16.png",
-      "option": 'bank',
-      "category": 'zipit',
-      "title": "Bank Account"
+      "title": "Liquid Telecoms"
     },
   ];
   final GetStorage _getStorage = GetStorage();
@@ -136,7 +131,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
 
   @override
   void initState() {
-    log('TransferTransactionScreen group ID: ${widget.group?.id ?? 'No ID'}');
+    log('PayBillsTransactionsScreen group ID: ${widget.group?.id ?? 'No ID'}');
     super.initState();
     fetchId();
   }

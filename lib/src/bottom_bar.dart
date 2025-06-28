@@ -73,7 +73,7 @@ class _BottomBarState extends State<BottomBar> {
   ];
 
   final membermanagerPages = [
-    MemberLandingScreen(),
+    AdminLandingScreen(),
     ReportsScreen(),
     CommunicationsScreen(
       initialselectedTab: 0,
@@ -119,11 +119,12 @@ class _BottomBarState extends State<BottomBar> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: buildAppBar(),
-      body: SafeArea(
-          child: userRole == 'coop-manager'
-              ? managerPages[_currentIndex]
-              : membermanagerPages[_currentIndex]),
+      body: Container(
+        color: whiteF5Color, // Background color
+        child: userRole == 'coop-manager'
+            ? managerPages[_currentIndex]
+            : membermanagerPages[_currentIndex],
+      ),
       floatingActionButton: userRole == 'coop-manager' && selectedIndex == 2
           ? addGroup()
           : scanQR(),

@@ -1,11 +1,12 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:mukai/brick/models/financial_report.model.dart';
 import 'package:mukai/constants.dart';
 
 class FinancialReportController {
-  final dio = Dio();
+  final dio = DioClient().dio;
   Future<List<FinancialReport>?> getFinancialReport(String walletId) async {
     try {
       final response = await dio.get(

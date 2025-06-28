@@ -8,11 +8,9 @@ import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/src/apps/chats/views/screen/group_chats.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/views/screen/notifications/notifications_list.dart';
-import 'package:mukai/src/apps/chats/views/screen/notifications/directchats_list.dart';
 import 'package:mukai/src/apps/chats/views/widgets/realtime_conversations_list.dart';
 // import 'package:mukai/src/apps/groups/views/widgets/group_members_list.dart';
 // import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
-import 'package:mukai/src/apps/home/widgets/admin_app_header_logo.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/theme/theme.dart';
 // import 'package:mukai/utils/utils.dart';
@@ -71,29 +69,25 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              width: double.maxFinite,
-              decoration: BoxDecoration(
-                color: whiteF5Color,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(0.0),
-                ),
-                border: Border.all(
-                  color: whiteF5Color,
-                ),
-                boxShadow: boxShadow,
-              ),
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(fixPadding * 2.0),
-                children: [tabPreviews()],
-              ),
+      body: Expanded(
+        child: Container(
+          width: double.maxFinite,
+          decoration: BoxDecoration(
+            color: whiteF5Color,
+            borderRadius: const BorderRadius.vertical(
+              top: Radius.circular(0.0),
             ),
-          )
-        ],
+            border: Border.all(
+              color: whiteF5Color,
+            ),
+            // boxShadow: boxShadow,
+          ),
+          child: ListView(
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.all(fixPadding * 2.0),
+            children: [tabPreviews()],
+          ),
+        ),
       ),
     );
   }

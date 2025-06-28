@@ -5,6 +5,9 @@ import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
+import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/brick/models/wallet.model.dart';
+import 'package:mukai/src/apps/home/qr_code.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/widgets/transfer_to_wallet.dart';
@@ -12,6 +15,8 @@ import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
 import 'dart:developer';
+
+import 'package:qr_flutter/qr_flutter.dart';
 
 class TransfersScreen extends StatefulWidget {
   final String category;
@@ -52,12 +57,43 @@ class _TransfersScreenState extends State<TransfersScreen> {
   final dropDownKey = GlobalKey<DropdownSearchState>();
 
   String? userId;
+  List<Wallet>? wallets;
+  String? walletId;
+  bool _isDisposed = false;
+  bool _isLoading = false;
+
+  void fetchProfile() async {
+    if (_isDisposed) return;
+
+    setState(() {
+      _isLoading = true;
+      userId = _getStorage.read('userId');
+    });
+
+    try {
+      final walletJson = await _walletController.getIndividualWallets(userId!);
+
+      if (!_isDisposed && mounted) {
+        setState(() {
+          wallets = walletJson;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
   @override
   void initState() {
     setState(() => userId = _getStorage.read('userId'));
     log(userId!);
     super.initState();
+    fetchProfile();
   }
 
   @override
@@ -87,10 +123,17 @@ class _TransfersScreenState extends State<TransfersScreen> {
         centerTitle: false,
         titleSpacing: 20.0,
         toolbarHeight: 70.0,
-        title: Text(
-          Utils.trimp('${Utils.trimp(widget.category)} Transfer'),
-          style: medium18WhiteF5,
-        ),
+        title: Obx(
+            () => transactionController.selectedTransferOption.value.isNotEmpty
+                ? Text(
+                    Utils.trimp(
+                        '${Utils.trimp(transactionController.selectedTransferOption.value)} Transfer'),
+                    style: medium18WhiteF5,
+                  )
+                : Text(
+                    Utils.trimp('${Utils.trimp(widget.category)} Transfer'),
+                    style: medium18WhiteF5,
+                  )),
       ),
       body: Column(
         children: [
@@ -123,7 +166,17 @@ class _TransfersScreenState extends State<TransfersScreen> {
                           ? ManualTransferToWalletWidget()
                           : widget.category == 'internal'
                               ? sendToWalletPlus()
-                              : sendToMobileWallet()),
+                              : widget.category == 'zipit'
+                                  ? sendToWalletPlus()
+                                  : widget.category == 'pos_payment'
+                                      ? posPayment()
+                                      : widget.category == 'cashout'
+                                          ? sendToAgentWallet()
+                                          : widget.category == 'cashin'
+                                              ? memberInitiateTrans()
+                                              : widget.category == 'zipit'
+                                                  ? memberInitiateTrans()
+                                                  : sendToMobileWallet()),
 
                   height20Space,
                   registerContent(),
@@ -141,6 +194,273 @@ class _TransfersScreenState extends State<TransfersScreen> {
       children: [
         heightSpace,
         numberField(),
+        heightSpace,
+        amountField(),
+        heightSpace,
+      ],
+    );
+  }
+
+  memberInitiateTrans() {
+    return Row(
+      children: [
+        Column(
+          children: [
+            Text('Scan QR-Code to Pay', style: bold16Black),
+            heightBox(height * 0.02),
+            Column(
+              children: [
+                QrImageView(
+                  data: wallets?.first.id ?? 'No wallet ID 3',
+                  version: QrVersions.auto,
+                  size: 140.0,
+                ),
+                Text('${userId?.substring(24, 36)}')
+              ],
+            ),
+          ],
+        ),
+        SizedBox(
+          width: width * 0.43,
+          child: Column(
+            children: [
+              heightBox(height * 0.08),
+              GestureDetector(
+                onTap: () {
+                  transactionController.selectedTransferOption.value = 'wallet';
+                  transactionController.selectedTransferOption.refresh();
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const QRViewExample(),
+                  ));
+                  // Get.to(() => TransfersScreen(
+                  //       category: 'wallet',
+                  //     ));
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.05,
+                    width: width * 0.9,
+                    // padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: tertiaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 5,
+                      children: [
+                        Container(
+                          alignment: Alignment.center,
+                          child: Image.asset(
+                            "assets/icons/mage_qr-code-fill.png",
+                            height: 40,
+                            color: whiteF5Color,
+                          ),
+                        ),
+                        Text(
+                          'Scan QR Code',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
+              ),
+              heightBox(20),
+              Container(
+                  alignment: Alignment(0, 0),
+                  height: height * 0.05,
+                  width: width * 0.9,
+                  // padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: primaryColor,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    spacing: 5,
+                    children: [
+                      Text(
+                        "Use NFC Tap n' Pay",
+                        style: bold16White,
+                      ),
+                    ],
+                  )),
+              heightBox(20),
+              GestureDetector(
+                onTap: () {
+                  transactionController.selectedTransferOption.value =
+                      'manual_wallet';
+                  transactionController.selectedTransferOption.refresh();
+                  transactionController.selectedProfile.value = Profile();
+                  Get.to(() => TransfersScreen(
+                        category: 'Direct Wallet',
+                      ));
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.05,
+                    width: width * 0.9,
+                    // padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: tertiaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 5,
+                      children: [
+                        Text(
+                          'Add Wallet Address',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
+              ),
+            ],
+          ),
+        )
+      ],
+    );
+  }
+
+  posPayment() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text('Enter Merchant Number', style: bold16Black),
+          ],
+        ),
+        heightSpace,
+        merchantNumberField(),
+        heightSpace,
+        Row(
+          children: [
+            Column(
+              children: [
+                Text('Scan QR-Code to Pay', style: bold16Black),
+                heightBox(height * 0.02),
+                Column(
+                  children: [
+                    QrImageView(
+                      data: wallets?.first.id ?? 'No wallet ID 3',
+                      version: QrVersions.auto,
+                      size: 140.0,
+                    ),
+                    Text('${userId?.substring(24, 36)}')
+                  ],
+                ),
+              ],
+            ),
+            SizedBox(
+              width: width * 0.43,
+              child: Column(
+                children: [
+                  heightBox(height * 0.08),
+                  GestureDetector(
+                    onTap: () {
+                      transactionController.selectedTransferOption.value =
+                          'wallet';
+                      transactionController.selectedTransferOption.refresh();
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => const QRViewExample(),
+                      ));
+                      // Get.to(() => TransfersScreen(
+                      //       category: 'wallet',
+                      //     ));
+                    },
+                    child: Container(
+                        alignment: Alignment(0, 0),
+                        height: height * 0.05,
+                        width: width * 0.9,
+                        // padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: tertiaryColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 5,
+                          children: [
+                            Container(
+                              alignment: Alignment.center,
+                              child: Image.asset(
+                                "assets/icons/mage_qr-code-fill.png",
+                                height: 40,
+                                color: whiteF5Color,
+                              ),
+                            ),
+                            Text(
+                              'Scan QR Code',
+                              style: bold16White,
+                            ),
+                          ],
+                        )),
+                  ),
+                  heightBox(20),
+                  Container(
+                      alignment: Alignment(0, 0),
+                      height: height * 0.05,
+                      width: width * 0.9,
+                      // padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 5,
+                        children: [
+                          Text(
+                            "Use NFC Tap n' Pay",
+                            style: bold16White,
+                          ),
+                        ],
+                      )),
+                  heightBox(20),
+                  GestureDetector(
+                    onTap: () {
+                      transactionController.selectedTransferOption.value =
+                          'manual_wallet';
+                      transactionController.selectedTransferOption.refresh();
+                      transactionController.selectedProfile.value = Profile();
+                      Get.to(() => TransfersScreen(
+                            category: 'Direct Wallet',
+                          ));
+                    },
+                    child: Container(
+                        alignment: Alignment(0, 0),
+                        height: height * 0.05,
+                        width: width * 0.9,
+                        // padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: tertiaryColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 5,
+                          children: [
+                            Text(
+                              'Add Wallet Address',
+                              style: bold16White,
+                            ),
+                          ],
+                        )),
+                  ),
+                ],
+              ),
+            )
+          ],
+        ),
+      ],
+    );
+  }
+
+  sendToAgentWallet() {
+    return Column(
+      children: [
+        heightSpace,
+        agentNumberField(),
         heightSpace,
         amountField(),
         heightSpace,
@@ -374,6 +694,88 @@ class _TransfersScreenState extends State<TransfersScreen> {
           ),
           contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
           hintText: "Phone Number",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.phone_android_outlined,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  agentNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        onChanged: (value) => {
+          transactionController.transferTransaction.value.receiving_phone =
+              value,
+        },
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: greyB5Color), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Agent Number",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.phone_android_outlined,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  merchantNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        onChanged: (value) => {
+          transactionController.transferTransaction.value.receiving_phone =
+              value,
+        },
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: greyB5Color), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Merchant Account",
           hintStyle: medium15Grey,
           prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
           prefixIcon: Center(

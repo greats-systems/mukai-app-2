@@ -3,7 +3,11 @@ import 'dart:developer';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/src/apps/converter/views/converter_screen.dart';
+import 'package:mukai/src/apps/home/apps/loans/loan_landing_page.dart';
+import 'package:mukai/src/apps/home/apps/pay_bills/pay_bills_transactions.dart';
+import 'package:mukai/src/apps/home/apps/savings/savings_landing_page.dart';
 import 'package:mukai/src/apps/home/widgets/assets/add_asset.dart';
 import 'package:mukai/src/apps/home/widgets/assets/assets_list.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfer_transaction.dart';
@@ -26,12 +30,27 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
   late double width;
   final accountList = [
     // {"image": "assets/icons/Buy stocks.png", "title": "Pay Subs"},
-    {"image": "assets/icons/vaadin_money-withdraw.png", "title": "Withdraw"},
-    {"image": "assets/icons/bx_transfer.png", "title": "Transfer"},
+    {"image": "assets/icons/game-icons_wallet.png", "title": "Savings"},
+    {"image": "assets/icons/mdi_file-sign.png", "title": "Loans"},
+
+    {"image": "assets/icons/vaadin_money-withdraw.png", "title": "CashOut"},
+    {"image": "assets/icons/game-icons_cash.png", "title": "CashIn"},
     {
       "image": "assets/icons/mingcute_transfer-horizontal-line.png",
-      "title": "Convertor"
+      "title": "Transfer"
     },
+
+    {
+      "image": "assets/icons/ic_outline-business-center.png",
+      "title": "Pay Bill"
+    },
+    {"image": "assets/icons/Group.png", "title": "Airtime"},
+    {"image": "assets/icons/hugeicons_sale-tag-02.png", "title": "Pos Pay"},
+    {
+      "image": "assets/icons/material-symbols_folder-managed-rounded.png",
+      "title": "Assets"
+    },
+    {"image": "assets/icons/mdi_bank.png", "title": "Banking"},
   ];
 
   final walletList = [
@@ -77,26 +96,46 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
 
   void _handleItemTap(String title) {
     switch (title) {
+      case 'Savings':
+        Get.to(() => SavingsLandingPageScreen(
+              group: Group(),
+            ));
+      case 'Loans':
+        Get.to(() => LoanLandingPageScreen(group: Group()));
       case 'Withdraw':
         Get.to(() => TransfersScreen(
               category: 'cashout',
             ));
-
-        // Get.to(() => WithdrawScreen());
-        // throw UnimplementedError();m
+      case 'CashOut':
+        Get.to(() => TransfersScreen(
+              category: 'cashout',
+            ));
+      case 'CashIn':
+        Get.to(() => TransfersScreen(
+              category: 'cashin',
+            ));
       case 'Transfer':
         Get.to(() => TransferTransactionScreen());
         break;
       case 'Convertor':
         Get.to(() => ConverterScreen());
         break;
-      case 'Add Asset':
-        Get.to(() => AddMemberAssetWidget());
+      case 'Pay Bill':
+        Get.to(() => PayBillsTransactionsScreen());
         break;
+      case 'Buy Airtime':
+        Get.to(() => TransferTransactionScreen());
+      case 'Pos Pay':
+        Get.to(() => TransfersScreen(
+              category: 'pos_payment',
+            ));
+      case 'Linked Bank':
+        Get.to(() => TransfersScreen(
+              category: 'cashout',
+            ));
       case 'Assets':
         Get.to(() => MemberAssetsList());
         break;
-
       // case 'Pay Subs':
       //   Get.to(() => MemberPaySubs());
       //   break;
@@ -151,14 +190,16 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
                     : accountList;
     return Column(
       children: [
+        heightBox(height * 0.01),
         SizedBox(
           width: width,
-          height: widget.category == 'accountList' ||
-                  widget.category == 'walletList'
-              ? height * 0.4
-              : widget.category == 'stocksList'
-                  ? height * 0.25
-                  : height * 0.3,
+          height: height * 0.4,
+          // height: widget.category == 'accountList' ||
+          //         widget.category == 'walletList'
+          //     ? height * 0.4
+          //     : widget.category == 'stocksList'
+          //         ? height * 0.25
+          //         : height * 0.3,
           child: GridView.builder(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.only(
@@ -167,10 +208,10 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
               bottom: fixPadding * 0.0,
             ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 4,
                 mainAxisSpacing: fixPadding * 2.0,
                 crossAxisSpacing: fixPadding * 2.0,
-                childAspectRatio: 0.8),
+                childAspectRatio: 0.68),
             itemCount: activeList.length,
             itemBuilder: (context, index) {
               return InkWell(
@@ -202,6 +243,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
                         ),
                       ),
                     ),
+                    heightBox(height * 0.002),
                     Center(
                       child: SizedBox(
                         width: width * 0.2,

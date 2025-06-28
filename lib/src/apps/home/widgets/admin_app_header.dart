@@ -4,10 +4,13 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
+import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
 class AdminAppHeaderWidget extends StatefulWidget {
@@ -102,19 +105,19 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
         }
       },
       child: Container(
-        height: 55.0,
-        width: 55.0,
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: whiteF5Color,
-              blurRadius: 10.0,
-              offset: const Offset(0, 0),
-            )
-          ],
-          shape: BoxShape.circle,
-          color: whiteF5Color.withOpacity(0),
-        ),
+        height: 90.0,
+        width: 90.0,
+        // decoration: BoxDecoration(
+        //   boxShadow: [
+        //     BoxShadow(
+        //       color: whiteF5Color,
+        //       blurRadius: 10.0,
+        //       offset: const Offset(0, 0),
+        //     )
+        //   ],
+        //   shape: BoxShape.circle,
+        //   color: whiteF5Color.withOpacity(0),
+        // ),
         // alignment: Alignment.center,
         child: Padding(
           padding: const EdgeInsets.all(5.0),
@@ -134,6 +137,20 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
       child: Row(
         spacing: 15,
         children: [
+          Container(
+            height: 50.0,
+            width: 50.0,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: recColor,
+            ),
+            alignment: Alignment.center,
+            child: const Iconify(
+              Ri.account_circle_fill,
+              size: 50.0,
+              color: whiteColor,
+            ),
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -141,22 +158,16 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  'Hi, ${userProfile?['first_name'] ?? 'No na'}',
-                  style: semibold18WhiteF5,
-                ),
-              ),
-              SizedBox(
-                width: width * 0.5,
-                child: AutoSizeText(
-                  'Greats Coop',
-                  style: regular12whiteF5,
+                  '${Utils.trimp(profileController.profile.value.first_name ?? 'No name')} ${Utils.trimp(profileController.profile.value.last_name ?? 'No name')}',
+                  style: medium14Black,
                 ),
               ),
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  '${userProfile?['account_type'] ?? 'No name in admin appheader'}',
-                  style: regular12whiteF5,
+                  Utils.trimp(profileController.profile.value.account_type ??
+                      'No account type'),
+                  style: medium14Black,
                 ),
               ),
             ],

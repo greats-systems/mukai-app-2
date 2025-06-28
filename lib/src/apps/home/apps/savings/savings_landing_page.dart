@@ -1,33 +1,29 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/components/app_bar.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/coop_loans.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_application.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_detail.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/my_loans.dart';
-import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
+import 'package:mukai/src/apps/home/apps/loans/coop_loans.dart';
+import 'package:mukai/src/apps/home/apps/loans/loan_application.dart';
+import 'package:mukai/src/apps/home/apps/loans/my_loans.dart';
+import 'package:mukai/src/apps/home/apps/savings/set_saving.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
-class LoanLandingPageScreen extends StatefulWidget {
+class SavingsLandingPageScreen extends StatefulWidget {
   final Group group;
-  const LoanLandingPageScreen({super.key, required this.group});
+  const SavingsLandingPageScreen({super.key, required this.group});
 
   @override
-  State<LoanLandingPageScreen> createState() => _LoanLandingPageScreenState();
+  State<SavingsLandingPageScreen> createState() =>
+      _SavingsLandingPageScreenState();
 }
 
-class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
-  final tabList = ["Create Loan", "My Loans", "Coop Loans"];
+class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
+  final tabList = ["Add Plan", "MySavings", "Bank"];
   int selectedTab = 0;
   final GetStorage _getStorage = GetStorage();
   final WalletController _walletController = WalletController();
@@ -59,7 +55,32 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-      appBar: MyAppBar(title: 'Loans'),
+      appBar: AppBar(
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20.0), // Adjust the radius as needed
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: whiteF5Color,
+        automaticallyImplyLeading: false,
+        leading: IconButton(
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: blackOrignalColor,
+          ),
+        ),
+        centerTitle: false,
+        titleSpacing: 0.0,
+        toolbarHeight: 70.0,
+        title: SizedBox(child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: tabBar(),
+        )),
+      ),
       body: buildBody(),
     );
   }
@@ -81,11 +102,7 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
 
   Widget adminOptions() {
     return Column(
-      children: [
-        tabBar(),
-        // heightBox(20),
-        tabPreviews()
-      ],
+      children: [tabPreviews()],
     );
   }
 
@@ -137,7 +154,7 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: secondaryColor,
+        color: primaryColor,
         borderRadius: BorderRadius.all(Radius.circular(15.0)),
       ),
       child: Row(
@@ -160,7 +177,7 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
                   decoration: BoxDecoration(
                       borderRadius: BorderRadius.all(Radius.circular(15.0)),
                       color: selectedTab == index
-                          ? primaryColor
+                          ? secondaryColor
                           : Colors.transparent),
                   child: Text(
                     tabList[index].toString(),
@@ -199,7 +216,7 @@ class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
                   });
                 },
                 children: [
-                  LoanApplicationScreen(group: widget.group),
+                  SetSavingsScreen(group: widget.group),
                   MyLoansScreen(),
                   CoopLoansScreen(group: widget.group),
                 ],

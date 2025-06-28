@@ -67,7 +67,7 @@ class _AdmingSetttingsLandingScreenState
                 border: Border.all(
                   color: whiteF5Color,
                 ),
-                boxShadow: boxShadow,
+                // boxShadow: boxShadow,
               ),
               child: ListView(
                 physics: const BouncingScrollPhysics(),
@@ -168,7 +168,7 @@ class _AdmingSetttingsLandingScreenState
   feedbackDetails() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(
-        height: height * 0.25,
+        height: height * 0.28,
         width: width * 0.9,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(

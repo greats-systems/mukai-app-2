@@ -48,15 +48,17 @@ Future<void> main() async {
 
   try {
     // 4. Initialize Supabase
-    var supabaseUrl = EnvConstants.ENV == 'local'
-        ? EnvConstants.LOCAL_SUPABASE_URL
-        : EnvConstants.SUPABASE_URL;
+    var supabaseUrl = EnvConstants.SUPABASE_URL;
+    // EnvConstants.ENV == 'localhost'
+    //     ? EnvConstants.LOCAL_SUPABASE_URL
+    //     : EnvConstants.SUPABASE_URL;
     // var supabaseUrl = dotenv.get('ENV') == 'local'
     //     ? dotenv.get('LOCAL_SUPABASE_URL')
     //     : dotenv.get('SUPABASE_URL');
-    var supabaseAnonKey = EnvConstants.ENV == 'local'
-        ? EnvConstants.LOCAL_SERVICE_ROLE_KEY
-        : EnvConstants.SUPABASE_ROLE_KEY;
+    var supabaseAnonKey = EnvConstants.SUPABASE_ROLE_KEY;
+    // EnvConstants.ENV == 'localhost'
+    //     ? EnvConstants.LOCAL_SERVICE_ROLE_KEY
+    //     : EnvConstants.SUPABASE_ROLE_KEY;
     // var supabaseAnonKey = dotenv.get('ENV') == 'local'
     //     ? dotenv.get('LOCAL_SERVICE_ROLE_KEY')
     //     : dotenv.get('SUPABASE_ROLE_KEY');

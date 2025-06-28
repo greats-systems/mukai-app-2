@@ -3,8 +3,11 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
+
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/group_members.dart';
 import 'package:mukai/src/controllers/main.controller.dart';
@@ -43,7 +46,7 @@ class ProfileController extends MainController {
   final GetStorage _getStorage = GetStorage();
 
   AuthController get authController => Get.put(AuthController());
-  final dio = Dio();
+  final dio = DioClient().dio;
 
   Future<Map<String, dynamic>?> getUserDetails(String id) async {
     try {
@@ -57,8 +60,8 @@ class ProfileController extends MainController {
       return profileJson.data;
     } catch (error) {
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'Profiles Error', message: error.toString(), duration: 5);
+      // Helper.errorSnackBar(
+      //     title: 'Profiles Error', message: error.toString(), duration: 5);
       return null;
     }
   }
@@ -74,10 +77,10 @@ class ProfileController extends MainController {
       return profileJson;
     } catch (error) {
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'getWalletDetails Error',
-          message: error.toString(),
-          duration: 5);
+      // Helper.errorSnackBar(
+      //     title: 'getWalletDetails Error',
+      //     message: error.toString(),
+      //     duration: 5);
       return null;
     }
   }
@@ -103,10 +106,6 @@ class ProfileController extends MainController {
       return profileWallet;
     } catch (error) {
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'GetProfileWallet Error',
-          message: error.toString(),
-          duration: 10);
       return null;
     }
   }
@@ -130,10 +129,12 @@ class ProfileController extends MainController {
       return null;
     } catch (error) {
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'GetProfileWallets Error',
-          message: error.toString(),
-          duration: 10);
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       return null;
     }
   }
@@ -188,10 +189,12 @@ class ProfileController extends MainController {
             duration: 5);
       }
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'Error',
-          message: 'Something went wrong on updateUser',
-          duration: 5);
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 5);
+      }
     }
   }
 
@@ -220,8 +223,12 @@ class ProfileController extends MainController {
       return profiles;
     } catch (error) {
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'Error', message: 'Something went wrong', duration: 5);
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       return profiles;
     }
   }
@@ -245,8 +252,12 @@ class ProfileController extends MainController {
       return profileJson;
     } catch (error) {
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'Error', message: 'Something went wrong', duration: 5);
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       return null;
     }
   }
@@ -260,8 +271,12 @@ class ProfileController extends MainController {
       return profileJson;
     } catch (error) {
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'Error', message: 'Something went wrong', duration: 5);
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       return null;
     }
   }
@@ -296,8 +311,12 @@ class ProfileController extends MainController {
       return profiles;
     } catch (error) {
       isLoading.value = false;
-      Helper.errorSnackBar(
-          title: 'Error', message: 'Something went wrong', duration: 5);
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       return profiles;
     }
   }
@@ -324,7 +343,12 @@ class ProfileController extends MainController {
             })
             .catchError((error) {
               isLoading.value = false;
-
+              if (error is DioException) {
+                Helper.successSnackBar(
+                    title: 'Services Response',
+                    message: 'Server services did not complete. Retrying ...',
+                    duration: 10);
+              }
               if (error is PostgrestException) {
                 debugPrint('PostgrestException ${error.message}');
                 Helper.errorSnackBar(
@@ -335,7 +359,12 @@ class ProfileController extends MainController {
       }
     } catch (error) {
       isLoading.value = false;
-
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       Helper.errorSnackBar(
           title: 'Error', message: 'Something went wrong', duration: 5);
     }
@@ -359,6 +388,12 @@ class ProfileController extends MainController {
         });
       } catch (error) {
         isLoading.value = false;
+        if (error is DioException) {
+          Helper.successSnackBar(
+              title: 'Services Response',
+              message: 'Server services did not complete. Retrying ...',
+              duration: 10);
+        }
         Helper.errorSnackBar(
             title: 'Error', message: 'Something went wrong', duration: 5);
       }
@@ -380,7 +415,12 @@ class ProfileController extends MainController {
       }
     } catch (error) {
       isLoading.value = false;
-
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       Helper.errorSnackBar(
           title: 'Error', message: 'Something went wrong', duration: 5);
     }
@@ -392,7 +432,12 @@ class ProfileController extends MainController {
       log("get CloudImage ");
     } catch (error) {
       log("get profile error $error");
-
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       if (error is PostgrestException) {
         debugPrint('PostgrestException ${error.message}');
         Helper.errorSnackBar(
@@ -433,11 +478,18 @@ class ProfileController extends MainController {
       } catch (error) {
         isLoading.value = false;
         log('Image uploading  cancelled');
+        if (error is DioException) {
+          Helper.successSnackBar(
+              title: 'Services Response',
+              message: 'Server services did not complete. Retrying ...',
+              duration: 10);
+        }
         Helper.errorSnackBar(
             title: 'Error', message: 'Image uploading  cancelled', duration: 5);
       }
     } else {
       isLoading.value = false;
+
       Helper.errorSnackBar(
           title: 'Error', message: 'Image selection cancelled', duration: 5);
     }

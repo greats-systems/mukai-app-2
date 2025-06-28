@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -15,10 +16,10 @@ import 'package:mukai/src/apps/groups/views/screens/assets/coop_assets.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_memeber_analytics.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_reports.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_wallet_balances.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/contribution/make_contribution.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_landing_page.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_application.dart';
-import 'package:mukai/src/apps/groups/views/screens/drawer/subscriptions/subscriptions.dart';
+import 'package:mukai/src/apps/home/apps/contribution/make_contribution.dart';
+import 'package:mukai/src/apps/home/apps/loans/loan_landing_page.dart';
+import 'package:mukai/src/apps/home/apps/loans/loan_application.dart';
+import 'package:mukai/src/apps/home/apps/subscriptions/subscriptions.dart';
 // import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
@@ -54,7 +55,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   String? userId;
   String? role;
   bool _isLoading = false;
-  final dio = Dio();
+  final dio = DioClient().dio;
 
   void fetchProfile() async {
     if (_isDisposed) return;
@@ -64,8 +65,8 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       role = _getStorage.read('role');
     });
     try {
-      final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group.id}');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group.id}');
       log(response.data.toString());
       if (response.data['data'] != 'No wallet found') {
         final walletJson = response.data['data'];
@@ -147,7 +148,9 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               ],
             ),
             onTap: () {
-              Get.to(()=> LoanLandingPageScreen(group: widget.group,));
+              Get.to(() => LoanLandingPageScreen(
+                    group: widget.group,
+                  ));
             },
           ),
           ListTile(
@@ -168,7 +171,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               ],
             ),
             onTap: () {
-              Get.to(()=> MySubscriptionsScreen());
+              Get.to(() => MySubscriptionsScreen());
             },
           ),
           ListTile(
@@ -189,7 +192,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               ],
             ),
             onTap: () {
-             Get.to(()=>MakeContributionScreen());
+              Get.to(() => MakeContributionScreen());
             },
           ),
         ],

@@ -77,19 +77,15 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              profileButton(),
-              logoButton(),
-            ],
-          ),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          profileButton(),
+          logoButton(),
+        ],
+      ),
     );
   }
 
@@ -99,7 +95,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
         Navigator.pushNamed(context, '/bottomBar');
       },
       child: Container(
-        height: 50.0,
+        height: 70.0,
         alignment: Alignment.center,
         child: Column(
           children: [
@@ -107,7 +103,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
               children: [
                 Image.asset(
                   'assets/images/logo-nobg.png',
-                  height: 50.0,
+                  height: 70.0,
                 ),
               ],
             ),

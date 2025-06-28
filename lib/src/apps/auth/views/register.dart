@@ -631,13 +631,6 @@ class RegisterScreen extends StatelessWidget {
             "assets/images/logo-nobg.png",
             height: 100.0,
           ),
-          Text(
-            'express your greatness',
-            style: TextStyle(
-                fontStyle: FontStyle.italic,
-                color: secondaryColor,
-                fontSize: 11),
-          )
         ],
       ),
     );

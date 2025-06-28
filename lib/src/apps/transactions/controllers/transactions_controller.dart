@@ -2,6 +2,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'dart:convert';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/transaction.model.dart';
@@ -23,7 +24,7 @@ class TransactionController extends MainController {
   AuthController get authController => Get.put(AuthController());
 
   TransactionController();
-  final dio = Dio();
+  final dio = DioClient().dio;
   var accountNumber = ''.obs;
   var phoneNumber = ''.obs;
   var orderId = ''.obs;
@@ -74,8 +75,8 @@ class TransactionController extends MainController {
 
   Future<dynamic> getFinancialReport(String walletId) async {
     try {
-      final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId');
       return response.data;
     } catch (e, s) {
       log('getFinancialReport error: $e $s');
@@ -86,8 +87,8 @@ class TransactionController extends MainController {
     List<Profile> profilesList = [];
     log('--------- getMemberLikeID $id ----------');
     try {
-      final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
       final List<dynamic> jsonList = response.data;
       log(JsonEncoder.withIndent(' ').convert(jsonList));
       profilesList = jsonList.map((item) => Profile.fromMap(item)).toList();
@@ -98,8 +99,8 @@ class TransactionController extends MainController {
             title: 'Success', message: 'order saved', duration: 5);
         isLoading.value = false;
         transactions.refresh();
-        final walletJson =
-            await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/${jsonList[0]['id']}');
+        final walletJson = await dio.get(
+            '${EnvConstants.APP_API_ENDPOINT}/wallets/${jsonList[0]['id']}');
         // log(JsonEncoder.withIndent(' ').convert(walletJson.data['id']));
         transferTransaction.value.receiving_wallet = walletJson.data['id'];
         log(transferTransaction.value.receiving_wallet.toString());
@@ -120,8 +121,8 @@ class TransactionController extends MainController {
     Profile profile = Profile();
     log('--------- get profile wallet id $id ----------');
     try {
-      final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
       final List<dynamic> jsonList = response.data;
 
       if (jsonList.isNotEmpty) {
@@ -150,8 +151,8 @@ class TransactionController extends MainController {
     Profile profile = Profile();
     log('--------- get profile wallet id $id ----------');
     try {
-      final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/wallets/get_profile_by_wallet_id/$id');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/get_profile_by_wallet_id/$id');
       var data = response.data['data'];
       log('data ${data}');
       if (data != null) {

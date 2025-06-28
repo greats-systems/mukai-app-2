@@ -1,18 +1,15 @@
 import 'dart:developer';
 
-import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/components/admin_landing_app_bar.dart';
-import 'package:mukai/components/member_landing_app_bar.dart';
-import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
+import 'package:mukai/src/apps/home/widgets/apps_features.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/home/admin/admin_recent_transactions.dart';
 import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
-import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
@@ -33,7 +30,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
       Get.put(TransactionController());
   late PageController pageController = PageController();
   final GetStorage _getStorage = GetStorage();
-  final tabList = ["Contributions", "Transfers", "Payments"];
+  final tabList = ["Apps", "Transfers", "Payments"];
   int selectedTab = 0;
   bool refresh = false;
   late double height;
@@ -73,7 +70,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-      backgroundColor: primaryColor,
+      backgroundColor: whiteF5Color,
       // appBar: MukaiAdminLandingAppBar(),
       appBar: buildAppBar(),
       body: Container(
@@ -95,31 +92,31 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     );
   }
 
-  PreferredSizeWidget buildAppBar(){
+  PreferredSizeWidget buildAppBar() {
     return PreferredSize(
-        preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
-        child: Container(
-          decoration: BoxDecoration(
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2), // Shadow color
-                blurRadius: 8.0, // Blur radius
-                spreadRadius: 2.0, // Spread radius
-                offset: const Offset(0, 4), // Shadow position (bottom)
-              ),
-            ],
-          ),
-          child: AppBar(
-            backgroundColor: Colors.transparent,
-            automaticallyImplyLeading: false,
-            centerTitle: false,
-            titleSpacing: 0.0,
-            toolbarHeight: 100.0,
-            elevation: 0,
-            title: const AdminAppHeaderWidget(),
-          ),
+      preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
+      child: Container(
+        // decoration: BoxDecoration(
+        //   boxShadow: [
+        //     BoxShadow(
+        //       color: Colors.black.withOpacity(0.2), // Shadow color
+        //       blurRadius: 8.0, // Blur radius
+        //       spreadRadius: 2.0, // Spread radius
+        //       offset: const Offset(0, 4), // Shadow position (bottom)
+        //     ),
+        //   ],
+        // ),
+        child: AppBar(
+          backgroundColor: whiteColor,
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          titleSpacing: 0.0,
+          toolbarHeight: 120.0,
+          elevation: 0,
+          title: const AdminAppHeaderWidget(),
         ),
-      );
+      ),
+    );
   }
 
   adminInitiateTrans() {
@@ -180,7 +177,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
               width: width * 0.6,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: tertiaryColor,
+                color: whiteF5Color,
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Row(
@@ -240,18 +237,23 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
                 },
                 children: [
                   Container(
-                      color: whiteColor,
-                      child: AdminRecentTransactionsWidget(
-                        category: 'daily',
+                      color: whiteF5Color,
+                      child: const HomeAccountWidgetApps(
+                        category: 'accountList',
                       )),
+                  // Container(
+                  //     color: whiteColor,
+                  //     child: AdminRecentTransactionsWidget(
+                  //       category: 'daily',
+                  //     )),
                   Container(
-                    color: whiteColor,
+                    color: whiteF5Color,
                     child: const AdminRecentTransactionsWidget(
                       category: 'weekly',
                     ),
                   ),
                   Container(
-                      color: whiteColor,
+                      color: whiteF5Color,
                       child: const AdminRecentTransactionsWidget(
                         category: 'monthly',
                       )),
@@ -310,5 +312,3 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     );
   }
 }
-
-

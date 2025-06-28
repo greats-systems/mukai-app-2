@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
@@ -1052,7 +1053,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       String member_id, String group_id, String status) async {
     try {
       _isLoading = true;
-      final dio = Dio();
+      final dio = DioClient().dio;
 
       var coopRequestUpdateParams = {
         'status': status,

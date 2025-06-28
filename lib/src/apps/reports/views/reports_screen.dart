@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
@@ -49,7 +50,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
   Wallet? individualZigWallet;
   List<FinancialReport>? financialReport;
 
-  final dio = Dio();
+  final dio = DioClient().dio;
   bool _isLoading = true;
   bool _isDisposed = false;
   final _downloadController = CancelToken();

@@ -2,6 +2,7 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -50,7 +51,7 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
   List<FinancialReport>? financialReport;
   List<FinancialReport>? financialReportZIG_;
 
-  final dio = Dio();
+  final dio = DioClient().dio;
   bool _isLoading = true;
   bool _isDisposed = false;
   final _downloadController = CancelToken();

@@ -1,11 +1,12 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/constants.dart';
 
 class CooperativeMemberRequestController {
-  final dio = Dio();
+  final dio = DioClient().dio;
   Future<List<CooperativeMemberRequest>?> getUnresolvedRequests() async {
     try {
       final response =

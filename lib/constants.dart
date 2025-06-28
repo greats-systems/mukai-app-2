@@ -82,6 +82,7 @@ class EnvConstants {
     try {
       log(envFile);
       await dotenv.load(fileName: envFile);
+      ENV = dotenv.get('ENV', fallback: 'localhost');
       LOCAL_SUPABASE_URL = dotenv.get('LOCAL_SUPABASE_URL');
       SUPABASE_URL = dotenv.get('SUPABASE_URL');
       LOCAL_SERVICE_ROLE_KEY = dotenv.get('LOCAL_SERVICE_ROLE_KEY');

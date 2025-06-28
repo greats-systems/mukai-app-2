@@ -5,7 +5,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'dart:developer';
-import 'package:mukai/src/apps/groups/views/screens/drawer/loans/loan_detail.dart';
+import 'package:mukai/src/apps/home/apps/loans/loan_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
