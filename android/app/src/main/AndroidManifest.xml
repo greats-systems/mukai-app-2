@@ -19,7 +19,7 @@
         </intent>
     </queries>
     <application
-        android:label="Mukai"
+        android:label="MkandoWallet"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity
