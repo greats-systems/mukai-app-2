@@ -16,6 +16,7 @@ import 'package:mukai/src/apps/groups/views/screens/assets/coop_assets.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_memeber_analytics.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_reports.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_wallet_balances.dart';
+import 'package:mukai/src/apps/groups/views/widgets/polls_list.dart';
 import 'package:mukai/src/apps/home/apps/contribution/make_contribution.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_landing_page.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_application.dart';
@@ -45,7 +46,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       Get.find<TransactionController>();
   late PageController pageController = PageController();
   final GetStorage _getStorage = GetStorage();
-  final tabList = ["Dashboard", "Members", "Assets"];
+  final tabList = ["Dashboard", "Members", "Assets", "Polls"];
   int selectedTab = 0;
   bool refresh = false;
   late double height;
@@ -493,10 +494,13 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                   ),
                   MukandoMembersList(
                     group: widget.group,
-                  ),
+                  ),                  
+                  
                   CoopAssetsWidget(
                     group: widget.group,
                   ),
+                  CoopPollsScreen(group: widget.group),
+                  
                 ],
               ),
             ),

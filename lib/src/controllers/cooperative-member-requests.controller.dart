@@ -11,14 +11,6 @@ class CooperativeMemberRequestController {
     try {
       final response =
           await dio.get('${EnvConstants.APP_API_ENDPOINT}/unresolved');
-      /*
-      final response = await supabase
-          .from('cooperative_member_requests')
-          .select()
-          .not('member_id', 'is', null)
-          .eq('status', 'unresolved');
-      log(JsonEncoder.withIndent(' ').convert(response));
-      */
       final requests = response.data
           .map((item) => CooperativeMemberRequest.fromJson(item))
           .toList();

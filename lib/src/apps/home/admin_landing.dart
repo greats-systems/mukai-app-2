@@ -72,9 +72,11 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     }
     final walletJson = await _profileController.getProfileWallet(userId!);
     if (mounted) {
-      setState(() {
-        walletId = walletJson![0]['id'];
-      });
+      if (walletJson!=null) {
+  setState(() {
+    walletId = walletJson![0]['id'];
+  });
+}
     }
     log('fetchWalletID walletId: $walletId');
   }

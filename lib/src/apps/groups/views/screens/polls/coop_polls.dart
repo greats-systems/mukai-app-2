@@ -1,51 +1,70 @@
+/*
+import 'package:flutter/material.dart';
+
+class CoopPollsScreen extends StatefulWidget {
+  const CoopPollsScreen({super.key});
+
+  @override
+  State<CoopPollsScreen> createState() => _CoopPollsScreenState();
+}
+
+class _CoopPollsScreenState extends State<CoopPollsScreen> {
+  @override
+  Widget build(BuildContext context) {
+    return const Placeholder();
+  }
+}
+*/
+
 import 'dart:developer';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/brick/models/asset.model.dart';
+// import 'package:mukai/brick/models/cma.model.dart';
+import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
-import 'package:mukai/src/apps/groups/views/screens/assets/asset_detail.dart';
-import 'package:mukai/src/apps/groups/views/screens/assets/asset_item.dart';
+import 'package:mukai/src/apps/groups/views/screens/polls/coop_poll_details.dart';
+// import 'package:mukai/brick/models/cma.model.dart';
 // import 'package:mukai/src/apps/home/widgets/transaction_item.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
-import 'package:mukai/src/controllers/asset.controller.dart';
+// import 'package:mukai/src/controllers/cma.controller.dart';
+import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
-class CoopAssetsWidget extends StatefulWidget {
+class CoopPolls extends StatefulWidget {
+  final CooperativeMemberApproval cma;
   final Group group;
-
-  const CoopAssetsWidget({super.key, required this.group});
+  const CoopPolls({super.key, required this.cma, required this.group});
 
   @override
-  State<CoopAssetsWidget> createState() => _MyWidgetState();
+  State<CoopPolls> createState() => _MyWidgetState();
 }
 
-class _MyWidgetState extends State<CoopAssetsWidget> {
+class _MyWidgetState extends State<CoopPolls> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  AssetController get assetController => Get.put(AssetController());
+  CooperativeMemberApprovalsController get cmaController =>
+      Get.put(CooperativeMemberApprovalsController());
   late double height;
   late double width;
   String? loggedInUserId;
   String? role;
-  List<Asset>? assets = [];
+  List<CooperativeMemberApproval>? polls = [];
   bool _isLoading = true;
 
   void _fetchGroupMembers() async {
     setState(() => _isLoading = true);
     try {
-      var assets_list =
-          await assetController.getGroupAssets(widget.group.id ?? '');
+      var polls_list = await cmaController.getCoopPolls(widget.group.id ?? '');
       setState(() {
-        assets = assets_list;
+        polls = polls_list;
         _isLoading = false;
       });
+      log('CoopPollspolls: $polls');
     } catch (e) {
-      if (mounted) {
-        setState(() => _isLoading = false);
-      }
+      setState(() => _isLoading = false);
       log('Error fetching members: $e');
     }
   }
@@ -56,7 +75,7 @@ class _MyWidgetState extends State<CoopAssetsWidget> {
     loggedInUserId = GetStorage().read('userId');
     role = GetStorage().read('role');
     _fetchGroupMembers();
-    log('CoopAssetsWidget role: $role');
+    log('CoopPolls role: $role');
   }
 
   @override
@@ -66,21 +85,21 @@ class _MyWidgetState extends State<CoopAssetsWidget> {
     height = size.height;
     return _isLoading
         ? const Center(child: LoadingShimmerWidget())
-        : assets!.isEmpty
-            ? const Center(child: Text('No assets found'))
+        : polls == null
+            ? const Center(child: Text('No polls found'))
             : ListView.builder(
-                itemCount: assets!.length,
+              shrinkWrap: true,
+                itemCount: polls!.length,
                 itemBuilder: (context, index) {
-                  Asset asset = assets![index];
+                  CooperativeMemberApproval cma = polls![index];
                   return Padding(
                     padding: const EdgeInsets.all(8.0),
                     child: GestureDetector(
                       onTap: () {
-                        assetController.selectedAsset.value = asset;
-                        log('Profile ID: ${asset.id}');
-                        Get.to(() => AssetDetailScreen(
-                              asset: asset,
-                              group: widget.group,
+                        cmaController.selectedCma.value = cma;
+                        log('Profile ID: ${cma.id}');
+                        Get.to(() => CoopPollDetailsScreen(
+                              poll: widget.cma,
                             ));
                       },
                       child: Container(
@@ -91,21 +110,11 @@ class _MyWidgetState extends State<CoopAssetsWidget> {
                           borderRadius: BorderRadius.circular(10.0),
                           boxShadow: recShadow,
                         ),
-                        child: Container(
-                          padding: const EdgeInsets.all(fixPadding * 1.5),
-                          margin:
-                              const EdgeInsets.symmetric(vertical: fixPadding),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10.0),
-                            color: whiteColor.withOpacity(0.1),
-                          ),
-                          child: AssetItemWidget(
-                            asset: asset,
-                          ),
-                        ),
+                        // child: PollS,
                       ),
                     ),
                   );
+
                   // MukandoMembersListTile(groupMember: member);
                 },
               );

@@ -120,42 +120,51 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
       );
     }
 
-    return ListView.builder(
-      itemCount: membersToShow.length,
-      itemBuilder: (context, index) {
-        Profile profile = membersToShow[index];
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: () {
-              profileController.selectedProfile.value = profile;
-              Get.to(() => MemberDetailScreen(
-                    groupId: widget.group.id,
-                    profile: profile,
-                    isActive: _showActiveMembers,
-                  ));
-            },
-            child: Container(
-              width: double.maxFinite,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(
-                color: whiteColor,
-                borderRadius: BorderRadius.circular(10.0),
-                boxShadow: recShadow,
-              ),
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _fetchGroupMembers;
+      },
+      child: ListView.builder(
+        itemCount: membersToShow.length,
+        itemBuilder: (context, index) {
+          Profile profile = membersToShow[index];
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              onTap: () async {
+                profileController.selectedProfile.value = profile;
+                final result = await Get.to<bool>(() => MemberDetailScreen(
+                      groupId: widget.group.id,
+                      profile: profile,
+                      isActive: _showActiveMembers,
+                    ));
+
+                if (result == true) {
+                  _fetchGroupMembers(); // Refresh the list when returning
+                }
+              },
               child: Container(
-                padding: const EdgeInsets.all(fixPadding * 1.5),
-                margin: const EdgeInsets.symmetric(vertical: fixPadding),
+                width: double.maxFinite,
+                clipBehavior: Clip.hardEdge,
                 decoration: BoxDecoration(
+                  color: whiteColor,
                   borderRadius: BorderRadius.circular(10.0),
-                  color: whiteColor.withOpacity(0.1),
+                  boxShadow: recShadow,
                 ),
-                child: MemberItemWidget(profile: profile),
+                child: Container(
+                  padding: const EdgeInsets.all(fixPadding * 1.5),
+                  margin: const EdgeInsets.symmetric(vertical: fixPadding),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    color: whiteColor.withOpacity(0.1),
+                  ),
+                  child: MemberItemWidget(profile: profile),
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

@@ -350,7 +350,7 @@ class _GroupsListState extends State<GroupsList> {
         ),
       ),
       title: Text(group.name ?? 'Unnamed Group'),
-      subtitle: Text('${group.members?.length ?? 0} group members'),
+      // subtitle: Text('${group.members?.length ?? 0} group members'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         // log('Group: ${group.name}');
@@ -371,7 +371,7 @@ class _GroupsListState extends State<GroupsList> {
         ),
       ),
       title: Text(group.name ?? 'Unnamed Group'),
-      subtitle: Text('${group.members?.length ?? 0} members'),
+      // subtitle: Text('${group.members?.length ?? 0} members'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         // log('Group: ${group.name}');
