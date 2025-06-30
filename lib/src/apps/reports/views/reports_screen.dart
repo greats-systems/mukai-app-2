@@ -546,7 +546,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
       automaticallyImplyLeading: false,
       centerTitle: false,
       titleSpacing: 0.0,
-      toolbarHeight: 80.0,
+      toolbarHeight: 90.0,
       elevation: 0,
       title: Column(
         children: [

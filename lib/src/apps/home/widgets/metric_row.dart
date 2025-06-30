@@ -20,14 +20,14 @@ class MetricRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 10,
       children: [
-        Container(
-          alignment: Alignment.center,
-          child: Image.asset(
-            icon,
-            height: 40,
-            color: whiteF5Color,
-          ),
-        ),
+        // Container(
+        //   alignment: Alignment.center,
+        //   child: Image.asset(
+        //     icon,
+        //     height: 40,
+        //     color: whiteF5Color,
+        //   ),
+        // ),
         Column(
           children: [
             Text(

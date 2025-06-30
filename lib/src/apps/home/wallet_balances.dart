@@ -30,6 +30,7 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
   int selectedTab = 0;
   String? userId;
   String? role;
+  String? profile_wallet_id;
   Map<String, dynamic>? userProfile = {};
   Map<String, dynamic>? walletProfile = {};
   List<Map<String, dynamic>>? profileWallets = [];
@@ -84,6 +85,9 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
         _getStorage.write('profile_wallet_id', profileWallets[0]['id']);
         _getStorage.write(
             'profile_wallet_balance', profileWallets[0]['balance'].toString());
+        setState(() {
+          profile_wallet_id = profileWallets[0]['id'];
+        });
         try {
           zigWallet = profileWallets.firstWhere(
             (element) => element['default_currency']?.toLowerCase() == 'zig',
@@ -135,7 +139,7 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
               padding: EdgeInsets.all(16),
               child: LoadingShimmerWidget())
           : Container(
-              height: height * 0.3,
+              height: height * 0.38,
               width: width * 0.9,
               padding: EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -147,6 +151,45 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Account-ID',
+                          style: TextStyle(
+                            color: whiteColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(userId?.substring(24, 36) ?? 'N/A',
+                            style: TextStyle(
+                              color: whiteColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            )),
+                      ],
+                    ),
+                    height5Space,
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'Wallet-ID',
+                          style: TextStyle(
+                            color: whiteColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(profile_wallet_id?.substring(24, 36) ?? 'N/A',
+                            style: TextStyle(
+                              color: whiteColor,
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            )),
+                      ],
+                    ),
                     MetricRow(
                       icon: "assets/icons/Vector.png",
                       title: 'Your Wallet balances',
