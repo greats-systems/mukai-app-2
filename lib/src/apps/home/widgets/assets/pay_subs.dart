@@ -104,8 +104,6 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     log(userWalletJsonData.toString());
     // final userjson = await profileController.getUserDetails(userId!);
     final profileWallets = await profileController.getProfileWallets(userId!);
-    await authController.getAcountCooperatives(userId!);
-
     if (_isDisposed) return;
     log('profileWallets: $profileWallets');
     setState(() {
@@ -177,51 +175,74 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                   ? Column(
                       children: [
                         heightBox(10),
-                        transactionController.isLoading.value
-                            ? Center(
-                                child: Column(
-                                children: [
-                                  Text(
-                                    'Processing payment...',
-                                    style: semibold12black,
-                                  ),
-                                  heightBox(10),
-                                  LinearProgressIndicator(
-                                    minHeight: 2,
-                                    color: primaryColor,
-                                  ),
-                                ],
-                              ))
-                            : Center(
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    PaySubTransDetail(group: widget.group),
-                                    heightBox(10),
-                                    accountWallets(),
-                                    _isLoading
-                                        ? Center(
-                                            child: Container(
-                                                height: height * 0.3,
-                                                child: LoadingShimmerWidget()),
-                                          )
-                                        : ElevatedButton(
-                                            style: ElevatedButton.styleFrom(
-                                              backgroundColor: primaryColor,
-                                              shape: RoundedRectangleBorder(
-                                                borderRadius:
-                                                    BorderRadius.circular(10),
-                                              ),
+                        // transactionController.isLoading.value
+                        //     ? Center(
+                        //         child: Column(
+                        //         children: [
+                        //           Text(
+                        //             'Processing payment...',
+                        //             style: semibold12black,
+                        //           ),
+                        //           heightBox(10),
+                        //           LinearProgressIndicator(
+                        //             minHeight: 2,
+                        //             color: primaryColor,
+                        //           ),
+                        //         ],
+                        //       ))
+                        //     :
+
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              PaySubTransDetail(group: widget.group),
+                              heightBox(10),
+                              _isLoading
+                                  ? Center(
+                                      child: Container(
+                                          height: height * 0.2,
+                                          child: LoadingShimmerWidget()),
+                                    )
+                                  : accountWallets(),
+                              _isLoading
+                                  ? Center(
+                                      child: Container(
+                                          height: height * 0.3,
+                                          child: LoadingShimmerWidget()),
+                                    )
+                                  : transactionController.isLoading.value
+                                      ? Center(
+                                          child: Column(
+                                          children: [
+                                            Text(
+                                              'Processing payment...',
+                                              style: semibold12black,
                                             ),
-                                            onPressed: processPayment,
-                                            child: Text(
-                                              'Pay Subscription',
-                                              style: semibold12White,
-                                            )),
-                                  ],
-                                ),
-                              )
+                                            heightBox(10),
+                                            LinearProgressIndicator(
+                                              minHeight: 2,
+                                              color: primaryColor,
+                                            ),
+                                          ],
+                                        ))
+                                      : ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: primaryColor,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          onPressed: processPayment,
+                                          child: Text(
+                                            'Pay Subscription',
+                                            style: semibold12White,
+                                          )),
+                            ],
+                          ),
+                        )
                       ],
                     )
                   : SizedBox(

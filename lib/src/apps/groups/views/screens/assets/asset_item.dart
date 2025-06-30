@@ -89,16 +89,22 @@ class _AssetItemWidgetState extends State<AssetItemWidget> {
                             ],
                           ),
                           SizedBox(
-                            width: height/8,
-                            height: width/8,
+                            width: height / 8,
+                            height: width / 8,
                             child: Card(
                               color: asset.hasReceivedVote!
                                   ? tertiaryColor
                                   : primaryColor,
                               child: Center(
-                                child: Text(asset.hasReceivedVote!
-                                    ? 'Voting underway'
-                                    : 'Pending vote', style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold),),
+                                child: Text(
+                                  asset.hasReceivedVote!
+                                      ? 'Voting underway'
+                                      : 'Pending vote',
+                                  style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.bold,
+                                      color: whiteF5Color),
+                                ),
                               ),
                             ),
                           ),

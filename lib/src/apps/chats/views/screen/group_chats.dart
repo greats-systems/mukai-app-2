@@ -1,16 +1,12 @@
 import 'dart:developer';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/group_members.model.dart';
-import 'package:mukai/constants.dart';
 import 'package:mukai/main.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
-import 'package:mukai/src/apps/chats/views/screen/mukando_members_landing_page.dart';
-import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/landing_page.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';

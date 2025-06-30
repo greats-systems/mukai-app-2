@@ -185,9 +185,9 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
               ),
               MetricRow(
                 icon: "assets/icons/mdi_account-payment-outline.png",
-                title: 'Fines and Penalties Received',
-                zigValue: '${zigWallet?['fines'] ?? '0.00'}',
-                usdValue: '\$${usdWallet?['fines'] ?? '0.00'}',
+                title: 'Contributions and Profits Earned',
+                zigValue: '${zigWallet?['contributions'] ?? '0.00'}',
+                usdValue: '\$${usdWallet?['contributions'] ?? '0.00'}',
               ),
               Container(
                 color: whiteF5Color.withOpacity(0.5),
@@ -197,8 +197,8 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
               MetricRow(
                 icon: "assets/icons/mdi_account-payment-outline.png",
                 title: 'Withdrawals and Payments',
-                zigValue: '${zigWallet?['balance'] ?? '0.00'}',
-                usdValue: '\$${usdWallet?['balance'] ?? '0.00'}',
+                zigValue: '${0.0 ?? '0.00'}',
+                usdValue: '\$${0.0 ?? '0.00'}',
               ),
             ],
           ),

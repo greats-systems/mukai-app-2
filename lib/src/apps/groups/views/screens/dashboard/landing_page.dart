@@ -192,7 +192,9 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               ],
             ),
             onTap: () {
-              Get.to(() => MakeContributionScreen());
+              Get.to(() => MakeContributionScreen(
+                    group: widget.group,
+                  ));
             },
           ),
         ],
