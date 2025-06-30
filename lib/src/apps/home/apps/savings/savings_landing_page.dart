@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
@@ -7,23 +8,29 @@ import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/src/apps/home/apps/loans/coop_loans.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_application.dart';
 import 'package:mukai/src/apps/home/apps/loans/my_loans.dart';
+import 'package:mukai/src/apps/home/apps/loans/my_savings.dart';
 import 'package:mukai/src/apps/home/apps/savings/set_saving.dart';
+import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
 class SavingsLandingPageScreen extends StatefulWidget {
   final Group group;
-  const SavingsLandingPageScreen({super.key, required this.group});
+  final int? initialTab;
+  const SavingsLandingPageScreen(
+      {super.key, required this.group, this.initialTab});
 
   @override
   State<SavingsLandingPageScreen> createState() =>
       _SavingsLandingPageScreenState();
 }
 
+// "Add Portfolio",
 class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
-  final tabList = ["Add Plan", "MySavings", "Bank"];
+  final tabList = ["MySavings"];
   int selectedTab = 0;
   final GetStorage _getStorage = GetStorage();
   final WalletController _walletController = WalletController();
@@ -45,7 +52,7 @@ class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
 
   @override
   void initState() {
-    pageController = PageController(initialPage: selectedTab);
+    pageController = PageController(initialPage: widget.initialTab ?? 0);
     super.initState();
   }
 
@@ -55,6 +62,16 @@ class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
+      floatingActionButton: selectedTab == 0
+          ? FloatingActionButton(
+              onPressed: () {
+                Get.to(() => SetSavingsScreen(group: widget.group));
+              },
+              backgroundColor: primaryColor,
+              tooltip: 'Add Portfolio',
+              child: const Icon(Icons.add, color: Colors.white),
+            )
+          : null,
       appBar: AppBar(
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
@@ -62,24 +79,24 @@ class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
           ),
         ),
         elevation: 0,
-        backgroundColor: whiteF5Color,
         automaticallyImplyLeading: false,
         leading: IconButton(
           onPressed: () {
-            Navigator.pop(context);
+            Get.to(() => BottomBar());
           },
           icon: const Icon(
             Icons.arrow_back,
             color: blackOrignalColor,
           ),
         ),
+        backgroundColor: primaryColor,
         centerTitle: false,
-        titleSpacing: 0.0,
+        titleSpacing: 20.0,
         toolbarHeight: 70.0,
-        title: SizedBox(child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: tabBar(),
-        )),
+        title: Text(
+          Utils.trimp('MySavings Portfolio'),
+          style: bold18WhiteF5,
+        ),
       ),
       body: buildBody(),
     );
@@ -216,9 +233,8 @@ class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
                   });
                 },
                 children: [
-                  SetSavingsScreen(group: widget.group),
-                  MyLoansScreen(),
-                  CoopLoansScreen(group: widget.group),
+                  MySavingsScreen(),
+                  // CoopLoansScreen(group: widget.group),
                 ],
               ),
             ),

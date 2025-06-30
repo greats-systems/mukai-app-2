@@ -7,6 +7,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/apps/home/widgets/apps_features.dart';
+import 'package:mukai/src/apps/home/widgets/transact_features.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/home/admin/admin_recent_transactions.dart';
 import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
@@ -30,7 +31,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
       Get.put(TransactionController());
   late PageController pageController = PageController();
   final GetStorage _getStorage = GetStorage();
-  final tabList = ["Apps", "Transfers", "Payments"];
+  final tabList = ["Portfolio", "Transact", "Transactions"];
   int selectedTab = 0;
   bool refresh = false;
   late double height;
@@ -76,11 +77,18 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
       body: Container(
           padding: EdgeInsets.all(2),
           decoration: BoxDecoration(
-            color: whiteF5Color,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(40),
-              topRight: Radius.circular(40),
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                whiteColor,
+                whiteF5Color,
+              ],
             ),
+            // borderRadius: BorderRadius.only(
+            //   topLeft: Radius.circular(40),
+            //   topRight: Radius.circular(40),
+            // ),
           ),
           child: ListView(
             children: [
@@ -239,19 +247,13 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
                   Container(
                       color: whiteF5Color,
                       child: const HomeAccountWidgetApps(
-                        category: 'accountList',
+                        category: 'portfolioList',
                       )),
-                  // Container(
-                  //     color: whiteColor,
-                  //     child: AdminRecentTransactionsWidget(
-                  //       category: 'daily',
-                  //     )),
                   Container(
-                    color: whiteF5Color,
-                    child: const AdminRecentTransactionsWidget(
-                      category: 'weekly',
-                    ),
-                  ),
+                      color: whiteF5Color,
+                      child: const HomeAccountWidgetApps(
+                        category: 'transactList',
+                      )),
                   Container(
                       color: whiteF5Color,
                       child: const AdminRecentTransactionsWidget(

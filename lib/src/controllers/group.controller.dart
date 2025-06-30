@@ -8,6 +8,7 @@ import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class GroupController {

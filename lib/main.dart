@@ -11,6 +11,7 @@ import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/core/config/environment.dart';
 import 'package:mukai/firebase_options.dart';
+import 'package:mukai/local_storage.dart';
 import 'package:mukai/src/app.dart';
 import 'package:mukai/src/apps/settings/settings_controller.dart';
 import 'package:mukai/src/apps/settings/settings_service.dart';
@@ -75,6 +76,9 @@ Future<void> main() async {
       url: supabaseUrl,
       anonKey: supabaseAnonKey,
       httpClient: client,
+      authOptions: supabase_flutter.FlutterAuthClientOptions(
+        localStorage: MkandoWalletSecureStorage(),
+      ),
     );
 
     supabaseProvider = SupabaseProvider(

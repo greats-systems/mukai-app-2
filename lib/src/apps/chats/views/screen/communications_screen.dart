@@ -57,7 +57,7 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
           ),
         ),
         elevation: 0,
-        backgroundColor: secondaryColor.withAlpha(50),
+        backgroundColor: primaryColor.withAlpha(50),
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 0.0,
@@ -171,7 +171,7 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
       child: Container(
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: secondaryColor.withAlpha(100),
+          color: primaryColor.withAlpha(100),
           borderRadius: BorderRadius.all(Radius.circular(15.0)),
         ),
         child: Row(

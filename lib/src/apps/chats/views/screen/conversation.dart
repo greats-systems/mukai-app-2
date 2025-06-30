@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/schema/message.dart';
 import 'package:mukai/theme/theme.dart';

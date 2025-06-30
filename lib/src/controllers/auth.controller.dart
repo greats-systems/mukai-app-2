@@ -12,6 +12,7 @@ import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/firebase_api.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/network_service.dart';
 import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
 import 'package:mukai/src/apps/auth/views/login.dart';
@@ -29,6 +30,7 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 
 // 1048336443350-aongaja6tp71ggdrodjau92u2o73frb4.apps.googleusercontent.com
 class AuthBind extends Bindings {
@@ -129,6 +131,13 @@ class AuthController extends GetxController {
     'Machinery Manufacturer',
     'Branding and Packaging'
   ].obs;
+  late List<String> genderList = [
+    'male',
+    'female',
+    'other',
+  ];
+  var selectedGender = 'male'.obs;
+  var date_of_birth = DateTime(DateTime.now().year - 16).obs;
   var phoneNumber = ''.obs;
   var otp_secret = ''.obs;
   var userId = ''.obs;
@@ -136,11 +145,13 @@ class AuthController extends GetxController {
   var firstName = ''.obs;
   var phone = ''.obs;
   var lastName = ''.obs;
+  var nationalIdNumber = ''.obs;
   var email = ''.obs;
 
   var password = ''.obs;
   var loginOption = 'email'.obs;
   var isLoading = false.obs;
+  var addAuthData = false.obs;
   final count1 = 0.obs;
   final count2 = 0.obs;
   final list = [56].obs;
@@ -165,6 +176,7 @@ class AuthController extends GetxController {
   var nIDFileUrl = ''.obs;
   var passportFileUrl = ''.obs;
   var profileImageUrl = ''.obs;
+  var uploadedImageUrl = ''.obs;
   var propertyOwnershipUrl = ''.obs;
 
   var nIDFile = File('').obs;
@@ -252,7 +264,7 @@ class AuthController extends GetxController {
   var city = City(name: 'Harare', country: 'Zimbabwe').obs;
   var country = Country(code: 'ZW', name: 'Zimbabwe').obs;
   var province = 'Harare'.obs;
-  var selected_country = 'Harare'.obs;
+  var selected_country = 'Zimbabwe'.obs;
   var province_options = [
     "Bulawayo",
     "Harare",
@@ -454,6 +466,7 @@ class AuthController extends GetxController {
     }
   ].obs;
   var selected_province_districts_options = ["Harare"].obs;
+  var selected_country_options = ["Zimbabwe"].obs;
   var selected_country_city_options = ["Harare"].obs;
   var selected_city = "".obs;
   var selected_province = "".obs;
@@ -481,6 +494,43 @@ class AuthController extends GetxController {
   }
 
   updateUser() {}
+
+  Future<List<String>> getCitiesFromCountry(String countryName) async {
+    log('Fetching cities for country: $countryName');
+    try {
+      var headers = {'Content-Type': 'application/json'};
+      // Updated endpoint to the correct one (https, and latest path)
+      var request = http.Request(
+        'POST',
+        Uri.parse('https://countriesnow.space/api/v0.1/countries/cities'),
+      );
+      request.body = json.encode({"country": countryName.toLowerCase()});
+      request.headers.addAll(headers);
+      http.StreamedResponse response = await request.send();
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.bytesToString();
+        if (responseData.isEmpty) {
+          log('Empty response body');
+          return [];
+        }
+        log('Response data: $responseData');
+        var jsonResponse = json.decode(responseData);
+        if (jsonResponse['error'] == false && jsonResponse['data'] != null) {
+          return List<String>.from(jsonResponse['data']);
+        } else {
+          log('API returned error: ${jsonResponse['msg']}');
+        }
+      } else if (response.statusCode == 301 || response.statusCode == 302) {
+        log('Endpoint moved. Please check the API URL.');
+      } else {
+        log('Failed with status: ${response.reasonPhrase}');
+      }
+    } catch (e, s) {
+      log('Exception occurred: $e\n$s');
+    }
+
+    return [];
+  }
 
   Future<bool> isAccountSessionValid() async {
     try {
@@ -1081,6 +1131,11 @@ class AuthController extends GetxController {
         'account_type': account_type.value,
         'push_token': fMCToken,
         'password': password.value,
+        'country': selected_country.value,
+        'city': selected_city.value,
+        'gender': selectedGender.value,
+        'date_of_birth': date_of_birth.value.toString(),
+        'national_id_number': nationalIdNumber.value,
         'national_id_url': null,
         'passport_url': null,
         'avatar': null,
@@ -1096,7 +1151,6 @@ class AuthController extends GetxController {
           },
         ),
       );
-      log('response: ${JsonEncoder.withIndent(' ').convert(auth_response.data)}');
       if (auth_response.data == null || auth_response.data == '') {
         Helper.errorSnackBar(
             title: 'Empty response',
@@ -1110,13 +1164,6 @@ class AuthController extends GetxController {
         'profile_id': userId.value,
         'most_recent_content': 'pending approval'
       };
-      var walletParams = {
-        'profile_id': userId.value,
-        'balance': 100,
-        'status': 'Initial opening deposit',
-        'default_currency': 'usd',
-        'is_group_wallet': false,
-      };
       await dio.post('${EnvConstants.APP_API_ENDPOINT}/chats',
           data: chatParams);
       // final walletJson =
@@ -1126,7 +1173,6 @@ class AuthController extends GetxController {
         await _getStorage.write(
             'account_type', auth_response.data['user']['account_type']);
 
-        // Also store in 'role' for backward compatibility if needed
         await _getStorage.write(
             'role', auth_response.data['user']['account_type']);
         if (account_type.value == 'coop-member') {
@@ -1168,8 +1214,10 @@ class AuthController extends GetxController {
         final errorMessage = errorData['message'] ?? 'Registration failed';
         throw Exception(errorMessage);
       }
+      addAuthData.value = false;
     } on DioException catch (e) {
       isLoading.value = false;
+      addAuthData.value = false;
       log('Dio error: $e');
       if (e.response != null) {
         log('Error response data: ${e.response?.data}');
@@ -1248,6 +1296,70 @@ class AuthController extends GetxController {
       isLoading.value = false;
       log('Registration error: $e');
       throw Exception('Registration failed: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> upadateMemberProfile() async {
+    try {
+      isLoading.value = true;
+
+      var req_data = {
+        // 'coop_id': selected_coop.value.id,
+        'member_id': userId.value,
+        'request_type': 'new account',
+        'status': 'unresolved',
+        'cooperative_id': selected_coop.value.id,
+        'city': town_city.value,
+        'country': city.value.country,
+        'province_state': province.value,
+        'category': cooperative_category.value
+      };
+      log('req_data: $req_data');
+      // log('${APP_API_ENDPOINT}/cooperative_member_requests');
+      var response = await dio.post(
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests',
+        data: req_data,
+      );
+      log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Helper.successSnackBar(
+            title: 'Well Done',
+            message:
+                'Your request to join ${selected_coop.value.name} successfully sent',
+            duration: 5);
+        Get.to(() => BottomBar(
+              role: 'member',
+            ));
+      }
+    } on DioException catch (e) {
+      isLoading.value = false;
+      log('Dio error: ${e.message}');
+      if (e.response != null) {
+        log('Error response data: ${e.response?.data}');
+        if (e.response?.data['message'] ==
+            'A request for this member already exists') {
+          isLoading.value = false;
+          Helper.successSnackBar(
+              title: 'Well Done',
+              message: 'A request for this member already exists',
+              duration: 5);
+          Get.to(() => BottomBar(
+                role: 'member',
+              ));
+        } else {
+          final errorMessage = e.response?.data['message'] ?? e.message;
+          Helper.errorSnackBar(
+              title: 'Error', message: errorMessage, duration: 5);
+        }
+      } else {
+        throw Exception('Network error occurred');
+      }
+    } catch (e) {
+      isLoading.value = false;
+      log('Registration error: $e');
+      // throw Exception('Registration failed: ${e.toString()}');
     } finally {
       isLoading.value = false;
     }
@@ -1627,6 +1739,7 @@ class AuthController extends GetxController {
     imageFiles.clear();
     ImagePicker imagePicker = ImagePicker();
     XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    log('uploadedImageUrl: ${uploadedImageUrl.value}');
     if (xFile != null) {
       if (purpose == 'nID') {
         nIDFile.value = File(xFile.path);
@@ -1642,6 +1755,8 @@ class AuthController extends GetxController {
       }
       isImageAdded.value = true;
       update();
+      uploadedImageUrl.value = (await uploadFile(File(xFile.path)))!;
+      log('uploadedImageUrl: ${uploadedImageUrl.value}');
     }
     update();
   }
@@ -1651,10 +1766,20 @@ class AuthController extends GetxController {
       final fileExt = file.path.split('.').last;
       final fileName = '${uuid.v4()}.$fileExt';
       final filePath = 'images/$fileName';
-      var url = await supabase.storage.from('kycfiles').upload(filePath, file);
-      log('uploadImages url: $url');
-      if (url.isNotEmpty) {
-        return url;
+      log('uploadFile filePath: ${filePath}');
+      // await supabase.storage.from('kycfiles').remove(['']); // remove all files
+      // await supabase.storage.deleteBucket('kycfiles');
+      // await supabase.storage
+      //     .createBucket('kycfiles', const BucketOptions(public: true));
+      final String fullPath = await supabase.storage.from('kycfiles').upload(
+            filePath,
+            file,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+          );
+      if (fullPath.isNotEmpty) {
+        print('Upload error: ${fullPath}');
+      } else {
+        print('Uploaded: ${fullPath}');
       }
       return null;
     } catch (e, s) {

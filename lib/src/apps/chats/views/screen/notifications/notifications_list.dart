@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/schema/chat.dart';
 import 'package:mukai/src/apps/chats/views/screen/notifications/widgets/notification_tile.dart';

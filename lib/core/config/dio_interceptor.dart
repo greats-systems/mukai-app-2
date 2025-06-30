@@ -14,8 +14,8 @@ class DioClient {
     dio = Dio(
       BaseOptions(
         baseUrl: '${EnvConstants.APP_API_ENDPOINT}',
-        connectTimeout: const Duration(seconds: 3),
-        receiveTimeout: const Duration(seconds: 3),
+        connectTimeout: const Duration(seconds: 60),
+        receiveTimeout: const Duration(seconds: 60),
       ),
     );
 

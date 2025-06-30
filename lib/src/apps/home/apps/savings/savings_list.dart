@@ -7,24 +7,22 @@ import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/main.dart';
-import 'package:mukai/src/apps/groups/views/screens/members/member_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
-import 'package:mukai/src/apps/groups/views/widgets/member_item.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
-class LoansList extends StatefulWidget {
+class SavingsList extends StatefulWidget {
   final String groupId;
   String? category;
 
-  LoansList({super.key, required this.groupId, this.category});
+  SavingsList({super.key, required this.groupId, this.category});
 
   @override
-  State<LoansList> createState() => _LoansListState();
+  State<SavingsList> createState() => _SavingsListState();
 }
 
-class _LoansListState extends State<LoansList> {
+class _SavingsListState extends State<SavingsList> {
   int? selectedCategory;
   // String category = '1 day';
   late double height;

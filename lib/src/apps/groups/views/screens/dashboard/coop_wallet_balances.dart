@@ -42,10 +42,23 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
   Map<String, dynamic>? usdWallet = {};
   bool _isLoading = false;
   final dio = DioClient().dio;
+  CancelToken _cancelToken = CancelToken(); // For canceling requests
+  int numberOfMembers = 0;
 
   // Update your fetchId method
   void fetchId() async {
     if (_isDisposed) return;
+    final response = await dio.get(
+      '${EnvConstants.APP_API_ENDPOINT}/group_members/${widget.group!.id}/members',
+      cancelToken: _cancelToken,
+    );
+
+    if (!mounted) return;
+
+    setState(() {
+      numberOfMembers = response.data.length;
+    });
+    log('Number of group members: $numberOfMembers');
 
     try {
       setState(() {
@@ -123,7 +136,7 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
     return Padding(
       padding: const EdgeInsets.only(top: 20.0, left: 20, right: 20),
       child: Container(
-        height: height * 0.25,
+        height: height * 0.32,
         width: width * 0.9,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -136,6 +149,29 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Center(
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'Total Members',
+                      style: TextStyle(
+                        color: whiteColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      '$numberOfMembers',
+                      style: TextStyle(
+                        color: whiteColor,
+                        fontSize: 14,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
               MetricRow(
                 icon: "assets/icons/Vector.png",
                 title: 'Wallet balances',

@@ -202,7 +202,9 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
                                     accountWallets(),
                                     _isLoading
                                         ? Center(
-                                            child: LoadingShimmerWidget(),
+                                            child: Container(
+                                                height: height * 0.3,
+                                                child: LoadingShimmerWidget()),
                                           )
                                         : ElevatedButton(
                                             style: ElevatedButton.styleFrom(

@@ -7,6 +7,7 @@ import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/coop.model.dart';
+import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
@@ -318,30 +319,20 @@ class MemberRegisterCoopScreen extends StatelessWidget {
   goBackButton() {
     return GestureDetector(
       onTap: () {
-        Get.back();
+        Get.to(() => BottomBar());
       },
-      child: Container(
-        width: width * 0.3,
-        height: height * 0.05,
-        decoration: BoxDecoration(
-          color: greyColor,
-          borderRadius: BorderRadius.circular(10.0),
-          // boxShadow: buttonShadow,
-        ),
-        alignment: Alignment.center,
-        child: const Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Iconify(
-              Eva.chevron_left_outline,
-              color: whiteF5Color,
-            ),
-            Text(
-              "Previous",
-              style: bold18WhiteF5,
-            ),
-          ],
-        ),
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            "Skip without a Coop",
+            style: semibold22Primary,
+          ),
+          Iconify(
+            Eva.arrow_ios_forward_fill,
+            color: primaryColor,
+          ),
+        ],
       ),
     );
   }

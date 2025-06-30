@@ -7,6 +7,7 @@ import 'package:mukai/core/config/dio_interceptor.dart';
 
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/group_members.dart';
@@ -106,6 +107,35 @@ class ProfileController extends MainController {
       return profileWallet;
     } catch (error) {
       isLoading.value = false;
+      return null;
+    }
+  }
+
+  Future<List<dynamic>?> getProfileSavingsPortfolios(String id) async {
+    List<dynamic>? profileWallets = [];
+    log('getProfileWallets profile_id: $id');
+    try {
+      final profileJson = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/savings-portfolio/profile-portfolio/$id');
+      log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
+      if (profileJson.data.isNotEmpty) {
+        final json = profileJson.data['data'];
+        /*
+      final profileJson =
+          await supabase.from('wallets').select().eq('profile_id', id);
+          */
+        profileWallets = json.map((item) => item).toList();
+        return profileWallets;
+      }
+      return null;
+    } catch (error) {
+      isLoading.value = false;
+      if (error is DioException) {
+        Helper.successSnackBar(
+            title: 'Services Response',
+            message: 'Server services did not complete. Retrying ...',
+            duration: 10);
+      }
       return null;
     }
   }

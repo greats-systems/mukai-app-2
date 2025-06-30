@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/group_members.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_landing_page.dart';
 import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
@@ -140,7 +141,7 @@ class _GroupsListState extends State<GroupsList> {
 
     return Column(
       children: [
-        if (!isCoopMember) _buildSearchField(),
+        // if (!isCoopMember) _buildSearchField(),
         Expanded(
           child: hasGroups
               ? isCoopMember

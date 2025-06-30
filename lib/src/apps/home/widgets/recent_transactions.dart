@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/transaction.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/apps/home/widgets/transaction_item.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';

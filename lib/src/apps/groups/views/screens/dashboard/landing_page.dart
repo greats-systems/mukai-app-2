@@ -485,9 +485,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                                   : Center(
                                       child: Text('Nothing to display'),
                                     )),
-                      if (role == 'coop-manager')
-                        CoopMemeberAnalytics(group: widget.group),
-                      // if (role == 'coop-manager')
+
                       CoopWalletBalancesWidget(group: widget.group),
                     ],
                   ),

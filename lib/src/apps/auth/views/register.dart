@@ -10,12 +10,18 @@ import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:get/get.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
+import 'package:mukai/utils/constants/hardCodedCountries.dart';
 import 'package:mukai/utils/utils.dart';
 
 class RegisterScreen extends StatelessWidget {
   RegisterScreen({super.key});
   AuthController get authController => Get.put(AuthController());
+  final TextEditingController firstNameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
+  final TextEditingController nationalIdController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
+  final TextEditingController confirmPasswordController =
+      TextEditingController();
   final TextEditingController passwordController = TextEditingController();
   final TextEditingController phoneController = TextEditingController();
   // final dropDownKey = GlobalKey<DropdownSearchState>();
@@ -66,28 +72,59 @@ class RegisterScreen extends StatelessWidget {
                   appLogo(),
                   registerContent(),
                   height20Space,
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [profileImageField(), nIDimageField()],
-                  ),
+                  Obx(() {
+                    if (authController.addAuthData.value == true) {
+                      return Column(
+                        children: [
+                          height5Space,
+
+                          // Row(
+                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //   children: [profileImageField(), nIDimageField()],
+                          // ),
+                          // height20Space,
+                          account_type(),
+                          height20Space,
+                          genderField(),
+                          height20Space,
+                          province_field(),
+                          height20Space,
+                          town_cityField(),
+                          height20Space,
+                          Obx(() => datePickerField(
+                                context: context,
+                                label: 'Set Date of Birth',
+                                selectedDate:
+                                    authController.date_of_birth.value,
+                                onDateSelected: (date) {
+                                  authController.date_of_birth.value = date!;
+                                  authController.date_of_birth.refresh();
+                                },
+                              )),
+                        ],
+                      );
+                    } else {
+                      return Column(
+                        children: [
+                          height20Space,
+                          userNameField(),
+                          height20Space,
+                          lastNameField(),
+                          height20Space,
+                          IdNumberField(),
+                          height20Space,
+                          emailField(),
+                          height20Space,
+                          passwordField(),
+                          height20Space,
+                          confirmPasswordField(),
+                          height20Space,
+                          mobileNumberField(),
+                        ],
+                      );
+                    }
+                  }),
                   height20Space,
-                  account_type(),
-                  height5Space,
-                  height5Space,
-                  Obx(() =>
-                      authController.account_type.value == 'Service Provider'
-                          ? service_provider_class()
-                          : const SizedBox()),
-                  height20Space,
-                  userNameField(),
-                  height20Space,
-                  lastNameField(),
-                  height20Space,
-                  emailField(),
-                  height20Space,
-                  passwordField(),
-                  height20Space,
-                  mobileNumberField(),
                   height20Space,
                   Obx(() => authController.isLoading.value == true
                       ? Column(
@@ -100,7 +137,13 @@ class RegisterScreen extends StatelessWidget {
                             ),
                           ],
                         )
-                      : registerButton()),
+                      : Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                              if (authController.addAuthData.value == true)
+                                goBackButton(),
+                              registerButton()
+                            ])),
                   heightSpace,
                   heightSpace,
                   GestureDetector(
@@ -140,6 +183,344 @@ class RegisterScreen extends StatelessWidget {
             ),
           )
         ],
+      ),
+    );
+  }
+
+  confirmPasswordField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        controller: confirmPasswordController,
+        onChanged: (value) => {
+          authController.password.value = value,
+        },
+        obscureText: true,
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: Colors.grey), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Confirm password",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.password_sharp,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget genderField() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Obx(() => DropdownSearch<String>(
+            onChanged: (value) => {
+              authController.selectedGender.value = value!,
+            },
+            // key: dropDownKey,
+            selectedItem: Utils.trimp(authController.selectedGender.value),
+            items: (filter, infiniteScrollProps) => authController.genderList,
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(
+                      color: primaryColor), // Border color when focused
+                  borderRadius: BorderRadius.circular(10.0),
+                ),
+
+                labelText: 'Select Gender',
+                labelStyle: const TextStyle(
+                    height: 10,
+                    color: blackColor,
+                    fontSize: 22), // Black label text
+                // border: const OutlineInputBorder(),
+                filled: true,
+                fillColor: recWhiteColor, // White background for input field
+              ),
+              baseStyle: const TextStyle(
+                  color: blackColor,
+                  fontSize: 18), // Black text for selected item
+            ),
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(10.0),
+                child: Text(Utils.trimp(item),
+                    style: const TextStyle(color: blackColor, fontSize: 18)),
+              ),
+              fit: FlexFit.loose,
+              constraints: const BoxConstraints(),
+              menuProps: const MenuProps(
+                backgroundColor: whiteF5Color,
+                elevation: 4,
+              ),
+            ),
+          )),
+    );
+  }
+
+  IdNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        controller: nationalIdController,
+        onChanged: (value) => {
+          authController.nationalIdNumber.value = value,
+        },
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: Colors.grey), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "National ID Number",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.info_rounded,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget datePickerField({
+    required BuildContext context,
+    required String label,
+    required DateTime? selectedDate,
+    required ValueChanged<DateTime?> onDateSelected,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: semibold14Black),
+        heightSpace,
+        GestureDetector(
+          onTap: () async {
+            final now = DateTime.now();
+            final picked = await showDatePicker(
+              confirmText: 'Set Date of Birth',
+              initialEntryMode: DatePickerEntryMode.calendarOnly,
+              barrierColor: primaryColor.withAlpha(100),
+              builder: (context, child) {
+                return Localizations.override(
+                  context: context,
+                  locale: const Locale('en', 'ZW'),
+                  child: child!,
+                );
+              },
+              context: context,
+              initialDate: selectedDate ?? DateTime(now.year - 16),
+              firstDate: DateTime(now.year - 80),
+              lastDate: DateTime(now.year - 12),
+            );
+            if (picked != null) {
+              onDateSelected(picked);
+            }
+          },
+          child: boxWidget(
+            child: Padding(
+              padding: EdgeInsets.all(fixPadding * 1.5),
+              child: Text(
+                selectedDate != null
+                    ? "${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}"
+                    : 'Set Date of Birth',
+                style: semibold14Black,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  boxWidget({required Widget child}) {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: BoxDecoration(
+        color: whiteF5Color,
+        borderRadius: BorderRadius.circular(10.0),
+        boxShadow: recShadow,
+      ),
+      child: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(10.0),
+          color: recWhiteColor,
+        ),
+        child: child,
+      ),
+    );
+  }
+
+  town_cityField() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Container(
+        decoration: BoxDecoration(
+          color: recWhiteColor,
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Obx(() => DropdownSearch<String>(
+              onChanged: (value) => {
+                authController.town_city.value = value!,
+                authController.selected_city.value = value,
+                // authController.filterCooperatives()
+              },
+              // key: town_city_key,
+              selectedItem: authController.town_city.value,
+              items: (filter, infiniteScrollProps) =>
+                  authController.selected_province_town_city_options,
+              decoratorProps: DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  labelText: 'Select Resident Town/City',
+                  labelStyle: const TextStyle(
+                      color: blackOrignalColor,
+                      fontSize: 22), // Black label text
+                  // border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: recWhiteColor, // White background for input field
+                ),
+                baseStyle: const TextStyle(
+                    color: blackOrignalColor,
+                    fontSize: 18), // Black text for selected item
+              ),
+              popupProps: PopupProps.menu(
+                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(item,
+                      style: const TextStyle(
+                          color: blackOrignalColor, fontSize: 18)),
+                ),
+                fit: FlexFit.loose,
+                constraints: BoxConstraints(maxHeight: height * 0.5),
+                menuProps: MenuProps(
+                  // barrierColor: primaryColor.withAlpha(50),
+                  backgroundColor: whiteF5Color,
+                  elevation: 4,
+                ),
+              ),
+            )),
+      ),
+    );
+  }
+
+  province_field() {
+    return Container(
+      width: double.maxFinite,
+      clipBehavior: Clip.hardEdge,
+      decoration: bgBoxDecoration,
+      child: Container(
+        decoration: BoxDecoration(
+          color: recWhiteColor,
+          borderRadius: BorderRadius.circular(10.0),
+        ),
+        child: Obx(() => DropdownSearch<String>(
+              onChanged: (value) async {
+                if (value != null) {
+                  authController.selected_country.value = value;
+                  // Find the province in the list and get its districts
+                  await authController.getCitiesFromCountry(value);
+                  var selectedProvinceData =
+                      authController.province_options_with_districts.firstWhere(
+                    (item) => item.keys.first == value,
+                    orElse: () => {value: []},
+                  );
+                  var selectedProvinceCityData =
+                      authController.province_options_with_districts.firstWhere(
+                    (item) => item.keys.first == value,
+                    orElse: () => {value: []},
+                  );
+                  authController.selected_country_options.value =
+                      selectedProvinceData[value]!;
+                  authController.district.value =
+                      authController.selected_country_options[0];
+                  // // //
+                  authController.selected_province_town_city_options.value =
+                      selectedProvinceCityData[value]!;
+                  authController.town_city.value =
+                      authController.selected_province_town_city_options[0];
+
+                  // authController.filterCooperatives();
+                }
+              },
+              // key: GlobalKey<FormState>(),
+              selectedItem: authController.selected_country.value,
+              items: (filter, infiniteScrollProps) => africanCountries,
+              decoratorProps: DropDownDecoratorProps(
+                decoration: InputDecoration(
+                  border: InputBorder.none,
+                  labelText: 'Select Resident Country',
+                  labelStyle: const TextStyle(
+                      color: blackOrignalColor,
+                      fontSize: 22), // Black label text
+                  // border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: recWhiteColor, // White background for input field
+                ),
+                baseStyle: const TextStyle(
+                    color: blackOrignalColor,
+                    fontSize: 18), // Black text for selected item
+              ),
+              popupProps: PopupProps.menu(
+                title: Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: const Text('Select Resident Country'),
+                ),
+                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: Text(item,
+                      style: const TextStyle(
+                          color: blackOrignalColor, fontSize: 18)),
+                ),
+                fit: FlexFit.loose,
+                constraints: BoxConstraints(maxHeight: height * 0.5),
+                menuProps: const MenuProps(
+                  backgroundColor: whiteF5Color,
+                  elevation: 4,
+                ),
+              ),
+            )),
       ),
     );
   }
@@ -306,6 +687,28 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
+  goBackButton() {
+    return GestureDetector(
+      onTap: () {
+        authController.addAuthData.value = false;
+        authController.addAuthData.refresh();
+      },
+      child: const Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Iconify(
+            Eva.arrow_ios_back_outline,
+            color: primaryColor,
+          ),
+          Text(
+            "Return back",
+            style: semibold22Primary,
+          ),
+        ],
+      ),
+    );
+  }
+
   service_provider_class() {
     return Container(
       width: double.maxFinite,
@@ -360,8 +763,15 @@ class RegisterScreen extends StatelessWidget {
   registerButton() {
     return GestureDetector(
       onTap: () {
-        // Get.to(() => RegisterFarmScreen());
-        authController.registerUser();
+        if (authController.addAuthData.value == false) {
+          authController.addAuthData.value = true;
+          authController.addAuthData.refresh();
+        } else {
+          // Handle case where account_type is not empty
+          authController.addAuthData.value = false;
+          authController.addAuthData.refresh();
+          authController.registerUser();
+        }
       },
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -402,6 +812,7 @@ class RegisterScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: TextField(
+        controller: emailController,
         onChanged: (value) => {
           authController.email.value = value,
         },
@@ -443,6 +854,7 @@ class RegisterScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: TextField(
+        controller: passwordController,
         onChanged: (value) => {
           authController.password.value = value,
         },
@@ -535,6 +947,7 @@ class RegisterScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: TextField(
+        controller: firstNameController,
         onChanged: (value) => {
           authController.firstName.value = value,
         },
@@ -575,6 +988,7 @@ class RegisterScreen extends StatelessWidget {
         borderRadius: BorderRadius.circular(10.0),
       ),
       child: TextField(
+        controller: lastNameController,
         onChanged: (value) => {
           authController.lastName.value = value,
         },

@@ -33,6 +33,7 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
   String? userId;
   String? role;
   Map<String, dynamic>? userProfile = {};
+  Profile authProfile = Profile();
   bool _isLoading = false;
 
   Future<void> fetchProfile() async {
@@ -42,15 +43,13 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
       userId = _getStorage.read('userId');
       role = _getStorage.read('account_type');
     });
-
     final userjson = await profileController.getUserDetails(userId!);
-
     if (_isDisposed) return;
     setState(() {
-      userProfile = userjson;
+      authProfile = Profile.fromMap(userjson!);
       _isLoading = false;
     });
-    log('AdminAppHeaderWidget userProfile: $userProfile');
+    log('AdminAppHeaderWidget authProfile: ${authProfile.toMap()}');
   }
 
   @override
@@ -158,15 +157,14 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  '${Utils.trimp(profileController.profile.value.first_name ?? 'No name')} ${Utils.trimp(profileController.profile.value.last_name ?? 'No name')}',
+                  '${Utils.trimp(authProfile.first_name ?? 'No name')} ${Utils.trimp(authProfile.last_name ?? 'No name')}',
                   style: medium14Black,
                 ),
               ),
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  Utils.trimp(profileController.profile.value.account_type ??
-                      'No account type'),
+                  Utils.trimp(authProfile.account_type ?? 'No account type'),
                   style: medium14Black,
                 ),
               ),

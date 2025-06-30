@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/member_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/member_item.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';

@@ -8,27 +8,26 @@ import 'package:mukai/src/apps/converter/views/converter_screen.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_landing_page.dart';
 import 'package:mukai/src/apps/home/apps/pay_bills/pay_bills_transactions.dart';
 import 'package:mukai/src/apps/home/apps/savings/savings_landing_page.dart';
-import 'package:mukai/src/apps/home/widgets/assets/add_asset.dart';
 import 'package:mukai/src/apps/home/widgets/assets/assets_list.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfer_transaction.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/theme/theme.dart';
 
-class HomeAccountWidgetApps extends StatefulWidget {
+class TransactFeatureApps extends StatefulWidget {
   final String category;
 
-  const HomeAccountWidgetApps({super.key, required this.category});
+  const TransactFeatureApps({super.key, required this.category});
 
   @override
-  State<HomeAccountWidgetApps> createState() => _HomeAccountWidgetAppsState();
+  State<TransactFeatureApps> createState() => _TransactFeatureAppsState();
 }
 
-class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
+class _TransactFeatureAppsState extends State<TransactFeatureApps> {
   int? selectedCategory;
   String category = '1 day';
   late double height;
   late double width;
-  final transactList = [
+  final accountList = [
     // {"image": "assets/icons/Buy stocks.png", "title": "Pay Subs"},
 
     {"image": "assets/icons/vaadin_money-withdraw.png", "title": "CashOut"},
@@ -176,23 +175,23 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-    var activeList = widget.category == 'transactList'
-        ? transactList
-        : widget.category == 'portfolioList'
-            ? portfolioList
+    var activeList = widget.category == 'walletList'
+        ? portfolioList
+        : widget.category == 'accountList'
+            ? accountList
             : widget.category == 'assetsList'
                 ? assetsList
                 : widget.category == 'stocksList'
                     ? stocksList
-                    : portfolioList;
+                    : accountList;
     return Column(
       children: [
         heightBox(height * 0.01),
         SizedBox(
           width: width,
           height: height * 0.4,
-          // height: widget.category == 'portfolioList' ||
-          //         widget.category == 'transactList'
+          // height: widget.category == 'accountList' ||
+          //         widget.category == 'walletList'
           //     ? height * 0.4
           //     : widget.category == 'stocksList'
           //         ? height * 0.25

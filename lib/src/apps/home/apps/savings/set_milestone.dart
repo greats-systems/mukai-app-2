@@ -1,11 +1,10 @@
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
+import 'package:mukai/brick/models/milestones.model.dart';
 import 'package:mukai/brick/models/saving.model.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:flutter/material.dart';
-
-
 
 class MilestoneInputWidget extends StatefulWidget {
   final ValueChanged<List<Milestone>> onMilestonesChanged;
@@ -57,7 +56,7 @@ class _MilestoneInputWidgetState extends State<MilestoneInputWidget> {
       return Milestone(name: name, amount: amount);
     }).where((m) => m.name.isNotEmpty || m.amount.isNotEmpty).toList();
     widget.onMilestonesChanged(milestones);
-    // save milestones 
+    // save milestones
   }
 
   void _removeMilestone(int index) {
@@ -105,7 +104,8 @@ class _MilestoneInputWidgetState extends State<MilestoneInputWidget> {
                     child: TextField(
                       controller: _amountControllers[i],
                       onChanged: (_) => _onChanged(),
-                      keyboardType: TextInputType.numberWithOptions(decimal: true),
+                      keyboardType:
+                          TextInputType.numberWithOptions(decimal: true),
                       decoration: InputDecoration(
                         border: InputBorder.none,
                         hintText: 'Amount',

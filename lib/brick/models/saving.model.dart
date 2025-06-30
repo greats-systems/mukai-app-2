@@ -2,7 +2,7 @@ import 'dart:developer';
 import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
 import 'package:brick_sqlite/brick_sqlite.dart';
 import 'package:brick_supabase/brick_supabase.dart';
-import 'package:mukai/src/apps/home/apps/savings/set_milestone.dart';
+import 'package:mukai/brick/models/milestones.model.dart';
 
 @ConnectOfflineFirstWithSupabase(
   supabaseConfig: SupabaseSerializable(),
@@ -12,59 +12,76 @@ class Saving extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   String? id;
   String? createdAt;
-  String? profileWalletId;
-  num? lockamount;
-  String? lockDate;
-  String? status;
-  num? remainingBalance;
-  num? currentAmount;
-  String? lastDepositDate;
-  String? nextDepositDate;
-  String? purpose;
-  String? description;
-  List<Milestone>? milestones;
+  String? walletId;
   String? profileId;
-  String? updatedAt;
-  bool? hasEndorser;
+  String? groupId;
+  String? purpose;
+  String? lockEvent;
+  num? currentBalance;
+  String? lockFeature;
+  List<Milestone>? lockMilestones;
+  String? lockDate;
+  num? lockAmount;
+  List<String>? endorserId;
+  String? unlockingCode;
+  String? status;
+  bool? isLocked;
+  String? unlockKey;
+  String? lastRecommendation;
+  String? previousDepositDate;
 
   Saving({
     this.id,
     this.createdAt,
-    this.profileWalletId,
-    this.lockamount,
-    this.lockDate,
-    this.status,
-    this.remainingBalance,
-    this.lastDepositDate,
-    this.nextDepositDate,
-    this.purpose,
-    this.milestones,
-    this.description,
+    this.walletId,
     this.profileId,
-    this.updatedAt,
-    this.hasEndorser,
+    this.groupId,
+    this.purpose,
+    this.currentBalance,
+    this.lockEvent,
+    this.lockFeature,
+    this.lockMilestones,
+    this.lockDate,
+    this.lockAmount,
+    this.endorserId,
+    this.unlockingCode,
+    this.status,
+    this.isLocked,
+    this.unlockKey,
+    this.lastRecommendation,
+    this.previousDepositDate,
   });
 
   factory Saving.fromMap(Map<String, dynamic> json) {
     log('Saving.fromMap json $json');
     try {
       return Saving(
-          id: json["id"],
-          createdAt: json['created_at'],
-          milestones:
-              (json['milestones'])?.map((e) => Milestone.fromMap(e)).toList(),
-          profileWalletId: json['profile_wallet_id'],
-          lockamount: json['lockamount'],
-          lockDate: json['lock_date'],
-          status: json['status'],
-          remainingBalance: json['remaining_balance'],
-          lastDepositDate: json['last_deposit_date'],
-          nextDepositDate: json['next_deposit_date'],
-          purpose: json['purpose'],
-          description: json['description'],
-          profileId: json['profile_id'],
-          updatedAt: json['updated_at'],
-          hasEndorser: json['has_endorser']);
+        id: json["id"],
+        createdAt: json['created_at'],
+        walletId: json['wallet_id'],
+        profileId: json['profile_id'],
+        groupId: json['group_id'],
+        purpose: json['purpose'],
+        currentBalance: json['current_balance'] ?? 0.0,
+        lockFeature: json['lock_feature'],
+        lockEvent: json['lock_event'],
+        lockMilestones: json['lock_milestones'] != null &&
+                json['lock_milestones'].isNotEmpty
+            ? (json['lock_milestones'] as List<dynamic>?)!.map((item) {
+                return Milestone.fromMap(item) as Milestone;
+              }).toList()
+            : <Milestone>[],
+        lockDate: json['lock_date'],
+        lockAmount: json['lock_amount'],
+        endorserId:
+            (json['endoser_id'] as List?)?.map((e) => e.toString()).toList(),
+        unlockingCode: json['unlocking_code'],
+        status: json['status'],
+        isLocked: json['is_locked'],
+        lastRecommendation: json['last_recommendation'],
+        previousDepositDate: json['previous_deposit_date'],
+        unlockKey: json['unlock_key'],
+      );
     } catch (error, st) {
       log('Saving.fromMap error: $error\n$st');
       return Saving(id: null);
@@ -75,40 +92,24 @@ class Saving extends OfflineFirstWithSupabaseModel {
     return {
       'id': id,
       'created_at': createdAt,
-      'profile_wallet_id': profileWalletId,
-      'lockamount': lockamount,
-      'lock_date': lockDate,
-      'status': status,
-      'remaining_balance': remainingBalance,
-      'last_deposit_date': lastDepositDate,
-      'next_deposit_date': nextDepositDate,
-      'purpose': purpose,
-      'milestones': milestones?.map((e) => e).toList(),
-      'description': description,
+      'wallet_id': walletId,
       'profile_id': profileId,
-      'updated_at': updatedAt,
-      'has_endorser': hasEndorser
-    };
-  }
-}
-
-// 1. Define the Milestone class
-class Milestone {
-  String name;
-  String amount;
-  Milestone({required this.name, required this.amount});
-
-  static fromMap(Map<String, dynamic> json) {
-    return Milestone(
-      name: json['name'],
-      amount: json['amount'],
-    );
-  }
-
-  static Map<String, dynamic> toMap(Milestone milestone) {
-    return {
-      'name': milestone.name,
-      'amount': milestone.amount,
+      'group_id': groupId,
+      'purpose': purpose,
+      'current_balance': currentBalance,
+      'lock_feature': lockFeature,
+      'lock_event': lockEvent,
+      'lock_milestones':
+          lockMilestones?.map((milestone) => milestone.toMap()).toList(),
+      'lock_date': lockDate?.split('T').first,
+      'lock_amount': lockAmount,
+      'endoser_id': endorserId,
+      'unlocking_code': unlockingCode,
+      'status': status,
+      'is_locked': isLocked,
+      'unlock_key': unlockKey,
+      'last_recommendation': lastRecommendation,
+      'previous_deposit_date': previousDepositDate,
     };
   }
 }

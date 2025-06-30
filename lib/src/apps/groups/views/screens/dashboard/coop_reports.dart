@@ -597,7 +597,7 @@ class _CoopReportsWidgetState extends State<CoopReportsWidget> {
   Widget _createGraph() {
     final size = MediaQuery.of(context).size;
     return Container(
-      height: size.height * 0.25, // Reduced from 0.5 to 0.35
+      height: size.height * 0.2, // Reduced from 0.5 to 0.35
       padding: const EdgeInsets.symmetric(
         vertical: 1,
       ),

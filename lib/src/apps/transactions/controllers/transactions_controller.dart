@@ -8,6 +8,7 @@ import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/transaction.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 // import 'package:mukai/src/bottom_bar.dart';
@@ -71,6 +72,28 @@ class TransactionController extends MainController {
   onInit() async {
     // getAllMembers().then((val) {});
     super.onInit();
+  }
+
+  Stream<List<Transaction>> streamAccountTransaction() {
+    return supabase
+        .from('transactions')
+        .stream(primaryKey: ['id']) // primary key column(s)
+        .asyncMap((response) async {
+      final id = await _getStorage.read('userId');
+      var wallet_id = _getStorage.read('profile_wallet_id');
+      log('profile_wallet_id: $wallet_id');
+      final fullResponse = await supabase
+          .from('transactions')
+          .select('''*, 
+                  transactions_member_id_fkey(*), 
+                  transactions_sending_wallet_fkey(*), 
+                  transactions_receiving_wallet_fkey(*)''')
+          .or("member_id.eq.$id,receiving_wallet.eq.$wallet_id,sending_wallet.eq.$wallet_id")
+          .order('created_date', ascending: false);
+      if (fullResponse.isEmpty) return <Transaction>[];
+
+      return fullResponse.map((item) => Transaction.fromJson(item)).toList();
+    });
   }
 
   Future<dynamic> getFinancialReport(String walletId) async {

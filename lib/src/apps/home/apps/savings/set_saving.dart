@@ -86,7 +86,8 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
   double? loanRequestAmount;
   int? paybackPeriodMonths;
   String? userId;
-  String? role;
+  String? profile_wallet_id;
+  String? profile_wallet_balance;
   List<Wallet>? senderWallet;
   Wallet? receiverWallet;
   GetStorage _getStorage = GetStorage();
@@ -96,15 +97,17 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
   void fetchData() async {
     try {
       final id = await _getStorage.read('userId');
-      final _role = await _getStorage.read('role');
-      final senderWalletJson = await walletController.getIndividualWallets(id);
+      var wallet_id = _getStorage.read('profile_wallet_id');
+      var balance = _getStorage.read('profile_wallet_balance');
+      log('profile_wallet_id: $wallet_id');
       if (mounted) {
-        walletController.setSaving.value.profileWalletId = senderWallet![0].id;
+        walletController.setSaving.value.walletId = wallet_id;
         walletController.setSaving.value.profileId = id;
+        walletController.setSaving.refresh();
         setState(() {
           userId = id;
-          role = _role;
-          senderWallet = senderWalletJson;
+          profile_wallet_id = wallet_id;
+          profile_wallet_balance = balance.toString();
         });
       }
       log('group id: ${widget.group.id}');
@@ -129,12 +132,53 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
     return _isLoading
         ? Center(child: LoadingShimmerWidget())
         : Scaffold(
+            appBar: AppBar(
+              title: const Text('Set Savings Plan'),
+              backgroundColor: primaryColor,
+              foregroundColor: Colors.white,
+              elevation: 0,
+            ),
             body: Container(
               color: whiteF5Color,
               child: ListView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(fixPadding * 2.0),
                 children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Wallet Address',
+                            style: bold16Black,
+                          ),
+                          widthBox(10),
+                          if (profile_wallet_id != null)
+                            Text(
+                              '... ${profile_wallet_id?.substring(28, 36)}',
+                              style: semibold14Grey,
+                            ),
+                        ],
+                      ),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Balance',
+                            style: bold16Black,
+                          ),
+                          widthBox(10),
+                          Text(
+                            '\$${profile_wallet_balance ?? 0.0}',
+                            style: semibold14Grey,
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                  height20Space,
                   _buildDropdownField(
                     label: 'Lock Feature',
                     value: lock_parameter ?? '',
@@ -146,6 +190,10 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
                     ],
                     onChanged: (newValue) {
                       // Handle dropdown selection
+                      walletController.setSaving.update((val) {
+                        val?.lockFeature = newValue;
+                      });
+
                       setState(() {
                         lock_parameter = newValue;
                       });
@@ -172,7 +220,13 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
                   if (lock_parameter == 'milestone') milestoneField(),
                   if (lock_parameter == 'event') eventField(),
                   heightBox(height * 0.05),
-                  savePlanButton()
+                  Obx(() => walletController.isLoading.value
+                      ? const Center(
+                          child: LinearProgressIndicator(
+                          minHeight: 1,
+                          color: primaryColor,
+                        ))
+                      : savePlanButton())
                 ],
               ),
             ),
@@ -283,8 +337,11 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
         boxWidget(
           child: TextField(
             onChanged: (value) {
-              loanController.selectedLoan.value.loanPurpose = value;
-              loanController.selectedLoan.refresh();
+              walletController.setSaving.update(
+                (val) {
+                  val?.purpose = value;
+                },
+              );
             },
             style: semibold14Black,
             cursorColor: primaryColor,
@@ -429,7 +486,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
   Widget milestoneField() {
     return MilestoneInputWidget(
       onMilestonesChanged: (milestones) {
-        walletController.setSaving.value.milestones = milestones;
+        walletController.setSaving.value.lockMilestones = milestones;
         walletController.setSaving.refresh();
       },
     );
@@ -488,7 +545,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
               color: whiteF5Color,
             ),
             Text(
-              "Cancel Plan",
+              "Cancel",
               style: bold18WhiteF5,
             ),
           ],
@@ -500,11 +557,10 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
   setSavingPlanButton() {
     return GestureDetector(
       onTap: () async {
-        walletController.setSaving.value.profileWalletId = senderWallet![0].id;
         await walletController.setSavingPlan();
       },
       child: Container(
-        width: width * 0.3,
+        width: width * 0.4,
         height: height * 0.05,
         decoration: BoxDecoration(
           color: authController.farm_name.isNotEmpty ? greyColor : primaryColor,
@@ -516,7 +572,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "Save Plan",
+              "Save Portfolio",
               style: bold18WhiteF5,
             ),
             Iconify(
@@ -542,7 +598,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
           child: TextField(
             maxLines: 3,
             onChanged: (value) {
-              walletController.setSaving.value.description = value;
+              walletController.setSaving.value.lockEvent = value;
               walletController.setSaving.refresh();
             },
             style: semibold14Black,
@@ -596,7 +652,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
             onChanged: (value) {
               final amount = double.tryParse(value) ?? 0;
               walletController.setSaving.update((val) {
-                val?.lockamount = amount;
+                val?.lockAmount = amount;
               });
               loanController.calculateRepayAmount();
             },
