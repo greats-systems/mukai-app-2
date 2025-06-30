@@ -1,14 +1,14 @@
 class CooperativeMemberApproval {
-  final String? id;
-  final String? createdAt;
-  final String? groupId;
-  final String? numberOfMembers;
-  final String? supportingVotes;
-  final String? opposingVotes;
-  final String? pollDescription;
-  final String? assetId;
-  final String? loanId;
-  final String? updatedAt;
+  String? id;
+  String? createdAt;
+  String? groupId;
+  int? numberOfMembers;
+  String? supportingVotes;
+  String? opposingVotes;
+  String? pollDescription;
+  String? assetId;
+  String? loanId;
+  String? updatedAt;
 
   CooperativeMemberApproval({
     this.id,
@@ -38,15 +38,15 @@ class CooperativeMemberApproval {
 
   factory CooperativeMemberApproval.fromJson(Map<String, dynamic> json) =>
       CooperativeMemberApproval(
-        id: 'id',
-        createdAt: 'created_at',
-        groupId: 'group_id',
-        numberOfMembers: 'number_of_members',
-        supportingVotes: 'supporting_votes',
-        opposingVotes: 'opposing_votes',
-        pollDescription: 'poll_description',
-        assetId: 'asset_id',
-        loanId: 'loan_id',
-        updatedAt: 'updated_at',
+        id: json['id'],
+        createdAt: json['created_at'],
+        groupId: json['group_id'],
+        numberOfMembers: json['number_of_members'],
+        supportingVotes: json['supporting_votes'],
+        opposingVotes: json['opposing_votes'],
+        pollDescription: json['poll_description'],
+        assetId: json['asset_id'],
+        loanId: json['loan_id'],
+        updatedAt: json['updated_at'],
       );
 }

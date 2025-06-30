@@ -85,7 +85,7 @@ class _CreateGroupState extends State<CreateGroup> {
         name: authController.cooperative_category.value,
         city: _cityController.text.trim(),
         country: _countryController.text.trim(),
-        members: profiles,
+        // members: profiles,
         monthly_sub: double.parse(_subscriptionController.text.trim()),
         admin_id: _storage.read('userId'),
       );

@@ -128,11 +128,9 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-    return _isLoading
-        ? Center(child: LoadingShimmerWidget())
-        : Scaffold(
+    return Scaffold(
             appBar: appBar(),
-            body: body(),
+            body: _isLoading ? Center(child: LoadingShimmerWidget(),): body(),
             bottomNavigationBar: bottomNavigationBar(),
           );
   }
@@ -438,6 +436,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: false,
             style: semibold14Black,
             onChanged: (value) {
               profileController.profile.value.phone = value;
@@ -474,6 +473,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: false,
             style: semibold14Black,
             onChanged: (value) {
               profileController.profile.value.email = value;
@@ -499,6 +499,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       children: [
         boxWidget(
           child: TextField(
+            enabled: false,
             onChanged: (value) {
               profileController.profile.value.city = value;
             },
@@ -529,6 +530,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: false,
             onChanged: (value) {
               profileController.profile.value.first_name = value;
             },
@@ -559,6 +561,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: false,
             onChanged: (value) {
               profileController.profile.value.first_name = value;
             },
@@ -587,6 +590,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: false,
             onChanged: (value) {
               profileController.profile.value.first_name = value;
             },
@@ -615,6 +619,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: false,
             onChanged: (value) {
               profileController.profile.value.first_name = value;
             },
@@ -671,6 +676,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: false,
             onChanged: (value) {
               profileController.profile.value.last_name = value;
             },
@@ -701,6 +707,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
+            enabled: false,
             readOnly: true,
             style: semibold14Black,
             cursorColor: primaryColor,
@@ -873,17 +880,10 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                         );
 
                         if (success) {
-                          Navigator.of(context, rootNavigator: true)
-                              .pop(); // Close the dialog
-                          Navigator.of(context).pop(
-                              true); // Pop the MemberDetailScreen with a result
+                          Navigator.of(context, rootNavigator: true).pop();
+                          Navigator.of(context)
+                              .pop(true); // Return true to indicate success
                         }
-                      } else {
-                        Helper.errorSnackBar(
-                          title: 'Blank ID',
-                          message: 'No ID was provided',
-                          duration: 5,
-                        );
                       }
                     },
                     cancelTextColor: redColor,
@@ -936,10 +936,9 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
                       );
 
                       if (success) {
-                        Navigator.of(context, rootNavigator: true)
-                            .pop(); // Close the dialog
-                        Navigator.of(context).pop(
-                            true); // Pop the MemberDetailScreen with a result
+                        Navigator.of(context, rootNavigator: true).pop();
+                        Navigator.of(context)
+                            .pop(true); // Return true to indicate success
                       }
                     },
                     cancelTextColor: redColor,
@@ -1053,7 +1052,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
   Future<bool> updateMemberRequest(
       String member_id, String group_id, String status) async {
     try {
-      _isLoading = true;
+      setState(() => _isLoading = true);
       final dio = DioClient().dio;
 
       var coopRequestUpdateParams = {
@@ -1075,20 +1074,22 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
         data: coopRequestUpdateParams,
       );
 
-      await dio.post(
-        '${EnvConstants.APP_API_ENDPOINT}/group_members',
-        data: groupMemberParams,
-      );
+      if (status == 'active') {
+        await dio.post(
+          '${EnvConstants.APP_API_ENDPOINT}/group_members',
+          data: groupMemberParams,
+        );
+      }
 
       await dio.patch(
         '${EnvConstants.APP_API_ENDPOINT}/auth/update-account/$member_id',
         data: profileParams,
       );
 
-      _isLoading = false;
+      setState(() => _isLoading = false);
       return true;
     } on DioException catch (error, st) {
-      _isLoading = false;
+      setState(() => _isLoading = false);
       log('updateMemberRequest error: ${error.response.toString()}, ${st.toString()}');
       return false;
     }

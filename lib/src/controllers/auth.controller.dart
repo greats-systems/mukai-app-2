@@ -853,7 +853,7 @@ class AuthController extends GetxController {
         _handleFailedLogin(response);
       }
     } on DioException catch (e) {
-      log('DioError during login: ${e.message}');
+      log('DioError during login: ${e}');
       isLoading.value = false;
       Helper.errorSnackBar(
         title: 'Error',
@@ -1196,11 +1196,13 @@ class AuthController extends GetxController {
               nIDFile.value.path.isNotEmpty) {
             await updateAccount(new_auth_data.user.id);
           }
+          /*
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
               message: 'Your account successfully created',
               duration: 5);
           Get.to(() => MemberRegisterCoopScreen());
+          */
         } else if (account_type.value == 'coop-manager') {
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',

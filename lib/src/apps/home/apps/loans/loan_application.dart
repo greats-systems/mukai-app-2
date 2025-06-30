@@ -1,23 +1,3 @@
-/*
-import 'package:flutter/material.dart';
-
-class LoanApplicationScreen extends StatefulWidget {
-  const LoanApplicationScreen({super.key});
-
-  @override
-  State<LoanApplicationScreen> createState() => _LoanApplicationScreenState();
-}
-
-class _LoanApplicationScreenState extends State<LoanApplicationScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      // appBar: MyAppBar(title: 'Loan Application'),
-      body: Center(child: Text('Loan application')));
-  }
-}
-*/
-
 import 'dart:convert';
 import 'dart:developer';
 
@@ -186,7 +166,9 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                               DateTime.now().toIso8601String();
                           loanController.selectedCoop.value.id =
                               widget.group.id;
-                          loanController.updateCoopLoan();
+                          // loanController.updateCoopLoan();
+                          groupController
+                              .updateInterestRate(widget.group.id!, double.parse(interestRate.toString()));
                           loanController.calculateRepayAmount();
                           log(interestRate.toString());
                         } on Exception catch (e) {

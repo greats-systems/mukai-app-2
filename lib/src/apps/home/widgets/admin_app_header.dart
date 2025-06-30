@@ -45,10 +45,12 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
     });
     final userjson = await profileController.getUserDetails(userId!);
     if (_isDisposed) return;
-    setState(() {
-      authProfile = Profile.fromMap(userjson!);
-      _isLoading = false;
-    });
+    if (userjson != null) {
+      setState(() {
+        authProfile = Profile.fromMap(userjson);
+        _isLoading = false;
+      });
+    }
     log('AdminAppHeaderWidget authProfile: ${authProfile.toMap()}');
   }
 

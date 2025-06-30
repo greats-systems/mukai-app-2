@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
@@ -457,31 +459,41 @@ class RegisterScreen extends StatelessWidget {
         ),
         child: Obx(() => DropdownSearch<String>(
               onChanged: (value) async {
-                if (value != null) {
-                  authController.selected_country.value = value;
-                  // Find the province in the list and get its districts
-                  await authController.getCitiesFromCountry(value);
-                  var selectedProvinceData =
-                      authController.province_options_with_districts.firstWhere(
-                    (item) => item.keys.first == value,
-                    orElse: () => {value: []},
-                  );
-                  var selectedProvinceCityData =
-                      authController.province_options_with_districts.firstWhere(
-                    (item) => item.keys.first == value,
-                    orElse: () => {value: []},
-                  );
-                  authController.selected_country_options.value =
-                      selectedProvinceData[value]!;
-                  authController.district.value =
-                      authController.selected_country_options[0];
-                  // // //
-                  authController.selected_province_town_city_options.value =
-                      selectedProvinceCityData[value]!;
-                  authController.town_city.value =
-                      authController.selected_province_town_city_options[0];
+                try {
+                  if (value != null) {
+                    authController.selected_country.value = value;
+                    // Find the province in the list and get its districts
+                    await authController.getCitiesFromCountry(value);
+                    var selectedProvinceData = authController
+                        .province_options_with_districts
+                        .firstWhere(
+                      (item) => item.keys.first == value,
+                      orElse: () => {value: []},
+                    );
+                    var selectedProvinceCityData = authController
+                        .province_options_with_districts
+                        .firstWhere(
+                      (item) => item.keys.first == value,
+                      orElse: () => {value: []},
+                    );
+                    if (selectedProvinceData[value] != null) {
+                      authController.selected_country_options.value =
+                          selectedProvinceData[value]!;
+                    }
+                    if (authController.selected_country_options!=null) {
+  authController.district.value =
+      authController.selected_country_options[0];
+}
+                    // // //
+                    authController.selected_province_town_city_options.value =
+                        selectedProvinceCityData[value]!;
+                    authController.town_city.value =
+                        authController.selected_province_town_city_options[0];
 
-                  // authController.filterCooperatives();
+                    // authController.filterCooperatives();
+                  }
+                } on Exception catch (e) {
+                  log(e.toString());
                 }
               },
               // key: GlobalKey<FormState>(),

@@ -2,8 +2,6 @@ import 'dart:developer' as dev;
 import 'dart:math';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/brick/models/saving.model.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
@@ -11,6 +9,7 @@ import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/src/controllers/group.controller.dart';
 
 class LoanController extends GetxController {
   final sendingWallet = Wallet().obs;
@@ -25,8 +24,9 @@ class LoanController extends GetxController {
     'Content-Type': 'application/json', // Explicit content-type
     'Accept': 'application/json',
   }));
+  final GroupController groupController = GroupController();
 
-  void calculateRepayAmount() {
+  void calculateRepayAmount() async {
     final principal = selectedLoan.value.principalAmount ?? 0;
     final months = selectedLoan.value.loanTermMonths ?? 0;
 
@@ -36,8 +36,8 @@ class LoanController extends GetxController {
       return;
     }
 
-    var monthlyRate = selectedLoan.value.interestRate; // 2% monthly interest
-    final repayAmount = principal * pow(1 + monthlyRate!, months);
+    var monthlyRate = await fetchCoopInterestRate(selectedCoop.value.id!); // 2% monthly interest
+    final repayAmount = principal * pow(1 + num.parse(monthlyRate!.toString()), months);
 
     selectedLoan.update((loan) {
       loan?.paymentAmount = repayAmount;
@@ -54,6 +54,16 @@ class LoanController extends GetxController {
       today.day,
     );
     return dueDate;
+  }
+
+  Future<double>? fetchCoopInterestRate(String groupId) async {
+    try {
+      final Group? groupJson = await groupController.getGroupById(groupId);
+      return groupJson?.interest_rate ?? 0.0;
+    } catch (e, s) {
+      dev.log('fetchCoopInterestRate error: $e $s');
+      return 0.0;
+    }
   }
 
   Future<void> createLoan(String userId) async {
