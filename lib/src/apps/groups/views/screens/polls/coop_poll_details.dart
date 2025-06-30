@@ -16,24 +16,23 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
 }
 */
 
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/components/app_bar.dart';
-import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:mukai/utils/utils.dart';
+import 'package:mukai/src/controllers/asset.controller.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class CoopPollDetailsScreen extends StatefulWidget {
   final CooperativeMemberApproval poll;
@@ -68,24 +67,35 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
   String? role;
   Dio dio = Dio();
   bool _isSupporting = false;
-bool _isOpposing = false;
-bool _isLoading = false;
+  bool _isOpposing = false;
+  bool _isLoading = true;
+
+  // List<ProfileModel> pendingMembers = [];
+  // List<ProfileModel> activeMembers = [];
+  // List<AssetModel> assets = [];
 
   @override
   void initState() {
     super.initState();
-  userId = GetStorage().read('userId');
-  role = GetStorage().read('role');
-  
-  // Initialize controllers
-  pollDescriptionController.text = widget.poll.pollDescription ?? '';
-  proposedValueController.text = (widget.group!.interest_rate * 100).toString();
-  numberOfMembersController.text = widget.poll.numberOfMembers?.toString() ?? '0';
-  supportingVotesController.text = widget.poll.supportingVotes?.length.toString() ?? '0';
-  opposingVotesController.text = widget.poll.opposingVotes?.length.toString() ?? '0';
-  
-  // Check current vote status
-  _checkVoteStatus();
+    userId = GetStorage().read('userId');
+    role = GetStorage().read('role');
+
+    // Initialize controllers
+    pollDescriptionController.text = widget.poll.pollDescription ?? '';
+    if (widget.group?.interest_rate!=null) {
+  proposedValueController.text =
+      (widget.group?.interest_rate).toString();
+}
+    numberOfMembersController.text =
+        widget.poll.numberOfMembers?.toString() ?? '0';
+    supportingVotesController.text =
+        widget.poll.supportingVotes?.length.toString() ?? '0';
+    opposingVotesController.text =
+        widget.poll.opposingVotes?.length.toString() ?? '0';
+
+    // Check current vote status
+    _checkVoteStatus();
+    _fetchData();
   }
 
   @override
@@ -107,6 +117,7 @@ bool _isLoading = false;
     width = size.width;
     height = size.height;
     return Scaffold(
+      backgroundColor: whiteColor,
         appBar: MyAppBar(
           widget: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,50 +127,58 @@ bool _isLoading = false;
                 style: semibold18WhiteF5,
               ),
               /*
-              Text(
-                "CooperativeMemberApproval ID: ${widget.poll.id?.substring(28, 36) ?? ''}",
-                style: semibold14WhiteF5,
-              ),
-              */
+            Text(
+              "CooperativeMemberApproval ID: ${widget.poll.id?.substring(28, 36) ?? ''}",
+              style: semibold14WhiteF5,
+            ),
+            */
             ],
           ),
         ),
-        body: Container(
-          color: whiteF5Color,
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              _buildDetailField(
-                label: 'Purpose',
-                value: pollDescriptionController.text,
-              ),
-              const SizedBox(height: 16),
-              _buildInterestField(
-                label: 'Proposed value',
-                value: num.tryParse(proposedValueController.text)!,
-              ),
-              const SizedBox(height: 16),
-              _buildDetailField(
-                label: 'Opposing votes',
-                value: '${opposingVotesController.text}',
-              ),
-              const SizedBox(height: 16),
-              _buildDetailField(
-                label: 'Supporting votes',
-                value: supportingVotesController.text,
-              ),
-              const SizedBox(height: 24),
-              Text(
-                '* Calculated at ${(widget.group!.interest_rate * 100).toStringAsFixed(0)}% monthly compound interest',
-                style: TextStyle(
-                  fontSize: 16,
-                  color: Colors.grey[600],
-                  // fontStyle: FontStyle.italic,
+        body: _isLoading
+            ? const Center(child: LoadingShimmerWidget())
+            : SingleChildScrollView(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _buildDetailField(
+                      label: 'Purpose',
+                      value: pollDescriptionController.text,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDetailField(
+                      label: 'Number of group members',
+                      value: numberOfMembersController.text,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildInterestField(
+                      label: 'Proposed value',
+                      value: num.tryParse(proposedValueController.text)!,
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDetailField(
+                      label: 'Opposing votes',
+                      value: '${opposingVotesController.text}',
+                    ),
+                    const SizedBox(height: 16),
+                    _buildDetailField(
+                      label: 'Supporting votes',
+                      value: supportingVotesController.text,
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      '* Calculated at ${(widget.group!.interest_rate * 100).toStringAsFixed(0)}% monthly compound interest',
+                      style: TextStyle(
+                        fontSize: 16,
+                        color: Colors.grey[600],
+                        // fontStyle: FontStyle.italic,
+                      ),
+                    ),
+                    const SizedBox(height: 20),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
         bottomNavigationBar: role == 'coop-member'
             ? pollSummary(widget.poll)
             : requestSummary(widget.poll));
@@ -186,7 +205,7 @@ bool _isLoading = false;
             ],
           ),
           child: Text(
-            '${value * 100}%',
+            '${(value*100).toStringAsFixed(0)}%',
             style: TextStyle(color: blackColor),
           ),
         ),
@@ -424,153 +443,228 @@ bool _isLoading = false;
   }
 
   Widget pollSummary(CooperativeMemberApproval poll) {
-  return Container(
-    width: double.maxFinite,
-    margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
-        fixPadding * 2.0, fixPadding * 3.0),
-    padding: const EdgeInsets.symmetric(
-        horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-    decoration: BoxDecoration(
-      color: whiteF5Color,
-      borderRadius: BorderRadius.circular(10.0),
-      boxShadow: buttonShadow,
-    ),
-    child: Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: Row(
-        spacing: 10,
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          // Support Button
-          GestureDetector(
-            onTap: _isSupporting ? null : () => _handleVote(true),
-            child: Container(
-              alignment: Alignment(0, 0),
-              height: height * 0.04,
-              width: width * 0.25,
-              decoration: BoxDecoration(
-                color: _isSupporting ? Colors.green : primaryColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: _isLoading && _isSupporting
-                  ? const CircularProgressIndicator(color: whiteColor)
-                  : Text(
-                      _isSupporting ? 'Supported' : 'Support',
-                      style: bold16White,
-                    ),
-            ),
-          ),
-          
-          // Oppose Button
-          GestureDetector(
-            onTap: _isOpposing ? null : () => _handleVote(false),
-            child: Container(
-              alignment: Alignment(0, 0),
-              height: height * 0.04,
-              width: width * 0.25,
-              decoration: BoxDecoration(
-                color: _isOpposing ? Colors.red[800] : redColor,
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: _isLoading && _isOpposing
-                  ? const CircularProgressIndicator(color: whiteColor)
-                  : Text(
-                      _isOpposing ? 'Opposed' : 'Oppose',
-                      style: bold16White,
-                    ),
-            ),
-          ),
-        ],
+    return Container(
+      width: double.maxFinite,
+      margin: const EdgeInsets.fromLTRB(fixPadding * 2.0, fixPadding * 2.0,
+          fixPadding * 2.0, fixPadding * 3.0),
+      padding: const EdgeInsets.symmetric(
+          horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
+      decoration: BoxDecoration(
+        color: whiteF5Color,
+        borderRadius: BorderRadius.circular(10.0),
+        boxShadow: buttonShadow,
       ),
-    ),
-  );
-}
+      child: Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+        child: Row(
+          spacing: 10,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            // Support Button
+            GestureDetector(
+              onTap: _isSupporting ? null : () => _handleVote(true),
+              child: Container(
+                alignment: Alignment(0, 0),
+                height: height * 0.04,
+                width: width * 0.25,
+                decoration: BoxDecoration(
+                  color: _isSupporting ? Colors.green : primaryColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: _isLoading && _isSupporting
+                    ? const CircularProgressIndicator(color: whiteColor)
+                    : Text(
+                        _isSupporting ? 'Supported' : 'Support',
+                        style: bold16White,
+                      ),
+              ),
+            ),
 
-Future<void> _handleVote(bool isSupporting) async {
-  if (_isLoading) return;
-  
-  setState(() {
-    _isLoading = true;
-    if (isSupporting) {
-      _isSupporting = true;
-      _isOpposing = false;
-    } else {
-      _isSupporting = false;
-      _isOpposing = true;
-    }
-  });
-
-  try {
-    final response = await cmaController.castVote(
-      pollId: widget.poll.id!,
-      memberId: userId!,
-      isSupporting: isSupporting,
+            // Oppose Button
+            GestureDetector(
+              onTap: _isOpposing ? null : () => _handleVote(false),
+              child: Container(
+                alignment: Alignment(0, 0),
+                height: height * 0.04,
+                width: width * 0.25,
+                decoration: BoxDecoration(
+                  color: _isOpposing ? Colors.red[800] : redColor,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: _isLoading && _isOpposing
+                    ? const CircularProgressIndicator(color: whiteColor)
+                    : Text(
+                        _isOpposing ? 'Opposed' : 'Oppose',
+                        style: bold16White,
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
+  }
 
-    if (response != null && response.containsKey('error')) {
+  Future<void> _handleVote(bool isSupporting) async {
+    if (_isLoading) return;
+
+    setState(() {
+      _isLoading = true;
+      if (isSupporting) {
+        _isSupporting = true;
+        _isOpposing = false;
+      } else {
+        _isSupporting = false;
+        _isOpposing = true;
+      }
+    });
+
+    try {
+      final response = await cmaController.castVote(
+        pollId: widget.poll.id!,
+        memberId: userId!,
+        isSupporting: isSupporting,
+      );
+
+      if (response != null && response.containsKey('error')) {
+        Helper.errorSnackBar(
+          title: 'Error',
+          message: response['error'],
+          duration: 5,
+        );
+        // Reset vote state on error
+        setState(() {
+          _isSupporting = false;
+          _isOpposing = false;
+        });
+      } else {
+        Helper.successSnackBar(
+          title: 'Success!',
+          message: 'Your vote has been recorded',
+          duration: 3,
+        );
+        // Refresh poll data
+        _refreshPollData();
+      }
+    } catch (e) {
+      log('Error handling vote: $e');
       Helper.errorSnackBar(
         title: 'Error',
-        message: response['error'],
+        message: 'Failed to process your vote',
         duration: 5,
       );
-      // Reset vote state on error
-      setState(() {
-        _isSupporting = false;
-        _isOpposing = false;
-      });
-    } else {
-      Helper.successSnackBar(
-        title: 'Success!',
-        message: 'Your vote has been recorded',
-        duration: 3,
-      );
-      // Refresh poll data
-      _refreshPollData();
+    } finally {
+      setState(() => _isLoading = false);
     }
-  } catch (e) {
-    log('Error handling vote: $e');
-    Helper.errorSnackBar(
-      title: 'Error',
-      message: 'Failed to process your vote',
-      duration: 5,
+  }
+
+  // Add this method to refresh poll data
+  Future<void> _refreshPollData() async {
+    try {
+      final updatedPoll = await cmaController.getPollDetails(widget.poll.id!);
+      setState(() {
+        supportingVotesController.text =
+            updatedPoll['supporting_votes']?.length.toString() ?? '0';
+        opposingVotesController.text =
+            updatedPoll['opposing_votes']?.length.toString() ?? '0';
+
+        // Update current vote status
+        final supportingVotes =
+            List<String>.from(updatedPoll['supporting_votes'] ?? []);
+        final opposingVotes =
+            List<String>.from(updatedPoll['opposing_votes'] ?? []);
+
+        _isSupporting = supportingVotes.contains(userId);
+        _isOpposing = opposingVotes.contains(userId);
+      });
+    } catch (e) {
+      log('Error refreshing poll data: $e');
+    }
+  }
+
+  Future<void> _checkVoteStatus() async {
+    try {
+      final poll = await cmaController.getPollDetails(widget.poll.id!);
+      final supportingVotes = List<String>.from(poll['supporting_votes'] ?? []);
+      final opposingVotes = List<String>.from(poll['opposing_votes'] ?? []);
+
+      setState(() {
+        _isSupporting = supportingVotes.contains(userId);
+        _isOpposing = opposingVotes.contains(userId);
+      });
+    } catch (e) {
+      log('Error checking vote status: $e');
+    }
+  }
+
+  Future<void> _fetchData() async {
+    try {
+      // pendingMembers = await _profileController.getPendingMembers();
+      // activeMembers = await _profileController.getActiveMembers();
+      // assets = await _assetController.getAssets();
+      setState(() => _isLoading = false);
+    } catch (e) {
+      Get.snackbar('Error', 'Failed to fetch data: $e');
+    }
+  }
+
+  // Future<void> _approveMember(String memberId) async {
+  //   try {
+  //     await _profileController.approveMember(memberId);
+  //     await _fetchData();
+  //     Get.snackbar('Success', 'Member approved successfully');
+  //   } catch (e) {
+  //     Get.snackbar('Error', 'Failed to approve member: $e');
+  //   }
+  // }
+
+  Widget _buildSectionTitle(String title) {
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
-  } finally {
-    setState(() => _isLoading = false);
   }
-}
 
-// Add this method to refresh poll data
-Future<void> _refreshPollData() async {
-  try {
-    final updatedPoll = await cmaController.getPollDetails(widget.poll.id!);
-    setState(() {
-      supportingVotesController.text = updatedPoll['supporting_votes']?.length.toString() ?? '0';
-      opposingVotesController.text = updatedPoll['opposing_votes']?.length.toString() ?? '0';
-      
-      // Update current vote status
-      final supportingVotes = List<String>.from(updatedPoll['supporting_votes'] ?? []);
-      final opposingVotes = List<String>.from(updatedPoll['opposing_votes'] ?? []);
-      
-      _isSupporting = supportingVotes.contains(userId);
-      _isOpposing = opposingVotes.contains(userId);
-    });
-  } catch (e) {
-    log('Error refreshing poll data: $e');
-  }
-}
+  // Widget _buildMemberList(List<ProfileModel> members, bool isPending) {
+  //   return ListView.builder(
+  //     shrinkWrap: true,
+  //     physics: const NeverScrollableScrollPhysics(),
+  //     itemCount: members.length,
+  //     itemBuilder: (context, index) {
+  //       final member = members[index];
+  //       return Card(
+  //         margin: const EdgeInsets.symmetric(vertical: 4.0),
+  //         child: ListTile(
+  //           title: Text(member.fullName ?? 'No Name'),
+  //           subtitle: Text(member.email ?? 'No Email'),
+  //           trailing: isPending
+  //               ? ElevatedButton(
+  //                   onPressed: () => _approveMember(member.id!),
+  //                   child: const Text('Approve'),
+  //                 )
+  //               : null,
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 
-Future<void> _checkVoteStatus() async {
-  try {
-    final poll = await cmaController.getPollDetails(widget.poll.id!);
-    final supportingVotes = List<String>.from(poll['supporting_votes'] ?? []);
-    final opposingVotes = List<String>.from(poll['opposing_votes'] ?? []);
-    
-    setState(() {
-      _isSupporting = supportingVotes.contains(userId);
-      _isOpposing = opposingVotes.contains(userId);
-    });
-  } catch (e) {
-    log('Error checking vote status: $e');
-  }
-}
+  // Widget _buildAssetList() {
+  //   return ListView.builder(
+  //     shrinkWrap: true,
+  //     physics: const NeverScrollableScrollPhysics(),
+  //     itemCount: assets.length,
+  //     itemBuilder: (context, index) {
+  //       final asset = assets[index];
+  //       return Card(
+  //         margin: const EdgeInsets.symmetric(vertical: 4.0),
+  //         child: ListTile(
+  //           title: Text(asset.assetName ?? 'No Name'),
+  //           subtitle: Text(asset.assetDescription ?? 'No Description'),
+  //         ),
+  //       );
+  //     },
+  //   );
+  // }
 }

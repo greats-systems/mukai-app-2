@@ -17,20 +17,33 @@ class CooperativeMemberApprovalsController {
   final dio = DioClient().dio;
 
   Future<List<CooperativeMemberApproval>?> getCoopPolls(String coopId) async {
-    log('${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/$coopId');
-    try {
-      final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/$coopId');
-      final List<dynamic> json = response.data;
-      final polls =
-          json.map((item) => CooperativeMemberApproval.fromJson(item)).toList();
-      log('getCoopPolls data: ${JsonEncoder.withIndent('').convert(polls)}');
-      return polls;
-    } catch (error) {
-      log('getCoopPolls error: $error');
-      return null;
-    }
+  try {
+    final response = await dio.get(
+      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/$coopId'
+    );
+    
+    if (response.data == null) return null;
+    
+    final List<dynamic> jsonList = response.data is List 
+      ? response.data 
+      : [response.data];
+    
+    final polls = jsonList.map((json) {
+      try {
+        return CooperativeMemberApproval.fromJson(json);
+      } catch (e, st) {
+        log('Error parsing poll: $e $st');
+        return null;
+      }
+    }).whereType<CooperativeMemberApproval>().toList();
+    
+    log('Parsed ${polls.length} polls');
+    return polls;
+  } catch (error, st) {
+    log('getCoopPolls error: $error $st');
+    return null;
   }
+}
 
   Future<CooperativeMemberApproval?> viewPollDetails(String pollId) async {
     try {
@@ -44,30 +57,31 @@ class CooperativeMemberApprovalsController {
   }
 
   Future<Map<String, dynamic>?> updatePoll() async {
-  try {
-    final response = await dio.patch(
-      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/${cma.value.id}',
-      data: {
-        'supporting_votes': cma.value.supportingVotes,
-        'opposing_votes': cma.value.opposingVotes,
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-    );
-    
-    log('Poll update response: ${response.data}');
-    return response.data;
-  } on DioException catch (error) {
-    log('Error updating poll: ${error.response?.data}');
-    return {'error': error.response?.data['message'] ?? 'Failed to update poll'};
-  }
-}
+    try {
+      final response = await dio.patch(
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/${cma.value.id}',
+        data: {
+          'supporting_votes': cma.value.supportingVotes,
+          'opposing_votes': cma.value.opposingVotes,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
 
-Future<Map<String, dynamic>> getPollDetails(String pollId) async {
+      log('Poll update response: ${response.data}');
+      return response.data;
+    } on DioException catch (error) {
+      log('Error updating poll: ${error.response?.data}');
+      return {
+        'error': error.response?.data['message'] ?? 'Failed to update poll'
+      };
+    }
+  }
+
+  Future<Map<String, dynamic>> getPollDetails(String pollId) async {
     try {
       isLoading.value = true;
       final response = await dio.get(
-        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId'
-      );
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId');
       return response.data;
     } on DioException catch (e) {
       log('Error getting poll details: ${e.response?.data}');
@@ -77,48 +91,50 @@ Future<Map<String, dynamic>> getPollDetails(String pollId) async {
     }
   }
 
-Future<Map<String, dynamic>?> castVote({
-  required String pollId,
-  required String memberId,
-  required bool isSupporting,
-}) async {
-  try {
-    // First get current poll state
-    final currentPoll = await dio.get(
-      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId'
-    );
+  Future<Map<String, dynamic>?> castVote({
+    required String pollId,
+    required String memberId,
+    required bool isSupporting,
+  }) async {
+    try {
+      // First get current poll state
+      final currentPoll = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId');
 
-    List<dynamic> supportingVotes = currentPoll.data['supporting_votes'] ?? [];
-    List<dynamic> opposingVotes = currentPoll.data['opposing_votes'] ?? [];
+      List<dynamic> supportingVotes =
+          currentPoll.data['supporting_votes'] ?? [];
+      List<dynamic> opposingVotes = currentPoll.data['opposing_votes'] ?? [];
 
-    // Remove from opposite array if exists
-    if (isSupporting) {
-      opposingVotes.remove(memberId);
-    } else {
-      supportingVotes.remove(memberId);
+      // Remove from opposite array if exists
+      if (isSupporting) {
+        opposingVotes.remove(memberId);
+      } else {
+        supportingVotes.remove(memberId);
+      }
+
+      // Add to appropriate array if not already present
+      if (isSupporting && !supportingVotes.contains(memberId)) {
+        supportingVotes.add(memberId);
+      } else if (!isSupporting && !opposingVotes.contains(memberId)) {
+        opposingVotes.add(memberId);
+      }
+
+      // Update the poll
+      final response = await dio.patch(
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId',
+        data: {
+          'supporting_votes': supportingVotes,
+          'opposing_votes': opposingVotes,
+          'updated_at': DateTime.now().toIso8601String(),
+        },
+      );
+
+      return response.data;
+    } on DioException catch (error) {
+      log('Error casting vote: ${error.response?.data}');
+      return {
+        'error': error.response?.data['message'] ?? 'Failed to cast vote'
+      };
     }
-
-    // Add to appropriate array if not already present
-    if (isSupporting && !supportingVotes.contains(memberId)) {
-      supportingVotes.add(memberId);
-    } else if (!isSupporting && !opposingVotes.contains(memberId)) {
-      opposingVotes.add(memberId);
-    }
-
-    // Update the poll
-    final response = await dio.patch(
-      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId',
-      data: {
-        'supporting_votes': supportingVotes,
-        'opposing_votes': opposingVotes,
-        'updated_at': DateTime.now().toIso8601String(),
-      },
-    );
-
-    return response.data;
-  } on DioException catch (error) {
-    log('Error casting vote: ${error.response?.data}');
-    return {'error': error.response?.data['message'] ?? 'Failed to cast vote'};
   }
-}
 }
