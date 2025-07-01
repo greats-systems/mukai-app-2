@@ -262,16 +262,6 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     return PreferredSize(
       preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
       child: Container(
-        // decoration: BoxDecoration(
-        //   boxShadow: [
-        //     BoxShadow(
-        //       color: Colors.black.withOpacity(0.2), // Shadow color
-        //       blurRadius: 8.0, // Blur radius
-        //       spreadRadius: 2.0, // Spread radius
-        //       offset: const Offset(0, 4), // Shadow position (bottom)
-        //     ),
-        //   ],
-        // ),
         child: AppBar(
           backgroundColor: whiteColor,
           automaticallyImplyLeading: false,

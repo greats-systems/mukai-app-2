@@ -51,14 +51,6 @@ class _PollsScreenState extends State<CoopPollsScreen> {
       setState(() {
         cmas = cmaData;
       });
-      /*
-      final cmasData =
-          await _loanController.getCoopPolls(widget.group.id!, userId!);
-      if (!mounted) return;
-      setState(() {
-        cmas = cmasData;
-      });
-      */
     } on Exception catch (e, s) {
       log('LoanLandingPage: $e $s');
     } finally {
@@ -117,7 +109,7 @@ class _PollsScreenState extends State<CoopPollsScreen> {
                             borderRadius: BorderRadius.circular(10.0),
                             color: whiteColor.withOpacity(0.1),
                           ),
-                          child: CoopPolls(
+                          child: CoopPollsWidget(
                             group: widget.group,
                             cma: cma),
                           // child: Widget(cma: cma),
