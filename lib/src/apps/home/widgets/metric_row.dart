@@ -40,7 +40,7 @@ class MetricRow extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  '$zigValue ZIG',
+                  '$zigValue',
                   style: TextStyle(
                     color: whiteColor,
                     fontSize: 14,
@@ -55,7 +55,7 @@ class MetricRow extends StatelessWidget {
                 ),
                 width5Space,
                 Text(
-                  '$usdValue USD',
+                  '$usdValue',
                   style: TextStyle(
                     color: whiteColor,
                     fontSize: 14,

@@ -129,9 +129,9 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
   Widget build(BuildContext context) {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    return _isLoading ? SizedBox(
-      height: height * 0.32,
-      child: LoadingMessagesShimmerWidget()) : body();
+    return _isLoading
+        ? SizedBox(height: height * 0.32, child: LoadingMessagesShimmerWidget())
+        : body();
   }
 
   Widget body() {
@@ -140,7 +140,7 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
       child: Container(
         height: height * 0.32,
         width: width * 0.9,
-        padding: EdgeInsets.all(16),
+        padding: EdgeInsets.only(top: 0, bottom: 0, left: 16, right: 16),
         decoration: BoxDecoration(
           color: primaryColor,
           borderRadius: BorderRadius.circular(20),

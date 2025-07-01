@@ -844,7 +844,12 @@ class AuthController extends GetxController {
         // await _getStorage.write('userId', response.data['user']['id']);
         // await _getStorage.write('accessToken', response.data['access_token']);
         await _getStorage.write('role', response.data['user']['account_type']);
-        log('Wrote account_type to storage');
+        await _getStorage.write(
+            'first_name', response.data['user']['first_name']);
+        await _getStorage.write(
+            'last_name', response.data['user']['last_name']);
+        await _getStorage.write('phone', response.data['user']['phone']);
+        await _getStorage.write('email', response.data['user']['email']);
         await _handleSuccessfulLogin();
       } else if (response.statusCode == 401) {
         _handleFailedLogin(response);

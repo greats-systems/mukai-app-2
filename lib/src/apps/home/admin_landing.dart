@@ -1,16 +1,12 @@
-import 'dart:developer';
-
 import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/src/apps/home/qr_code.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/apps/home/widgets/apps_features.dart';
-import 'package:mukai/src/apps/home/widgets/transact_features.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/home/admin/admin_recent_transactions.dart';
 import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
@@ -47,10 +43,10 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
   List<Wallet>? wallets;
   Dio dio = Dio();
   bool _isDisposed = false;
-  bool _isLoading = false;
+  bool isLoading = false;
   Future<void> fetchWalletID() async {
     setState(() {
-      _isLoading = true;
+      isLoading = true;
       userId = _getStorage.read('userId');
     });
 
@@ -60,13 +56,13 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
       if (!_isDisposed && mounted) {
         setState(() {
           wallets = walletJson;
-          _isLoading = false;
+          isLoading = false;
         });
       }
     } catch (e) {
       if (!_isDisposed && mounted) {
         setState(() {
-          _isLoading = false;
+          isLoading = false;
         });
       }
     }
@@ -74,7 +70,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     if (mounted) {
       if (walletJson != null) {
         setState(() {
-          walletId = walletJson![0]['id'];
+          walletId = walletJson[0]['id'];
         });
       }
     }

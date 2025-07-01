@@ -6,6 +6,7 @@ import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
+import 'package:mukai/src/apps/home/landing_quick_transact.dart';
 import 'package:mukai/src/apps/home/qr_code.dart';
 import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
 import 'package:mukai/src/apps/reports/views/reports_screen.dart';
@@ -167,7 +168,7 @@ class _BottomBarState extends State<BottomBar> {
     height = size.height;
     return Scaffold(
       body: Obx(() => authController.initiateNewTransaction.value == true
-          ? memberInitiateTrans()
+          ? LandingQuickTransactScreen()
           : Container(
               color: whiteF5Color, // Background color
               child: userRole == 'coop-manager'
@@ -206,133 +207,6 @@ class _BottomBarState extends State<BottomBar> {
           title: const AdminAppHeaderWidget(),
         ),
       ),
-    );
-  }
-
-  memberInitiateTrans() {
-    return Row(
-      children: [
-        Column(
-          children: [
-            heightBox(20),
-            Text('Scan QR-Code to Pay', style: bold16Black),
-            Container(
-              padding: EdgeInsets.all(10),
-              alignment: Alignment.center,
-              child: Center(
-                child: Column(
-                  children: [
-                    QrImageView(
-                      data: wallets?.first.id ?? 'No wallet ID 3',
-                      version: QrVersions.auto,
-                      size: 160.0,
-                    ),
-                    Text('${userId?.substring(24, 36)}')
-                  ],
-                ),
-              ),
-            ),
-          ],
-        ),
-        SizedBox(
-          width: width * 0.45,
-          child: Column(
-            children: [
-              heightBox(height * 0.08),
-              GestureDetector(
-                onTap: () {
-                  transactionController.selectedTransferOption.value = 'wallet';
-                  transactionController.selectedTransferOption.refresh();
-                  Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) => const QRViewExample(),
-                  ));
-                  // Get.to(() => TransfersScreen(
-                  //       category: 'wallet',
-                  //     ));
-                },
-                child: Container(
-                    alignment: Alignment(0, 0),
-                    height: height * 0.05,
-                    width: width * 0.9,
-                    // padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: tertiaryColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 5,
-                      children: [
-                        Container(
-                          alignment: Alignment.center,
-                          child: Image.asset(
-                            "assets/icons/mage_qr-code-fill.png",
-                            height: 40,
-                            color: whiteF5Color,
-                          ),
-                        ),
-                        Text(
-                          'Scan QR Code',
-                          style: bold16White,
-                        ),
-                      ],
-                    )),
-              ),
-              heightBox(20),
-              Container(
-                  alignment: Alignment(0, 0),
-                  height: height * 0.05,
-                  width: width * 0.9,
-                  // padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 5,
-                    children: [
-                      Text(
-                        "Use NFC Tap n' Pay",
-                        style: bold16White,
-                      ),
-                    ],
-                  )),
-              heightBox(20),
-              GestureDetector(
-                onTap: () {
-                  transactionController.selectedTransferOption.value =
-                      'manual_wallet';
-                  transactionController.selectedTransferOption.refresh();
-                  transactionController.selectedProfile.value = Profile();
-                  Get.to(() => TransfersScreen(
-                        category: 'Direct Wallet',
-                      ));
-                },
-                child: Container(
-                    alignment: Alignment(0, 0),
-                    height: height * 0.05,
-                    width: width * 0.9,
-                    // padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: tertiaryColor,
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      spacing: 5,
-                      children: [
-                        Text(
-                          'Add Wallet Address',
-                          style: bold16White,
-                        ),
-                      ],
-                    )),
-              ),
-            ],
-          ),
-        )
-      ],
     );
   }
 
