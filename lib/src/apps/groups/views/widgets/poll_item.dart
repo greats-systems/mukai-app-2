@@ -1,12 +1,11 @@
-import 'dart:developer';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
-import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
+import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 
 class PollItemWidget extends StatefulWidget {
   final CooperativeMemberApproval? cma;
@@ -17,12 +16,7 @@ class PollItemWidget extends StatefulWidget {
 }
 
 class _PollItemWidgetState extends State<PollItemWidget> {
-  CooperativeMemberApprovalsController get loanController => Get.put(CooperativeMemberApprovalsController());
-
-  void initState() {
-    super.initState();
-    // log('PollItemWidget cma: ${widget.cma?.hasReceivedVote}');
-  }
+  ProfileController get profileController => Get.put(ProfileController());
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +26,8 @@ class _PollItemWidgetState extends State<PollItemWidget> {
         heightSpace,
         _buildPollDetail(widget.cma),
         heightSpace,
-        _buildStatusSection(widget.cma),
-        heightSpace,
+        // _buildStatusSection(widget.cma),
+        // heightSpace,
         LinearProgressIndicator(
           value: 1,
           backgroundColor: primaryColor.withOpacity(0.2),
@@ -44,151 +38,64 @@ class _PollItemWidgetState extends State<PollItemWidget> {
     );
   }
 
-  Widget _buildStatusSection(CooperativeMemberApproval? cma) {
-    if (cma != null) {
-      switch (cma.pollDescription) {
-        case 'request':
-        case 'declined':
-          return _buildRequestSummary(cma);
-        default:
-          return _buildPollSummary(cma);
-      }
-    } else {
-      return Center(
-        child: Text('No cma'),
-      );
-    }
-  }
-
   Widget _buildPollDetail(CooperativeMemberApproval? cma) {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
-  
-  if (cma == null) {
-    return Center(child: Text('No polls'));
-  }
-
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Expanded(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  cma.pollDescription ?? 'No description',
-                  style: semibold12black,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                height5Space,
-                _buildPollInfo(cma),
-              ],
-            ),
-            SizedBox(
-              width: height/8,
-              height: width/8,
-              child: Card(
-                color: cma.supportingVotes != null || cma.opposingVotes != null
-                    ? tertiaryColor
-                    : primaryColor,
-                child: Center(
-                  child: Text(
-                    cma.supportingVotes != null || cma.opposingVotes != null
-                        ? 'Voting underway'
-                        : 'Pending vote', 
-                    style: TextStyle(
-                      fontSize: 12, 
-                      fontWeight: FontWeight.bold,
-                      color: whiteColor
-                    ),
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    ],
-  );
-}
-/*
-  Widget _buildInterestInfo(CooperativeMemberApproval? cma) {
-    return cma != null
-        ? Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    '${(cma.interestRate! * 100).toStringAsFixed(0)}%',
-                    style: semibold14Primary,
-                  ),
-                ],
-              ),
-            ],
-          )
-        : Center(
-            child: Text('No account info to build'),
-          );
-  }
-  */
-
-  Widget _buildPollInfo(CooperativeMemberApproval? cma) {
-    return cma != null
-        ? Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    cma.numberOfMembers.toString(),
-                    style: semibold14Primary,
-                  ),
-                ],
-              ),
-              /*
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  const Text('Interest', style: semibold14Primary),
-                  Text(
-                    cma.interestRate.toString(),
-                    style: semibold14Primary,
-                  ),
-                ],
-              ),
-              */
-            ],
-          )
-        : Center(
-            child: Text('No account info to build'),
-          );
-  }
-
-  Widget _buildPollSummary(CooperativeMemberApproval? cma) {
     return cma != null
         ? Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                spacing: 20,
-                children: [
-                  _buildMoneyColumn(
-                      'Supporting votes', cma.supportingVotes.toString()),
-                  _buildInfoColumn('Account ID',
-                      cma.id != null ? cma.id!.substring(0, 8) : 'N/A'),
-                  _buildInfoColumn('Opposing votes',
-                      cma.opposingVotes.toString() ?? 'N/A'),
-                ],
+              Expanded(
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          height5Space,
+                          _buildAccountInfo(cma),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              // _buildChatButton(cma),
             ],
           )
         : Center(
-            child: Text('Cannot build account summary'),
+            child: Text('No cma'),
+          );
+  }
+
+  Widget _buildAccountInfo(CooperativeMemberApproval? cma) {
+    return cma != null
+        ? Column(
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Poll',
+                    style: semibold14Primary,
+                  ),
+                  Text(
+                    Utils.trimp(cma.pollDescription ?? 'No description'),
+                    style: semibold14Primary,
+                  ),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text('Number of members', style: semibold14Primary),
+                  Text(
+                    Utils.trimp((cma.numberOfMembers! - 1).toString()),
+                    style: semibold14Primary,
+                  ),
+                ],
+              ),
+            ],
+          )
+        : Center(
+            child: Text('No account info to build'),
           );
   }
 
@@ -203,23 +110,11 @@ class _PollItemWidgetState extends State<PollItemWidget> {
     );
   }
 
-  Widget _buildMoneyColumn(String label, String value) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: semibold12black),
-        height5Space,
-        Text('\$$value', style: semibold16Primary),
-      ],
-    );
-  }
-
   Widget _buildChatButton(CooperativeMemberApproval? cma) {
     final size = MediaQuery.sizeOf(context);
     final width = size.width;
     final height = size.height;
     return InkWell(
-      onTap: () => log('Tapped'),
       // onTap: () => _navigateToConversation(cma),
       child: Container(
         alignment: Alignment.center,
@@ -235,6 +130,7 @@ class _PollItemWidgetState extends State<PollItemWidget> {
     );
   }
 
+  /*
   Widget _buildRequestSummary(CooperativeMemberApproval? cma) {
     return cma != null
         ? Padding(
@@ -242,7 +138,7 @@ class _PollItemWidgetState extends State<PollItemWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                if (widget.cma!.updatedAt != 'declined') ...[
+                if (widget.cma!.status != 'declined') ...[
                   _buildActionButton(
                     'Accept',
                     primaryColor,
@@ -262,6 +158,7 @@ class _PollItemWidgetState extends State<PollItemWidget> {
             child: Text('No summary'),
           );
   }
+  */
 
   Widget _buildActionButton(String text, Color color, VoidCallback onTap) {
     final size = MediaQuery.sizeOf(context);
@@ -282,49 +179,45 @@ class _PollItemWidgetState extends State<PollItemWidget> {
     );
   }
 
-  void _showConfirmationDialog(CooperativeMemberApproval? cma, bool isAccept) {
-    final action = isAccept ? 'accept' : 'decline';
-    final name = cma?.groupId;
-    final id = cma?.id?.substring(0, 8) ?? '';
+  // void _showConfirmationDialog(CooperativeMemberApproval? cma, bool isAccept) {
+  //   final action = isAccept ? 'accept' : 'decline';
+  //   final name = '${cma?.first_name?.toUpperCase() ?? ''} '
+  //       '${cma?.last_name?.toUpperCase() ?? ''}';
+  //   final id = cma?.id?.substring(0, 8) ?? '';
 
-    Get.defaultDialog(
-      middleTextStyle: const TextStyle(color: blackColor, fontSize: 14),
-      buttonColor: primaryColor,
-      backgroundColor: tertiaryColor,
-      title: 'Pollship Request',
-      middleText: 'Are you sure you want to $action $name Request ID $id?',
-      textConfirm: 'Yes, ${isAccept ? 'Accept' : 'Decline'}',
-      confirmTextColor: whiteColor,
-      onConfirm: () async {
-        if (cma?.id != null) {
-          log('Accepted');
-          /*
-          await loanController.updatePollRequest(
-              cma?.id, isAccept ? 'accepted' : 'declined');
-              */
-        }
-      },
-      cancelTextColor: redColor,
-      onCancel: () => Get.back(),
-    );
-  }
-  /*
-  void _navigateToConversation(Poll? cma) {
-    Get.to(() => ConversationPage(
-        firstName: _getFullName(cma),
-        receiverId: cma?.id ?? Uuid().v4(),
-        conversationId: Uuid().v4(),
-        receiverFirstName: _getFirstName(cma),
-        receiverLastName: cma?.last_name ?? ''));
-  }
+  //   Get.defaultDialog(
+  //     middleTextStyle: const TextStyle(color: blackColor, fontSize: 14),
+  //     buttonColor: primaryColor,
+  //     backgroundColor: tertiaryColor,
+  //     title: 'Membership Request',
+  //     middleText: 'Are you sure you want to $action $name Request ID $id?',
+  //     textConfirm: 'Yes, ${isAccept ? 'Accept' : 'Decline'}',
+  //     confirmTextColor: whiteColor,
+  //     onConfirm: () async {
+  //       if (cma?.id != null) {
+  //         await profileController.updateMemberRequest(
+  //             cma?.id, isAccept ? 'accepted' : 'declined');
+  //       }
+  //     },
+  //     cancelTextColor: redColor,
+  //     onCancel: () => Get.back(),
+  //   );
+  // }
+  // void _navigateToConversation(CooperativeMemberApproval? cma) {
+  //   Get.to(() => ConversationPage(
+  //       firstName: _getFullName(cma),
+  //       receiverId: cma?.id ?? Uuid().v4(),
+  //       conversationId: Uuid().v4(),
+  //       receiverFirstName: _getFirstName(cma),
+  //       receiverLastName: cma?.last_name ?? ''));
+  // }
 
-  String _getFullName(Poll? cma) {
-    return '${Utils.trimp(cma?.first_name ?? '')} '
-        '${Utils.trimp(cma?.last_name ?? '')}';
-  }
+  // String _getFullName(CooperativeMemberApproval? cma) {
+  //   return '${Utils.trimp(cma?.first_name ?? '')} '
+  //       '${Utils.trimp(cma?.last_name ?? '')}';
+  // }
 
-  String _getFirstName(Poll? cma) {
-    return Utils.trimp(cma?.first_name ?? '');
-  }
-  */
+  // String _getFirstName(CooperativeMemberApproval? cma) {
+  //   return Utils.trimp(cma?.first_name ?? '');
+  // }
 }
