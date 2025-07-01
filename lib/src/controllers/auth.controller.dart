@@ -5,19 +5,20 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:mukai/brick/models/auth.model.dart';
 import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/firebase_api.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/network_service.dart';
 import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
 import 'package:mukai/src/apps/auth/views/login.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/bottom_bar.dart';
-import 'package:mukai/src/controllers/main.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/constants/hardCodedCities.dart';
@@ -29,6 +30,7 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 
 // 1048336443350-aongaja6tp71ggdrodjau92u2o73frb4.apps.googleusercontent.com
 class AuthBind extends Bindings {
@@ -38,12 +40,12 @@ class AuthBind extends Bindings {
   }
 }
 
-class AuthController extends GetxController  {
+class AuthController extends GetxController {
   var uuid = const Uuid();
-  final dio = Dio();
+  final dio = DioClient().dio;
   final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
-  final GetStorage _storage = GetStorage();
-  
+  // final GetStorage _storage = GetStorage();
+
   @override
   void onInit() {
     super.onInit();
@@ -67,7 +69,8 @@ class AuthController extends GetxController  {
 
   Future<void> _loadUserData(String userId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/auth/profiles/$userId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$userId');
       // Update your profile controller with the user data
       profileController.profile.value = Profile.fromMap(response.data);
     } catch (e, s) {
@@ -128,6 +131,13 @@ class AuthController extends GetxController  {
     'Machinery Manufacturer',
     'Branding and Packaging'
   ].obs;
+  late List<String> genderList = [
+    'male',
+    'female',
+    'other',
+  ];
+  var selectedGender = 'male'.obs;
+  var date_of_birth = DateTime(DateTime.now().year - 16).obs;
   var phoneNumber = ''.obs;
   var otp_secret = ''.obs;
   var userId = ''.obs;
@@ -135,11 +145,13 @@ class AuthController extends GetxController  {
   var firstName = ''.obs;
   var phone = ''.obs;
   var lastName = ''.obs;
+  var nationalIdNumber = ''.obs;
   var email = ''.obs;
 
   var password = ''.obs;
   var loginOption = 'email'.obs;
   var isLoading = false.obs;
+  var addAuthData = false.obs;
   final count1 = 0.obs;
   final count2 = 0.obs;
   final list = [56].obs;
@@ -164,6 +176,7 @@ class AuthController extends GetxController  {
   var nIDFileUrl = ''.obs;
   var passportFileUrl = ''.obs;
   var profileImageUrl = ''.obs;
+  var uploadedImageUrl = ''.obs;
   var propertyOwnershipUrl = ''.obs;
 
   var nIDFile = File('').obs;
@@ -251,7 +264,7 @@ class AuthController extends GetxController  {
   var city = City(name: 'Harare', country: 'Zimbabwe').obs;
   var country = Country(code: 'ZW', name: 'Zimbabwe').obs;
   var province = 'Harare'.obs;
-  var selected_country = 'Harare'.obs;
+  var selected_country = 'Zimbabwe'.obs;
   var province_options = [
     "Bulawayo",
     "Harare",
@@ -453,6 +466,7 @@ class AuthController extends GetxController  {
     }
   ].obs;
   var selected_province_districts_options = ["Harare"].obs;
+  var selected_country_options = ["Zimbabwe"].obs;
   var selected_country_city_options = ["Harare"].obs;
   var selected_city = "".obs;
   var selected_province = "".obs;
@@ -480,6 +494,43 @@ class AuthController extends GetxController  {
   }
 
   updateUser() {}
+
+  Future<List<String>> getCitiesFromCountry(String countryName) async {
+    log('Fetching cities for country: $countryName');
+    try {
+      var headers = {'Content-Type': 'application/json'};
+      // Updated endpoint to the correct one (https, and latest path)
+      var request = http.Request(
+        'POST',
+        Uri.parse('https://countriesnow.space/api/v0.1/countries/cities'),
+      );
+      request.body = json.encode({"country": countryName.toLowerCase()});
+      request.headers.addAll(headers);
+      http.StreamedResponse response = await request.send();
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.bytesToString();
+        if (responseData.isEmpty) {
+          log('Empty response body');
+          return [];
+        }
+        log('Response data: $responseData');
+        var jsonResponse = json.decode(responseData);
+        if (jsonResponse['error'] == false && jsonResponse['data'] != null) {
+          return List<String>.from(jsonResponse['data']);
+        } else {
+          log('API returned error: ${jsonResponse['msg']}');
+        }
+      } else if (response.statusCode == 301 || response.statusCode == 302) {
+        log('Endpoint moved. Please check the API URL.');
+      } else {
+        log('Failed with status: ${response.reasonPhrase}');
+      }
+    } catch (e, s) {
+      log('Exception occurred: $e\n$s');
+    }
+
+    return [];
+  }
 
   Future<bool> isAccountSessionValid() async {
     try {
@@ -585,7 +636,8 @@ class AuthController extends GetxController  {
     log('getAcountCooperatives profileID userId: $userId');
     try {
       isLoading.value = true;
-      final response = await dio.get('$APP_API_ENDPOINT/cooperatives/$userId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/cooperatives/$userId');
       if (response.statusCode == 200) {
         var data = response.data['data'];
         final List<dynamic> json = data;
@@ -655,7 +707,7 @@ class AuthController extends GetxController  {
     try {
       isLoading.value = true;
       var isNetworkConnected = await _networkService.isConnected();
-      final response = await GetConnect().get(APP_API_ENDPOINT);
+      final response = await GetConnect().get(EnvConstants.APP_API_ENDPOINT);
       log('isNetworkConnected && response.statusCode $isNetworkConnected ${response.statusCode!}');
 
       if (isNetworkConnected && response.statusCode != null) {
@@ -762,7 +814,7 @@ class AuthController extends GetxController  {
       log('Attempting login with email: ${email.value}');
 
       final response = await dio.post(
-        '$APP_API_ENDPOINT/auth/login',
+        '${EnvConstants.APP_API_ENDPOINT}/auth/login',
         data: {
           'email': email.value,
           'password': password.value,
@@ -801,7 +853,7 @@ class AuthController extends GetxController  {
         _handleFailedLogin(response);
       }
     } on DioException catch (e) {
-      log('DioError during login: ${e.message}');
+      log('DioError during login: ${e}');
       isLoading.value = false;
       Helper.errorSnackBar(
         title: 'Error',
@@ -982,7 +1034,7 @@ class AuthController extends GetxController  {
       isLoading.value = true;
       log('wallet docs ${phoneNumber.value} ${fullName.value}');
       var isNetworkConnected = await _networkService.isConnected();
-      final response = await GetConnect().get(APP_API_ENDPOINT);
+      final response = await GetConnect().get(EnvConstants.APP_API_ENDPOINT);
       if (isNetworkConnected && response.statusCode != null) {
         Map<String, dynamic> token = {};
         final AuthResponse res = await supabase.auth.verifyOTP(
@@ -1039,7 +1091,7 @@ class AuthController extends GetxController  {
 
   Future<void> updateAccount(String userId) async {
     var response = await dio.put(
-      '$APP_API_ENDPOINT/auth/update-account/$userId',
+      '${EnvConstants.APP_API_ENDPOINT}/auth/update-account/$userId',
       data: {
         'id': userId,
         'avatar':
@@ -1079,14 +1131,19 @@ class AuthController extends GetxController  {
         'account_type': account_type.value,
         'push_token': fMCToken,
         'password': password.value,
+        'country': selected_country.value,
+        'city': selected_city.value,
+        'gender': selectedGender.value,
+        'date_of_birth': date_of_birth.value.toString(),
+        'national_id_number': nationalIdNumber.value,
         'national_id_url': null,
         'passport_url': null,
         'avatar': null,
       };
 
-      log('Auth data: $APP_API_ENDPOINT');
+      // log('Auth data: ${EnvConstants.APP_API_ENDPOINT}');
       var auth_response = await dio.post(
-        '$APP_API_ENDPOINT/auth/create-account',
+        '${EnvConstants.APP_API_ENDPOINT}/auth/create-account',
         data: auth_data,
         options: Options(
           validateStatus: (status) {
@@ -1094,7 +1151,6 @@ class AuthController extends GetxController  {
           },
         ),
       );
-      log('response: ${JsonEncoder.withIndent(' ').convert(auth_response.data)}');
       if (auth_response.data == null || auth_response.data == '') {
         Helper.errorSnackBar(
             title: 'Empty response',
@@ -1108,22 +1164,15 @@ class AuthController extends GetxController  {
         'profile_id': userId.value,
         'most_recent_content': 'pending approval'
       };
-      var walletParams = {
-        'profile_id': userId.value,
-        'balance': 100,
-        'status': 'Initial opening deposit',
-        'default_currency': 'usd',
-        'is_group_wallet': false,
-      };
-      await dio.post('$APP_API_ENDPOINT/chats', data: chatParams);
+      await dio.post('${EnvConstants.APP_API_ENDPOINT}/chats',
+          data: chatParams);
       // final walletJson =
-      //     await dio.post('$APP_API_ENDPOINT/wallets', data: walletParams);
+      //     await dio.post('${EnvConstants.APP_API_ENDPOINT}/wallets', data: walletParams);
       // await _getStorage.write('walletId', walletJson.data['id']);
       if (auth_response.statusCode == 201) {
         await _getStorage.write(
             'account_type', auth_response.data['user']['account_type']);
 
-        // Also store in 'role' for backward compatibility if needed
         await _getStorage.write(
             'role', auth_response.data['user']['account_type']);
         if (account_type.value == 'coop-member') {
@@ -1147,11 +1196,13 @@ class AuthController extends GetxController  {
               nIDFile.value.path.isNotEmpty) {
             await updateAccount(new_auth_data.user.id);
           }
+          /*
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
               message: 'Your account successfully created',
               duration: 5);
           Get.to(() => MemberRegisterCoopScreen());
+          */
         } else if (account_type.value == 'coop-manager') {
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
@@ -1165,8 +1216,10 @@ class AuthController extends GetxController  {
         final errorMessage = errorData['message'] ?? 'Registration failed';
         throw Exception(errorMessage);
       }
+      addAuthData.value = false;
     } on DioException catch (e) {
       isLoading.value = false;
+      addAuthData.value = false;
       log('Dio error: $e');
       if (e.response != null) {
         log('Error response data: ${e.response?.data}');
@@ -1213,7 +1266,7 @@ class AuthController extends GetxController  {
 
       log('req_data: $req_data');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/cooperatives',
+        '${EnvConstants.APP_API_ENDPOINT}/cooperatives',
         data: req_data,
         options: Options(
           validateStatus: (status) {
@@ -1250,6 +1303,70 @@ class AuthController extends GetxController  {
     }
   }
 
+  Future<void> upadateMemberProfile() async {
+    try {
+      isLoading.value = true;
+
+      var req_data = {
+        // 'coop_id': selected_coop.value.id,
+        'member_id': userId.value,
+        'request_type': 'new account',
+        'status': 'unresolved',
+        'cooperative_id': selected_coop.value.id,
+        'city': town_city.value,
+        'country': city.value.country,
+        'province_state': province.value,
+        'category': cooperative_category.value
+      };
+      log('req_data: $req_data');
+      // log('${APP_API_ENDPOINT}/cooperative_member_requests');
+      var response = await dio.post(
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests',
+        data: req_data,
+      );
+      log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Helper.successSnackBar(
+            title: 'Well Done',
+            message:
+                'Your request to join ${selected_coop.value.name} successfully sent',
+            duration: 5);
+        Get.to(() => BottomBar(
+              role: 'member',
+            ));
+      }
+    } on DioException catch (e) {
+      isLoading.value = false;
+      log('Dio error: ${e.message}');
+      if (e.response != null) {
+        log('Error response data: ${e.response?.data}');
+        if (e.response?.data['message'] ==
+            'A request for this member already exists') {
+          isLoading.value = false;
+          Helper.successSnackBar(
+              title: 'Well Done',
+              message: 'A request for this member already exists',
+              duration: 5);
+          Get.to(() => BottomBar(
+                role: 'member',
+              ));
+        } else {
+          final errorMessage = e.response?.data['message'] ?? e.message;
+          Helper.errorSnackBar(
+              title: 'Error', message: errorMessage, duration: 5);
+        }
+      } else {
+        throw Exception('Network error occurred');
+      }
+    } catch (e) {
+      isLoading.value = false;
+      log('Registration error: $e');
+      // throw Exception('Registration failed: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
   Future<void> memberCoopRequest() async {
     try {
       isLoading.value = true;
@@ -1266,9 +1383,9 @@ class AuthController extends GetxController  {
         'category': cooperative_category.value
       };
       log('req_data: $req_data');
-      log('${APP_API_ENDPOINT}/cooperative_member_requests');
+      // log('${APP_API_ENDPOINT}/cooperative_member_requests');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/cooperative_member_requests',
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests',
         data: req_data,
       );
       log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
@@ -1342,7 +1459,7 @@ class AuthController extends GetxController  {
 
       log('Auth data: $auth_data');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/accounts/create-account',
+        '${EnvConstants.APP_API_ENDPOINT}/accounts/create-account',
         data: auth_data,
         options: Options(
           validateStatus: (status) {
@@ -1362,7 +1479,7 @@ class AuthController extends GetxController  {
         }
         if (profileImageUrl.value.isNotEmpty || nIDFile.value.path.isNotEmpty) {
           var response = await dio.put(
-            '$APP_API_ENDPOINT/accounts/update-account/${new_auth_data.data.userId}',
+            '${EnvConstants.APP_API_ENDPOINT}/accounts/update-account/${new_auth_data.data.userId}',
             data: {
               'id': new_auth_data.data.userId,
               'avatar': profileImageUrl.value.isNotEmpty
@@ -1432,7 +1549,8 @@ class AuthController extends GetxController  {
       //     .signUp(email: email.value, password: password.value, data: auth_data);
       log(' auth_data: $auth_data');
 
-      var response = await dio.post('$APP_API_ENDPOINT/accounts/create-account',
+      var response = await dio.post(
+          '${EnvConstants.APP_API_ENDPOINT}/accounts/create-account',
           data: auth_data);
       log('response user: ${response.data}');
       if (response.data['statusCode'] == 200) {
@@ -1476,7 +1594,7 @@ class AuthController extends GetxController  {
       // 2. Call logout endpoint with raw user ID in URL
       final response = await dio
           .post(
-            '$APP_API_ENDPOINT/auth/logout/$userId',
+            '${EnvConstants.APP_API_ENDPOINT}/auth/logout/$userId',
             options: Options(
               headers: {
                 'Content-Type': 'application/json',
@@ -1510,44 +1628,6 @@ class AuthController extends GetxController  {
     await _getStorage.erase();
     // Clear any other local repositories if needed
   }
-
-  /*
-  Future<void> logout() async {
-    // Get.to(() => LoginScreen());
-    try {
-      final id = await _getStorage.read('userId');
-      log('$APP_API_ENDPOINT/auth/logout/$id');
-      final response =
-          await dio.post('$APP_API_ENDPOINT/auth/logout/$id');
-      // log('$APP_API_ENDPOINT/auth/logout/${userId.value}');
-      // final response =
-      //     await dio.post('$APP_API_ENDPOINT/auth/logout/${userId.value}');
-      log(response.data);
-      isLoading.value = true;
-      // await supabase.auth.signOut();
-      await _getStorage.erase();
-      // await ProfileRepository().clearAllObjects();
-      // await BusinessRepository().clearAllObjects();
-      // await ProductRepository().clearAllObjects();
-      update();
-      isLoading.value = false;
-      // Get.to(() => LoginScreen());
-    } catch (error) {
-      isLoading.value = false;
-      log('error $error');
-      if (error is PostgrestException) {
-        debugPrint('PostgrestException ${error.message}');
-        Helper.errorSnackBar(
-            title: 'Error', message: error.message, duration: 5);
-      }
-      // Get.to(() => LoginScreen());
-      
-    }
-    finally{
-        Get.to(() => LoginScreen());
-      }
-  }
-  */
 
   Future<void> checkAccount() async {
     isLoading.value = true;
@@ -1661,6 +1741,7 @@ class AuthController extends GetxController  {
     imageFiles.clear();
     ImagePicker imagePicker = ImagePicker();
     XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    log('uploadedImageUrl: ${uploadedImageUrl.value}');
     if (xFile != null) {
       if (purpose == 'nID') {
         nIDFile.value = File(xFile.path);
@@ -1676,6 +1757,8 @@ class AuthController extends GetxController  {
       }
       isImageAdded.value = true;
       update();
+      uploadedImageUrl.value = (await uploadFile(File(xFile.path)))!;
+      log('uploadedImageUrl: ${uploadedImageUrl.value}');
     }
     update();
   }
@@ -1685,7 +1768,22 @@ class AuthController extends GetxController  {
       final fileExt = file.path.split('.').last;
       final fileName = '${uuid.v4()}.$fileExt';
       final filePath = 'images/$fileName';
-      return supabase.storage.from('kycfiles').upload(filePath, file);
+      log('uploadFile filePath: ${filePath}');
+      // await supabase.storage.from('kycfiles').remove(['']); // remove all files
+      // await supabase.storage.deleteBucket('kycfiles');
+      // await supabase.storage
+      //     .createBucket('kycfiles', const BucketOptions(public: true));
+      final String fullPath = await supabase.storage.from('kycfiles').upload(
+            filePath,
+            file,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+          );
+      if (fullPath.isNotEmpty) {
+        print('Upload error: ${fullPath}');
+      } else {
+        print('Uploaded: ${fullPath}');
+      }
+      return null;
     } catch (e, s) {
       log('uploadImages error: $e $s');
       return null;

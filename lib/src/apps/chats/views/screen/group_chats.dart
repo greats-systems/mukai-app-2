@@ -1,23 +1,20 @@
 import 'dart:developer';
 
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
-import 'package:mukai/constants.dart';
+import 'package:mukai/brick/models/group_members.model.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
-import 'package:mukai/src/apps/chats/views/screen/mukando_members_landing_page.dart';
-import 'package:mukai/src/apps/chats/views/screen/mukando_members_list.dart';
-import 'package:mukai/src/apps/groups/views/screens/create_group.dart';
-import 'package:mukai/src/apps/groups/views/screens/landing_page.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
+import 'package:mukai/src/apps/groups/views/screens/dashboard/landing_page.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
 class GroupsList extends StatefulWidget {
   final int index;
-
   const GroupsList({super.key, required this.index});
 
   @override
@@ -30,7 +27,9 @@ class _GroupsListState extends State<GroupsList> {
   final GetStorage _getStorage = GetStorage();
 
   late Stream<List<Group>>? _groupsStream;
-  List<Group>? _memberGroups;
+  late Stream<List<GroupMembers>>? _groupMembersStrem;
+  List<Group>? _groups;
+  List<GroupMembers>? _groupMembers;
   String? loggedInUserId;
   String? role;
   String searchQuery = '';
@@ -81,6 +80,8 @@ class _GroupsListState extends State<GroupsList> {
         .order('created_at', ascending: false)
         .map((maps) => maps.map((map) => Group.fromMap(map)).toList());
 
+    // final gmStream = supabase.from('group_members').stream(primaryKey: ['id']).eq(column, value)
+
     if (mounted) {
       setState(() {
         _groupsStream = stream;
@@ -98,7 +99,7 @@ class _GroupsListState extends State<GroupsList> {
 
       if (mounted) {
         setState(() {
-          _memberGroups = memberData[0]['cooperatives'] is Map
+          _groups = memberData[0]['cooperatives'] is Map
               ? [Group.fromMap(memberData[0]['cooperatives'])]
               : memberData.map((item) => Group.fromMap(item)).toList();
         });
@@ -107,7 +108,7 @@ class _GroupsListState extends State<GroupsList> {
       log('Error loading members: $e');
       if (mounted) {
         setState(() {
-          _memberGroups = [];
+          _groups = [];
         });
       }
     }
@@ -131,13 +132,12 @@ class _GroupsListState extends State<GroupsList> {
     }
 
     final isCoopMember = role == 'coop-member';
-    final hasGroups = isCoopMember
-        ? _memberGroups?.isNotEmpty ?? false
-        : _groupsStream != null;
+    final hasGroups =
+        isCoopMember ? _groups?.isNotEmpty ?? false : _groupsStream != null;
 
     return Column(
       children: [
-        if (!isCoopMember) _buildSearchField(),
+        // if (!isCoopMember) _buildSearchField(),
         Expanded(
           child: hasGroups
               ? isCoopMember
@@ -211,7 +211,7 @@ class _GroupsListState extends State<GroupsList> {
       stream: _groupsStream,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
+          return const Center(child: LoadingShimmerWidget());
         }
 
         if (snapshot.hasError) {
@@ -274,8 +274,8 @@ class _GroupsListState extends State<GroupsList> {
     return _isLoading
         ? const Center(child: LoadingShimmerWidget())
         : StreamBuilder<List<Group>>(
-            stream: _memberGroups != null
-                ? Stream.fromIterable([_memberGroups!])
+            stream: _groups != null
+                ? Stream.fromIterable([_groups!])
                 : Stream.empty(),
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
@@ -350,7 +350,7 @@ class _GroupsListState extends State<GroupsList> {
         ),
       ),
       title: Text(group.name ?? 'Unnamed Group'),
-      subtitle: Text('${group.members?.length ?? 0} members'),
+      // subtitle: Text('${group.members?.length ?? 0} group members'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         // log('Group: ${group.name}');
@@ -371,7 +371,7 @@ class _GroupsListState extends State<GroupsList> {
         ),
       ),
       title: Text(group.name ?? 'Unnamed Group'),
-      subtitle: Text('${group.members?.length ?? 0} members'),
+      // subtitle: Text('${group.members?.length ?? 0} members'),
       trailing: const Icon(Icons.chevron_right),
       onTap: () {
         // log('Group: ${group.name}');

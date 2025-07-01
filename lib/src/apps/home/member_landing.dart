@@ -17,6 +17,7 @@ import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'dart:io';
 import 'package:qr_code_scanner_plus/qr_code_scanner_plus.dart';
@@ -61,20 +62,12 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
 
     try {
       final walletJson = await _walletController.getIndividualWallets(userId!);
-      // final walletJson = await supabase
-      //     .from('wallets')
-      //     .select('id')
-      //     .eq('profile_id', userId!)
-      //     .single();
 
       if (!_isDisposed && mounted) {
         setState(() {
           wallets = walletJson;
           _isLoading = false;
         });
-        // _getStorage.write('walletId', walletId);
-        // log('MemberLandingScreen userId: $userId');
-        // log('MemberLandingScreen walletId: $walletId');
       }
     } catch (e) {
       if (!_isDisposed && mounted) {
@@ -115,103 +108,110 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
 
   @override
   Widget build(BuildContext context) {
-  final size = MediaQuery.sizeOf(context);
-  width = size.width;
-  height = size.height;
-  
-  return Scaffold(
-    appBar: buildAppBar(),
-    body: Container(
-      color: const Color.fromRGBO(255, 255, 255, 1),
-      child: Obx(() => authController.initiateNewTransaction.value 
-          ? memberInitiateTrans()
-          : buildTabList()
+    final size = MediaQuery.sizeOf(context);
+    width = size.width;
+    height = size.height;
+
+    return Scaffold(
+      appBar: buildAppBar(),
+      body: Container(
+        color: const Color.fromRGBO(255, 255, 255, 1),
+        child: Obx(() => authController.initiateNewTransaction.value
+            ? memberInitiateTrans()
+            : buildTabList()),
       ),
-    ),
-  );
-}
+    );
+  }
 
   PreferredSizeWidget buildAppBar() {
-  return PreferredSize(
-    preferredSize: Size.fromHeight(
-      authController.initiateNewTransaction.value ? 240.0 : 336.0
-    ),
-    child: _isLoading ? Center(child: CircularProgressIndicator(),) : Container(
-      decoration: BoxDecoration(
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.2),
-            blurRadius: 8.0,
-            spreadRadius: 2.0,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
-      child: AppBar(
-        shape: const RoundedRectangleBorder(
-          borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20.0),
-          ),
-        ),
-        backgroundColor: whiteColor,
-        automaticallyImplyLeading: false,
-        centerTitle: false,
-        titleSpacing: -1.0,
-        toolbarHeight: authController.initiateNewTransaction.value ? 240.0 : 340.0,
-        elevation: 0,
-        title: Column(
-          children: [
-            const AppHeaderWidget(),
-            const WalletBalancesWidget(),
-            if (!authController.initiateNewTransaction.value) ...[
-              heightBox(30),
-              tabBar(),
-            ],
-          ],
-        ),
-      ),
-    ),
-  );
-}
-
-  Widget buildTabList() {
-    return Column(
-      children: [
-        heightBox(20),
-        Expanded(
-          child: PageView(
-            controller: pageController,
-            onPageChanged: (index) {
-              setState(() {
-                refresh = true;
-                selectedTab = index;
-              });
-              setState(() {
-                refresh = false;
-              });
-            },
-            children: [
-              Container(
-                  color: whiteColor,
-                  child: const HomeAccountWidgetApps(
-                    category: 'accountList',
-                  )),
-              Container(
-                color: whiteColor,
-                child: const HomeAccountWidgetApps(
-                  category: 'walletList',
+    return PreferredSize(
+      preferredSize: Size.fromHeight(
+          authController.initiateNewTransaction.value ? 240.0 : 336.0),
+      child: _isLoading
+          ? Center(
+              child: LoadingShimmerWidget(),
+            )
+          : Container(
+              decoration: BoxDecoration(
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    blurRadius: 8.0,
+                    spreadRadius: 2.0,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: AppBar(
+                shape: const RoundedRectangleBorder(
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(20.0),
+                  ),
+                ),
+                backgroundColor: whiteColor,
+                automaticallyImplyLeading: false,
+                centerTitle: false,
+                titleSpacing: -1.0,
+                toolbarHeight:
+                    authController.initiateNewTransaction.value ? 240.0 : 340.0,
+                elevation: 0,
+                title: Column(
+                  children: [
+                    const AppHeaderWidget(),
+                    const WalletBalancesWidget(),
+                    if (!authController.initiateNewTransaction.value) ...[
+                      heightBox(15),
+                      tabBar(),
+                    ],
+                  ],
                 ),
               ),
-              Container(
-                  color: whiteColor,
-                  child: const HomeAccountWidgetApps(
-                    category: 'assetsList',
-                  )),
-            ],
-          ),
-        ),
-      ],
+            ),
     );
+  }
+
+  Widget buildTabList() {
+    return _isLoading
+        ? Center(
+            child: LoadingShimmerWidget(),
+          )
+        : Column(
+            children: [
+              heightBox(20),
+              Expanded(
+                child: PageView(
+                  controller: pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      refresh = true;
+                      selectedTab = index;
+                    });
+                    setState(() {
+                      refresh = false;
+                    });
+                  },
+                  children: [
+                    Container(
+                        color: whiteColor,
+                        child: const HomeAccountWidgetApps(
+                          category: 'accountList',
+                        )),
+                    // Container(
+                    //   color: whiteColor,
+                    //   child: const HomeAccountWidgetApps(
+                    //     category: 'walletList',
+                    //   ),
+                    // ),
+                    Container(
+                        color: whiteColor,
+                        child: const HomeAccountWidgetApps(
+                          category: 'assetsList',
+                        )),
+                  ],
+                ),
+              ),
+            ],
+          );
   }
 
   memberInitiateTrans() {

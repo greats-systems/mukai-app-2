@@ -27,6 +27,7 @@ class MyApp extends StatelessWidget {
       listenable: settingsController,
       builder: (BuildContext context, Widget? child) {
         return GetMaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'Mukai App',
           theme: ThemeData(),
           darkTheme: ThemeData.dark(),

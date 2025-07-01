@@ -59,7 +59,9 @@ class _ManualTransferToWalletWidgetState
         accountNumberField(),
         heightBox(20),
         Obx(() => transactionController.isLoading.value == true
-            ? LoadingShimmerWidget()
+            ? SizedBox(
+                height: MediaQuery.of(context).size.height * 0.8,
+                child: LoadingShimmerWidget())
             : transactionController.selectedProfile.value.id != null
                 ? Column(
                     children: [detailsField(), heightBox(20), amountField()],

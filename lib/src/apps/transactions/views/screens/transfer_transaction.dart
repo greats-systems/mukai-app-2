@@ -3,7 +3,10 @@ import 'dart:developer';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get_connect/http/src/utils/utils.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
+import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
@@ -12,6 +15,7 @@ import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class TransferTransactionScreen extends StatefulWidget {
   final String? purpose;
@@ -89,7 +93,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
 
   void fetchId() async {
     if (_isDisposed) return;
-
+    profileController.isLoading.value = true;
     setState(() {
       _isLoading = true;
       userId = _getStorage.read('userId');
@@ -127,6 +131,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
       }
       _isLoading = false;
     });
+    profileController.isLoading.value = false;
   }
 
   @override
@@ -185,46 +190,13 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
           child: Column(
             children: [
               heightBox(30),
-              Obx(() => walletController.selectedWallet.value.id != null
+              Obx(() => profileController.isLoading.value == true
                   ? SizedBox(
-                      height: height * 0.5,
-                      child: GridView.builder(
-                          physics: const BouncingScrollPhysics(),
-                          padding: const EdgeInsets.only(
-                            left: fixPadding * 2.0,
-                            right: fixPadding * 2.0,
-                            bottom: fixPadding * 2.0,
-                          ),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                                  crossAxisCount: 2,
-                                  mainAxisSpacing: fixPadding * 2.0,
-                                  crossAxisSpacing: fixPadding * 2.0,
-                                  childAspectRatio: 1.5),
-                          itemCount: activeList.length,
-                          itemBuilder: (context, index) {
-                            return listTileWidget(
-                                activeList[index]['category'].toString(),
-                                activeList[index]['option'].toString(),
-                                activeList[index]['title'].toString(),
-                                () {});
-                          }),
-                    )
+                      height: MediaQuery.of(context).size.height * 0.8,
+                      child: LoadingShimmerWidget())
                   : Center(
                       child: Column(
                       children: [
-                        Text(
-                          'No wallet selected',
-                          style: semibold12black,
-                        ),
-                        Text(
-                          'Please select a wallet first',
-                          style: semibold12black,
-                        ),
-                        heightBox(10),
-
-                        // generete a FutureBuilder to fetch the wallet details
-                        //  generate a button to select a wallet between usd and zig
                         Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
@@ -299,8 +271,40 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
                             ),
                           ],
                         ),
+                        heightBox(30),
+                        Obx(() => walletController.selectedWallet.value.id !=
+                                null
+                            ? SizedBox(
+                                height: height * 0.5,
+                                child: GridView.builder(
+                                    physics: const BouncingScrollPhysics(),
+                                    padding: const EdgeInsets.only(
+                                      left: fixPadding * 2.0,
+                                      right: fixPadding * 2.0,
+                                      bottom: fixPadding * 2.0,
+                                    ),
+                                    gridDelegate:
+                                        const SliverGridDelegateWithFixedCrossAxisCount(
+                                            crossAxisCount: 2,
+                                            mainAxisSpacing: fixPadding * 2.0,
+                                            crossAxisSpacing: fixPadding * 2.0,
+                                            childAspectRatio: 1.5),
+                                    itemCount: activeList.length,
+                                    itemBuilder: (context, index) {
+                                      return listTileWidget(
+                                          activeList[index]['category']
+                                              .toString(),
+                                          activeList[index]['option']
+                                              .toString(),
+                                          activeList[index]['title'].toString(),
+                                          () {});
+                                    }),
+                              )
+                            : SizedBox()),
+                        height20Space,
+                        actionButtons()
                       ],
-                    ))),
+                    )))
             ],
           ),
         ));
@@ -324,39 +328,147 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
         transactionController.transferTransaction.value.transferCategory =
             category;
         transactionController.transferTransaction.value.transferMode = option;
-        log('${transactionController.selectedTransferOptionCategory.value}');
-        Get.to(() => TransfersScreen(
-              category: category,
-            ));
+        log('selectedTransferOptionCategory ${transactionController.selectedTransferOptionCategory.value}');
+        log('selectedTransferOption ${transactionController.selectedTransferOption.value}');
+      },
+      child: Obx(() => Container(
+            width: double.maxFinite,
+            clipBehavior: Clip.hardEdge,
+            decoration: BoxDecoration(
+              color:
+                  transactionController.selectedTransferOption.value == option
+                      ? primaryColor
+                      : whiteColor,
+              borderRadius: BorderRadius.circular(10.0),
+              boxShadow: recShadow,
+            ),
+            child: Container(
+              width: double.maxFinite,
+              padding: const EdgeInsets.all(fixPadding),
+              decoration: BoxDecoration(
+                color: recWhiteColor,
+                borderRadius: BorderRadius.circular(10.0),
+                border: Border.all(color: blackOrignalColor.withOpacity(0.3)),
+              ),
+              alignment: Alignment.center,
+              child: Center(
+                child: SizedBox(
+                  width: width,
+                  child: AutoSizeText(
+                      maxLines: 2,
+                      title,
+                      style:
+                          transactionController.selectedTransferOption.value ==
+                                  option
+                              ? medium14WhiteF5
+                              : medium14Black,
+                      overflow: TextOverflow.ellipsis,
+                      textAlign: TextAlign.center),
+                ),
+              ),
+            ),
+          )),
+    );
+  }
+
+  actionButtons() {
+    return Padding(
+      padding:
+          const EdgeInsets.only(top: 8.0, bottom: 8.0, left: 40.0, right: 40.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Obx(() => transactionController.isLoading.value == true
+              ? Column(
+                  children: [
+                    SizedBox(
+                        width: width * 0.6,
+                        child: const LinearProgressIndicator(
+                          color: primaryColor,
+                        )),
+                    Text(
+                      "please wait ...",
+                      style: semibold14LightWhite,
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
+                )
+              : Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    goBackButton(),
+                    initiateTransfer(),
+                  ],
+                )),
+        ],
+      ),
+    );
+  }
+
+  goBackButton() {
+    return GestureDetector(
+      onTap: () {
+        Get.back();
+        // transactionController.selectedProfile.value.email = '';
       },
       child: Container(
-        width: double.maxFinite,
-        clipBehavior: Clip.hardEdge,
+        width: width * 0.3,
+        height: height * 0.05,
         decoration: BoxDecoration(
-          color: whiteColor,
+          color: greyColor,
           borderRadius: BorderRadius.circular(10.0),
-          boxShadow: recShadow,
+          // boxShadow: buttonShadow,
         ),
-        child: Container(
-          width: double.maxFinite,
-          padding: const EdgeInsets.all(fixPadding),
-          decoration: BoxDecoration(
-            color: recWhiteColor,
-            borderRadius: BorderRadius.circular(10.0),
-            border: Border.all(color: blackOrignalColor.withOpacity(0.3)),
-          ),
-          alignment: Alignment.center,
-          child: Center(
-            child: SizedBox(
-              width: width,
-              child: AutoSizeText(
-                  maxLines: 2,
-                  title,
-                  style: medium14Black,
-                  overflow: TextOverflow.ellipsis,
-                  textAlign: TextAlign.center),
+        alignment: Alignment.center,
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Iconify(
+              Eva.chevron_left_outline,
+              color: whiteF5Color,
             ),
-          ),
+            Text(
+              "Previous",
+              style: bold18WhiteF5,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  initiateTransfer() {
+    return GestureDetector(
+      onTap: () async {
+        Get.to(() => TransfersScreen(
+              category: transactionController
+                  .transferTransaction.value.transferCategory!,
+            ));
+        // transactionController.accountNumber.value = '';
+        // // transactionController.
+        // await transactionController.initiateTransfer();
+      },
+      child: Container(
+        width: width * 0.3,
+        height: height * 0.05,
+        decoration: BoxDecoration(
+          color: primaryColor,
+          borderRadius: BorderRadius.circular(10.0),
+          // boxShadow: buttonShadow,
+        ),
+        alignment: Alignment.center,
+        child: const Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(
+              "Next",
+              style: bold18WhiteF5,
+            ),
+            Iconify(
+              Eva.chevron_right_outline,
+              color: whiteF5Color,
+            )
+          ],
         ),
       ),
     );

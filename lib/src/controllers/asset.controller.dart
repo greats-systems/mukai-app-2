@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
@@ -12,7 +13,7 @@ class AssetController {
   var selectedGroup = Rx<Group?>(null);
   final isLoading = Rx<bool>(false);
   final asset = Asset().obs;
-  final dio = Dio();
+  final dio = DioClient().dio;
 
   Future<List<Asset>?> getGroupAssets(String groupId) async {
     List<Asset> assets = [];
@@ -20,7 +21,8 @@ class AssetController {
     try {
       isLoading.value = true;
       log('getGroupAssets: $groupId');
-      final response = await dio.get('$APP_API_ENDPOINT/assets/group/$groupId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/assets/group/$groupId');
       if (response.statusCode == 200) {
         isLoading.value = false;
         var data = response.data['data'];
@@ -58,8 +60,8 @@ class AssetController {
     try {
       isLoading.value = true;
       log('getMemberAssets: $profileId');
-      final response =
-          await dio.get('$APP_API_ENDPOINT/assets/profile/$profileId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/assets/profile/$profileId');
       if (response.statusCode == 200) {
         isLoading.value = false;
         var data = response.data['data'];
@@ -97,7 +99,8 @@ class AssetController {
     try {
       isLoading.value = true;
       log('getAssetByID: $assetId');
-      final response = await dio.get('$APP_API_ENDPOINT/assets/$assetId');
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId');
       if (response.statusCode == 200) {
         isLoading.value = false;
         var data = response.data['data'];
@@ -133,14 +136,14 @@ class AssetController {
     log('deleteAsset: $assetId');
 
     try {
-      final response =
-          await dio.put('$APP_API_ENDPOINT/assets/$assetId', data: {
-        "asset_descriptive_name": asset.value?.assetDescriptiveName ?? '',
-        "asset_description": asset.value?.assetDescription ?? '',
+      final response = await dio
+          .put('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId', data: {
+        "asset_descriptive_name": asset.value.assetDescriptiveName ?? '',
+        "asset_description": asset.value.assetDescription ?? '',
         "status": "active",
-        "valuation_currency": asset.value?.valuationCurrency ?? 'USD',
-        "fiat_value": double.parse(asset.value?.fiatValue.toString() ?? '0'),
-        "token_value": double.parse(asset.value?.tokenValue.toString() ?? '0'),
+        "valuation_currency": asset.value.valuationCurrency ?? 'USD',
+        "fiat_value": double.parse(asset.value.fiatValue.toString()),
+        "token_value": double.parse(asset.value.tokenValue.toString()),
       });
       if (response.statusCode == 200) {
         await Helper.successSnackBar(
@@ -159,7 +162,8 @@ class AssetController {
   Future<void> deleteAsset(String assetId) async {
     log('deleteAsset: $assetId');
     try {
-      final response = await dio.delete('$APP_API_ENDPOINT/assets/$assetId');
+      final response =
+          await dio.delete('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId');
       if (response.statusCode == 200) {
         await Helper.successSnackBar(
             title: 'Asset Deleted',
@@ -183,8 +187,8 @@ class AssetController {
         "asset_description": asset.value.assetDescription,
         "status": "active",
         "valuation_currency": asset.value.valuationCurrency ?? 'USD',
-        "fiat_value": double.parse(asset.value.fiatValue.toString() ?? '0'),
-        "token_value": double.parse(asset.value.fiatValue.toString() ?? '0'),
+        "fiat_value": double.parse(asset.value.fiatValue.toString()),
+        "token_value": double.parse(asset.value.fiatValue.toString()),
         "asset_images": null,
         "last_transaction_timestamp": null,
         "verifiable_certificate_issuer_id": null,
@@ -199,16 +203,16 @@ class AssetController {
         "has_documents": false,
         "profile_id": ownershipType == 'group' ? null : profileId,
         'group_id': ownershipType == 'group' ? groupId : null,
-        "has_received_vote":false,
+        "has_received_vote": false,
       };
       log('assetData: $assetData');
-      final response =
-          await dio.post('$APP_API_ENDPOINT/assets', data: assetData);
+      final response = await dio.post('${EnvConstants.APP_API_ENDPOINT}/assets',
+          data: assetData);
       if (response.statusCode == 201) {
         await Helper.successSnackBar(
             title: 'Asset Created',
             message: response.data['message'],
-            duration: 5);        
+            duration: 5);
       }
     } catch (e) {
       log('getTransactionById error: $e');

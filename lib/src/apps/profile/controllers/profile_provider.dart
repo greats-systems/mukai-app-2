@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/network_service.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -33,7 +34,7 @@ class ProfileProvider {
       };
       log('createProfile data $data');
 
-      await constants.supabase.from('profiles').then((value) {
+      await supabase.from('profiles').then((value) {
         log('createProfile success $value');
 
         Helper.successSnackBar(title: 'Success', message: 'post created');

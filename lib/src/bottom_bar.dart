@@ -4,7 +4,8 @@ import 'dart:io';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/src/apps/groups/views/screens/create_group.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
+import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
 import 'package:mukai/src/apps/reports/views/reports_screen.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/views/screen/communications_screen.dart';
@@ -14,6 +15,7 @@ import 'package:mukai/src/apps/home/member_landing.dart';
 import 'package:mukai/src/apps/settings/screens/adming_setttings_landing.dart';
 import 'package:mukai/src/apps/settings/screens/member_settings_landing.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:mukai/widget/render_supabase_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -39,9 +41,11 @@ class _BottomBarState extends State<BottomBar> {
   AuthController get authController => Get.put(AuthController());
   final GetStorage _getStorage = GetStorage();
   final autoSizeGroup = AutoSizeGroup();
-  // late List<Widget> memberPages;
+  // late List<Widget> membermanagerPages;
   String? userId;
   String? userRole;
+  bool _isLoading = true;
+  int _currentIndex = 0;
 
   Future<void> _fetchData() async {
     userId = await _getStorage.read('userId');
@@ -59,7 +63,7 @@ class _BottomBarState extends State<BottomBar> {
   int selectedIndex = 0;
   DateTime? backPressTime;
 
-  final pages = [
+  final managerPages = [
     const AdminLandingScreen(),
     ReportsScreen(),
     CommunicationsScreen(
@@ -68,8 +72,8 @@ class _BottomBarState extends State<BottomBar> {
     const AdmingSettingsLandingScreen(),
   ];
 
-  final memberPages = [
-    MemberLandingScreen(),
+  final membermanagerPages = [
+    AdminLandingScreen(),
     ReportsScreen(),
     CommunicationsScreen(
       initialselectedTab: 0,
@@ -113,43 +117,50 @@ class _BottomBarState extends State<BottomBar> {
   }
 
   @override
-Widget build(BuildContext context) {
-  // Use a FutureBuilder to handle the asynchronous nature of userRole
-  return FutureBuilder(
-    future: _fetchData(), // Ensure this returns a Future
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return const Center(child: CircularProgressIndicator());
-      }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Container(
+        color: whiteF5Color, // Background color
+        child: userRole == 'coop-manager'
+            ? managerPages[_currentIndex]
+            : membermanagerPages[_currentIndex],
+      ),
+      floatingActionButton: userRole == 'coop-manager' && selectedIndex == 2
+          ? addGroup()
+          : scanQR(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: gappedBottombar(),
+    );
+  }
 
-      // Default to member pages if userRole is null
-      final isAdmin = userRole == 'coop-manager';
-      
-      return PopScope(
-        canPop: false,
-        onPopInvoked: (didPop) {
-          bool backStatus = onPopInvoked();
-          if (backStatus) {
-            exit(0);
-          }
-        },
-        child: Scaffold(
-          extendBody: true,
-          body: isAdmin
-              ? pages.elementAt(selectedIndex)
-              : memberPages.elementAt(selectedIndex),
-          floatingActionButton: isAdmin && selectedIndex == 2
-              ? addGroup()
-              : addButton(),
-          floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-          bottomNavigationBar: gappedBottombar(),
+  PreferredSizeWidget buildAppBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
+      child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2), // Shadow color
+              blurRadius: 8.0, // Blur radius
+              spreadRadius: 2.0, // Spread radius
+              offset: const Offset(0, 4), // Shadow position (bottom)
+            ),
+          ],
         ),
-      );
-    },
-  );
-}
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          titleSpacing: 0.0,
+          toolbarHeight: 100.0,
+          elevation: 0,
+          title: const AdminAppHeaderWidget(),
+        ),
+      ),
+    );
+  }
 
-  addButton() {
+  scanQR() {
     return GestureDetector(
       onTap: () {
         log('Tapped!');
@@ -265,7 +276,7 @@ Widget build(BuildContext context) {
           ],
         );
       },
-      activeIndex: selectedIndex,
+      activeIndex: _currentIndex,
       gapLocation: GapLocation.center,
       notchSmoothness: NotchSmoothness.softEdge,
       borderColor: recWhiteColor,
@@ -277,7 +288,7 @@ Widget build(BuildContext context) {
       ),
       splashRadius: 0,
       scaleFactor: 0.9,
-      onTap: (index) => setState(() => selectedIndex = index),
+      onTap: (index) => setState(() => _currentIndex = index),
     );
   }
 

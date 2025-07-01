@@ -59,7 +59,7 @@ class _MemberSetttingsLandingScreenState
                 border: Border.all(
                   color: whiteF5Color,
                 ),
-                boxShadow: boxShadow,
+                // boxShadow: boxShadow,
               ),
               child: ListView(
                 physics: const BouncingScrollPhysics(),

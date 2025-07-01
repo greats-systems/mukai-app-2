@@ -6,6 +6,7 @@ import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/controllers/asset.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
@@ -14,6 +15,7 @@ import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/constants/hardCodedCountries.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:mukai/widget/render_supabase_image.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
@@ -24,8 +26,7 @@ import 'package:iconify_flutter_plus/icons/ic.dart';
 import 'package:iconify_flutter_plus/icons/ph.dart';
 
 class AddMemberAssetWidget extends StatefulWidget {
-
-   AddMemberAssetWidget({
+  AddMemberAssetWidget({
     super.key,
   });
 
@@ -65,7 +66,6 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
     super.initState();
   }
 
-
   @override
   Widget build(BuildContext context) {
     profileController.isLoading.value = false;
@@ -73,7 +73,7 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
     width = size.width;
     height = size.height;
     return _isLoading
-        ? Center(child: CircularProgressIndicator())
+        ? Center(child: LoadingShimmerWidget())
         : Scaffold(
             appBar: AppBar(
               automaticallyImplyLeading: false,
@@ -137,16 +137,16 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
                   //     ? town_cityField()
                   //     : SizedBox()),
                   // heightBox(10),
-        
                 ],
               ),
             ),
-            bottomNavigationBar: Obx(() => assetController.isLoading.value == true
-                ? const LinearProgressIndicator(
-                  minHeight: 1,
-                    color: whiteColor,
-                  )
-                : saveButton(context)),
+            bottomNavigationBar:
+                Obx(() => assetController.isLoading.value == true
+                    ? const LinearProgressIndicator(
+                        minHeight: 1,
+                        color: whiteColor,
+                      )
+                    : saveButton(context)),
           );
   }
 
@@ -325,13 +325,13 @@ class _MemberDetailScreenState extends State<AddMemberAssetWidget> {
     );
   }
 
-   saveButton(BuildContext context) {
+  saveButton(BuildContext context) {
     return Padding(
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: GestureDetector(
         onTap: () async {
-GetStorage _getStorage = GetStorage();
-      final userId = await _getStorage.read('userId');
+          GetStorage _getStorage = GetStorage();
+          final userId = await _getStorage.read('userId');
 
           assetController.createAsset(null, userId, 'profile');
           Navigator.pop(context);
@@ -361,9 +361,6 @@ GetStorage _getStorage = GetStorage();
       ),
     );
   }
-
-
-
 
   cityField() {
     return Column(
@@ -421,7 +418,7 @@ GetStorage _getStorage = GetStorage();
     );
   }
 
-    descriptionField() {
+  descriptionField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -523,28 +520,29 @@ GetStorage _getStorage = GetStorage();
         heightSpace,
         boxWidget(
           child: DropdownSearch<String>(
-                onChanged: (value) {
-                  if (value != null) {
-                    assetController.asset.value?.category = value;
-                  }
-                },
-                selectedItem: "Fixed", // Default to Fixed
-                items: (filter, infiniteScrollProps) => const ["Fixed", "Non-Fixed", "Other"],
-                decoratorProps: DropDownDecoratorProps(
-                  decoration: InputDecoration(
-                    border: InputBorder.none,
-                    hintText: 'Select Asset Type',
-                    hintStyle: semibold14Grey,
-                    contentPadding: EdgeInsets.all(fixPadding * 1.5),
-                  ),
-                ),
-                popupProps: PopupProps.menu(
-                  itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(item, style: semibold14Black),
-                  ),
-                ),
+            onChanged: (value) {
+              if (value != null) {
+                assetController.asset.value?.category = value;
+              }
+            },
+            selectedItem: "Fixed", // Default to Fixed
+            items: (filter, infiniteScrollProps) =>
+                const ["Fixed", "Non-Fixed", "Other"],
+            decoratorProps: DropDownDecoratorProps(
+              decoration: InputDecoration(
+                border: InputBorder.none,
+                hintText: 'Select Asset Type',
+                hintStyle: semibold14Grey,
+                contentPadding: EdgeInsets.all(fixPadding * 1.5),
               ),
+            ),
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(item, style: semibold14Black),
+              ),
+            ),
+          ),
         )
       ],
     );
@@ -572,22 +570,21 @@ GetStorage _getStorage = GetStorage();
   picInfo() {
     double height = MediaQuery.of(context).size.height;
     double width = MediaQuery.of(context).size.width;
-    return Obx(
-        () => assetController.selectedAsset.value?.imageUrl != null
-            ? SizedBox(
-                height: height * 0.2,
-                width: width * 0.3,
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(20),
-                  child: RenderSupabaseImageIdWidget(
-                    filePath: assetController.selectedAsset.value?.imageUrl ?? '',
-                  ),
-                ),
-              )
-            : const Icon(
-                Icons.person_2_rounded,
-                color: blackOrignalColor,
-              ));
+    return Obx(() => assetController.selectedAsset.value?.imageUrl != null
+        ? SizedBox(
+            height: height * 0.2,
+            width: width * 0.3,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: RenderSupabaseImageIdWidget(
+                filePath: assetController.selectedAsset.value?.imageUrl ?? '',
+              ),
+            ),
+          )
+        : const Icon(
+            Icons.person_2_rounded,
+            color: blackOrignalColor,
+          ));
   }
 
   userProfileImage(Size size) {

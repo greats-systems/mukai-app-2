@@ -9,18 +9,6 @@ import 'package:brick_supabase/brick_supabase.dart';
   sqliteConfig: SqliteSerializable(),
 )
 
-/**
- * 
-"transaction_id": "07f3b2c6-14eb-4027-ae73-e42a0e15729d",
-"amount": 100,
-"currency": "usd",
-"narrative": "credit",
-"created_at": "2025-06-20T18:10:53.783577",
-"period_type": "monthly",
-"period_start": "2025-06-01T00:00:00+02:00",
-"period_end": "2025-07-01T00:00:00+02:00"
-  
- */
 class FinancialReport extends OfflineFirstWithSupabaseModel {
   String? transactionId;
   double? amount;

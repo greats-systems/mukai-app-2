@@ -2,12 +2,13 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 import 'dart:convert';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/transaction.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/constants.dart';
-import 'package:mukai/src/bottom_bar.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 // import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/main.controller.dart';
@@ -17,13 +18,12 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/constants.dart' as constants;
 
 class TransactionController extends MainController {
   AuthController get authController => Get.put(AuthController());
 
   TransactionController();
-  final dio = Dio();
+  final dio = DioClient().dio;
   var accountNumber = ''.obs;
   var phoneNumber = ''.obs;
   var orderId = ''.obs;
@@ -72,10 +72,55 @@ class TransactionController extends MainController {
     super.onInit();
   }
 
+  Stream<List<Transaction>> streamAccountTransaction() {
+    return supabase
+        .from('transactions')
+        .stream(primaryKey: ['id']) // primary key column(s)
+        .asyncMap((response) async {
+      final id = await _getStorage.read('userId');
+      var wallet_id = _getStorage.read('profile_wallet_id');
+      log('profile_wallet_id: $wallet_id');
+      final fullResponse = await supabase
+          .from('transactions')
+          .select('''*, 
+                  transactions_member_id_fkey(*), 
+                  transactions_sending_wallet_fkey(*), 
+                  transactions_receiving_wallet_fkey(*)''')
+          .or("member_id.eq.$id,receiving_wallet.eq.$wallet_id,sending_wallet.eq.$wallet_id")
+          .order('created_date', ascending: false);
+      if (fullResponse.isEmpty) return <Transaction>[];
+
+      return fullResponse.map((item) => Transaction.fromJson(item)).toList();
+    });
+  }
+
+  Stream<List<Transaction>> streamContributionsTransaction() {
+    return supabase
+        .from('transactions')
+        .stream(primaryKey: ['id']) // primary key column(s)
+        .asyncMap((response) async {
+      final id = await _getStorage.read('userId');
+      var wallet_id = _getStorage.read('profile_wallet_id');
+      log('profile_wallet_id: $wallet_id');
+      final fullResponse = await supabase
+          .from('transactions')
+          .select('''*, 
+                  transactions_member_id_fkey(*), 
+                  transactions_sending_wallet_fkey(*), 
+                  transactions_receiving_wallet_fkey(*)''')
+          .eq('transaction_type', 'contribution')
+          .or("account_id.eq.$id,receiving_wallet.eq.$wallet_id,sending_wallet.eq.$wallet_id")
+          .order('created_date', ascending: false);
+      if (fullResponse.isEmpty) return <Transaction>[];
+
+      return fullResponse.map((item) => Transaction.fromJson(item)).toList();
+    });
+  }
+
   Future<dynamic> getFinancialReport(String walletId) async {
     try {
-      final response =
-          await dio.get('$APP_API_ENDPOINT/transactions/report/$walletId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId');
       return response.data;
     } catch (e, s) {
       log('getFinancialReport error: $e $s');
@@ -86,8 +131,8 @@ class TransactionController extends MainController {
     List<Profile> profilesList = [];
     log('--------- getMemberLikeID $id ----------');
     try {
-      final response =
-          await dio.get('$APP_API_ENDPOINT/auth/profiles/like/$id');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
       final List<dynamic> jsonList = response.data;
       log(JsonEncoder.withIndent(' ').convert(jsonList));
       profilesList = jsonList.map((item) => Profile.fromMap(item)).toList();
@@ -98,8 +143,8 @@ class TransactionController extends MainController {
             title: 'Success', message: 'order saved', duration: 5);
         isLoading.value = false;
         transactions.refresh();
-        final walletJson =
-            await dio.get('$APP_API_ENDPOINT/wallets/${jsonList[0]['id']}');
+        final walletJson = await dio.get(
+            '${EnvConstants.APP_API_ENDPOINT}/wallets/${jsonList[0]['id']}');
         // log(JsonEncoder.withIndent(' ').convert(walletJson.data['id']));
         transferTransaction.value.receiving_wallet = walletJson.data['id'];
         log(transferTransaction.value.receiving_wallet.toString());
@@ -120,8 +165,8 @@ class TransactionController extends MainController {
     Profile profile = Profile();
     log('--------- get profile wallet id $id ----------');
     try {
-      final response =
-          await dio.get('$APP_API_ENDPOINT/auth/profiles/like/$id');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
       final List<dynamic> jsonList = response.data;
 
       if (jsonList.isNotEmpty) {
@@ -150,8 +195,8 @@ class TransactionController extends MainController {
     Profile profile = Profile();
     log('--------- get profile wallet id $id ----------');
     try {
-      final response = await dio
-          .get('$APP_API_ENDPOINT/wallets/get_profile_by_wallet_id/$id');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/get_profile_by_wallet_id/$id');
       var data = response.data['data'];
       log('data ${data}');
       if (data != null) {
@@ -173,7 +218,7 @@ class TransactionController extends MainController {
     log('--------- getAllMembers ----------');
     try {
       final response =
-          await dio.get('${constants.APP_API_ENDPOINT}/auth/profiles');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles');
       // log(JsonEncoder.withIndent(' ').convert(response.data));
       final List<dynamic> jsonList = response.data;
       profilesList = jsonList.map((item) => Profile.fromMap(item)).toList();
@@ -210,15 +255,18 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'Error', message: error.message);
+          Helper.errorSnackBar(
+              title: 'getAllTransaction PostgrestException',
+              message: error.message);
         } else {
-          Helper.errorSnackBar(title: 'Error', message: error);
+          Helper.errorSnackBar(
+              title: 'getAllTransaction Other exception', message: error);
         }
       });
       transactions.refresh();
       return transactionList;
     } catch (error) {
-      Helper.errorSnackBar(title: 'Error', message: error);
+      Helper.errorSnackBar(title: 'getAllTransaction Error', message: error);
       return transactionList;
     }
   }
@@ -241,10 +289,10 @@ class TransactionController extends MainController {
       // transferTransaction.value.account_id = userId;
 
       transferTransaction.value.category = 'transfer';
-      log(APP_API_ENDPOINT);
+      // log(APP_API_ENDPOINT);
       log('transaction ${transferTransaction.toJson()}');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/transactions',
+        '${EnvConstants.APP_API_ENDPOINT}/transactions',
         data: transferTransaction.toJson(),
         options: Options(
           validateStatus: (status) {
@@ -273,7 +321,7 @@ class TransactionController extends MainController {
             message: response.data['message'],
             duration: 5);
         authController.initiateNewTransaction.value = false;
-        final role = await _getStorage.read('account_type');
+        // final role = await _getStorage.read('account_type');
         // if (role == 'coop-member') {
         //   Get.to(() => BottomBar(
         //         role: 'member',
@@ -311,7 +359,8 @@ class TransactionController extends MainController {
           .from('transactions')
           .insert(transaction.toJson())
           .then((value) async {
-        await Helper.successSnackBar(title: 'Success', message: 'order saved');
+        await Helper.successSnackBar(
+            title: 'Success', message: 'contribution saved', duration: 5);
         isLoading.value = false;
 
         Get.toNamed(Routes.bottomBar);
@@ -320,15 +369,24 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'Error', message: error.message);
+          Helper.errorSnackBar(
+              title: 'addTransaction PostgrestException',
+              message: error.message.toString(),
+              duration: 5);
         } else {
-          Helper.errorSnackBar(title: 'Error', message: error);
+          Helper.errorSnackBar(
+              title: 'addTransaction Other exception',
+              message: error.toString(),
+              duration: 5);
         }
       });
     } catch (error) {
       log('addNewOrder error $error');
       isLoading.value = false;
-      Helper.errorSnackBar(title: 'Error', message: error);
+      Helper.errorSnackBar(
+          title: 'addTransaction Error',
+          message: error.toString(),
+          duration: 5);
       return;
     }
   }
@@ -345,13 +403,16 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'Error', message: error.message);
+          Helper.errorSnackBar(
+              title: 'createCloudTransaction PostgrestException',
+              message: error.message);
         } else {
-          Helper.errorSnackBar(title: 'Error', message: error);
+          Helper.errorSnackBar(
+              title: 'createCloudTransaction other exception', message: error);
         }
       });
     } catch (e) {
-      log("Error updating document for  transaction id: ${transaction.id!}, Error: $e");
+      log("Error updating document for transaction id: ${transaction.id!}, Error: $e");
     }
   }
 
@@ -381,15 +442,17 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'Error', message: error.message);
+          Helper.errorSnackBar(
+              title: 'buyAirtime PostgrestException', message: error.message);
         } else {
-          Helper.errorSnackBar(title: 'Error', message: error);
+          Helper.errorSnackBar(
+              title: 'buyAirtime other exception', message: error);
         }
       });
     } catch (error) {
       log('addNewOrder error $error');
       isLoading.value = false;
-      Helper.errorSnackBar(title: 'Error', message: error);
+      Helper.errorSnackBar(title: 'buyAirtime Error', message: error);
       return;
     }
   }
@@ -410,15 +473,18 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'Error', message: error.message);
+          Helper.errorSnackBar(
+              title: 'buyParkingTicket PostgrestException',
+              message: error.message);
         } else {
-          Helper.errorSnackBar(title: 'Error', message: error);
+          Helper.errorSnackBar(
+              title: 'buyParkingTicket other exception', message: error);
         }
       });
     } catch (error) {
       log('addNewOrder error $error');
       isLoading.value = false;
-      Helper.errorSnackBar(title: 'Error', message: error);
+      Helper.errorSnackBar(title: 'buyParkingTicket Error', message: error);
       return;
     }
   }

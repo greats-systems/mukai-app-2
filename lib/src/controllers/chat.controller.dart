@@ -1,16 +1,17 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:mukai/core/config/dio_interceptor.dart';
 // import 'package:mukai/brick/models/chat.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/src/apps/chats/schema/chat.dart';
 
 class ChatController {
-  final dio = Dio();
+  final dio = DioClient().dio;
   Future<List<Chat>?> getPendingRequests() async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/chats');
+      final response = await dio.get('${EnvConstants.APP_API_ENDPOINT}/chats');
       final json = response.data;
       return json.map((item) => Chat.fromJson(item)).toList();
     } catch (e) {
@@ -21,7 +22,8 @@ class ChatController {
 
   Future<Map<String, dynamic>> getPendingRequestDetails(String memberId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/pendng/$memberId');
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/pendng/$memberId');
       /*
       final response = await supabase
           .from('cooperative_member_requests')
@@ -43,7 +45,7 @@ class ChatController {
         throw Exception('Member ID is required');
       }
       final response = await dio.patch(
-          '$APP_API_ENDPOINT/cooperative_member_requests/${request.memberId}');
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/${request.memberId}');
       /*
       final response =
           await supabase.from('cooperative_member_requests').update({

@@ -5,7 +5,7 @@ import 'package:iconify_flutter_plus/icons/material_symbols.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/apps/groups/views/screens/group_members.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/group_members.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
@@ -67,7 +67,7 @@ class _AdmingSetttingsLandingScreenState
                 border: Border.all(
                   color: whiteF5Color,
                 ),
-                boxShadow: boxShadow,
+                // boxShadow: boxShadow,
               ),
               child: ListView(
                 physics: const BouncingScrollPhysics(),
@@ -114,48 +114,6 @@ class _AdmingSetttingsLandingScreenState
         child: Column(
           spacing: 5,
           children: [
-            /*
-            GestureDetector(
-              onTap: () {
-                Get.to(() => GroupMembersScreen(
-                      initialselectedTab: 0,
-                      profiles: profiles!
-                    ));
-              },
-              child: Row(
-                spacing: 10,
-                children: [
-                  Iconify(
-                    Ri.account_circle_fill,
-                    color: primaryColor,
-                  ),
-                  Text(
-                    'Group Memebers',
-                    style: bold16Black,
-                  )
-                ],
-              ),
-            ),
-            Divider(
-              color: greyColor.withValues(alpha: 0.2),
-            ),
-            Row(
-              spacing: 10,
-              children: [
-                Iconify(
-                  Ri.history_line,
-                  color: primaryColor,
-                ),
-                Text(
-                  'Group history',
-                  style: bold16Black,
-                )
-              ],
-            ),
-            Divider(
-              color: greyColor.withValues(alpha: 0.2),
-            ),
-            */
             Row(
               spacing: 10,
               children: [
@@ -210,7 +168,7 @@ class _AdmingSetttingsLandingScreenState
   feedbackDetails() {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Container(
-        height: height * 0.25,
+        height: height * 0.28,
         width: width * 0.9,
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
