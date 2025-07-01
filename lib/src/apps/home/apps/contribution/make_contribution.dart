@@ -20,16 +20,14 @@ class _MakeContributionScreenState extends State<MakeContributionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        floatingActionButton: _getStorage.read('account_type') == 'coop-manager'
-            ? FloatingActionButton(
-                onPressed: () {
-                  Get.to(() => AddContributionScreen(group: widget.group));
-                },
-                backgroundColor: primaryColor,
-                tooltip: 'Add Portfolio',
-                child: const Icon(Icons.add, color: Colors.white),
-              )
-            : null,
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Get.to(() => AddContributionScreen(group: widget.group));
+          },
+          backgroundColor: primaryColor,
+          tooltip: 'Add Portfolio',
+          child: const Icon(Icons.add, color: Colors.white),
+        ),
         appBar: MyAppBar(title: 'Make Contribution'),
         body: Center(child: Text('Make contribution')));
   }

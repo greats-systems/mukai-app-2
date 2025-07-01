@@ -75,7 +75,7 @@ class EnvConstants {
   static late final String API_VERSION;
   static late final String CUSTOM_GOOGLE_APPLICATION_CREDENTIALS;
 
-  static Future<void> init({String envFile = '.env.dev'}) async {
+  static Future<void> init({String envFile = '.env'}) async {
     try {
       log(envFile);
       await dotenv.load(fileName: envFile);

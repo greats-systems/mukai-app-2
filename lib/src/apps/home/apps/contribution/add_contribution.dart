@@ -137,7 +137,7 @@ class AddContributionScreenState extends State<AddContributionScreen> {
         ? Center(child: LoadingShimmerWidget())
         : Scaffold(
             appBar: AppBar(
-              title: const Text('Set Savings Plan'),
+              title: const Text('Add Contribution Record'),
               backgroundColor: primaryColor,
               foregroundColor: Colors.white,
               elevation: 0,

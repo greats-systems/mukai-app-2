@@ -127,78 +127,81 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     final size = MediaQuery.of(context).size;
     return Drawer(
       backgroundColor: whiteColor,
-      child: ListView(
-        // Important: Remove any padding from the ListView.
-        // padding: EdgeInsets.symmetric(vertical: 5),
-        children: [
-          ListTile(
-            title: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Iconify(
-                  Ri.bank_line,
-                  color: primaryColor,
-                ),
-                SizedBox(
-                  width: size.width / 24,
-                ),
-                const Text(
-                  'Loans',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
+      child: SizedBox(
+        height: height * 0.8,
+        child: ListView(
+          // Important: Remove any padding from the ListView.
+          // padding: EdgeInsets.symmetric(vertical: 5),
+          children: [
+            ListTile(
+              title: Row(
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Iconify(
+                    Ri.bank_line,
+                    color: primaryColor,
+                  ),
+                  SizedBox(
+                    width: size.width / 24,
+                  ),
+                  const Text(
+                    'Loans',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              onTap: () {
+                Get.to(() => LoanLandingPageScreen(
+                      group: widget.group,
+                    ));
+              },
             ),
-            onTap: () {
-              Get.to(() => LoanLandingPageScreen(
-                    group: widget.group,
-                  ));
-            },
-          ),
-          ListTile(
-            title: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Iconify(
-                  Ri.money_dollar_box_line,
-                  color: primaryColor,
-                ),
-                SizedBox(
-                  width: size.width / 24,
-                ),
-                const Text(
-                  'Subscriptions',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
+            ListTile(
+              title: Row(
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Iconify(
+                    Ri.money_dollar_box_line,
+                    color: primaryColor,
+                  ),
+                  SizedBox(
+                    width: size.width / 24,
+                  ),
+                  const Text(
+                    'Subscriptions',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              onTap: () {
+                Get.to(() => MySubscriptionsScreen());
+              },
             ),
-            onTap: () {
-              Get.to(() => MySubscriptionsScreen());
-            },
-          ),
-          ListTile(
-            title: Row(
-              // mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Iconify(
-                  Ri.hand_coin_line,
-                  color: primaryColor,
-                ),
-                SizedBox(
-                  width: size.width / 24,
-                ),
-                const Text(
-                  'Contributions',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ],
+            ListTile(
+              title: Row(
+                // mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Iconify(
+                    Ri.hand_coin_line,
+                    color: primaryColor,
+                  ),
+                  SizedBox(
+                    width: size.width / 24,
+                  ),
+                  const Text(
+                    'Contributions',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+              onTap: () {
+                Get.to(() => MakeContributionScreen(
+                      group: widget.group,
+                    ));
+              },
             ),
-            onTap: () {
-              Get.to(() => MakeContributionScreen(
-                    group: widget.group,
-                  ));
-            },
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -263,7 +266,10 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
           elevation: 0,
           title: _isLoading
               ? Center(
-                  child: LoadingShimmerWidget(),
+                  child: SizedBox(
+                    height: 100,
+                    child: LoadingShimmerWidget(),
+                  ),
                 )
               : Column(
                   children: [
@@ -274,7 +280,6 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              profileButton(),
                               IconButton(
                                 // Menu button on the right
                                 icon: const Icon(
@@ -286,6 +291,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                                   _scaffoldKey.currentState?.openDrawer();
                                 },
                               ),
+                              profileButton(),
                             ],
                           ),
                           heightBox(20),
@@ -494,13 +500,11 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                   ),
                   MukandoMembersList(
                     group: widget.group,
-                  ),                  
-                  
+                  ),
                   CoopAssetsWidget(
                     group: widget.group,
                   ),
                   CoopPollsScreen(group: widget.group),
-                  
                 ],
               ),
             ),
@@ -512,6 +516,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
 
   Widget tabBar() {
     return Container(
+      height: height * 0.065,
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         color: secondaryColor,
