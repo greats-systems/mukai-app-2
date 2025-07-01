@@ -209,7 +209,7 @@ class _CoopLoanLandingPageScreenState extends State<CoopLoanLandingPageScreen> {
                 },
                 children: [
                   LoanApplicationScreen(group: widget.group),
-                  MyLoansScreen(),
+                  MyLoansScreen(group: widget.group),
                   CoopLoansScreen(group: widget.group),
                 ],
               ),

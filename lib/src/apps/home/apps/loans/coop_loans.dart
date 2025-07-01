@@ -56,6 +56,7 @@ class _LoansScreenState extends State<CoopLoansScreen> {
       setState(() {
         loans = loansData;
       });
+      log('CoopLoansScreen group: ${widget.group.toJson().toString()}');
     } on Exception catch (e, s) {
       log('LoanLandingPage: $e $s');
     } finally {

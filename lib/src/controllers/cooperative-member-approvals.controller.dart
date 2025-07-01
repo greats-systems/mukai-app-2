@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/core/config/dio_interceptor.dart';
@@ -12,6 +13,7 @@ class CooperativeMemberApprovalsController {
   var selectedGroup = Rx<Group?>(null);
   final isLoading = Rx<bool>(false);
   final cma = CooperativeMemberApproval().obs;
+  final coop = Cooperative().obs;
   final dio = DioClient().dio;
 
   Future<void> createPoll() async {
@@ -71,9 +73,20 @@ class CooperativeMemberApprovalsController {
 
   Future<Map<String, dynamic>?> updatePoll() async {
     try {
+      var data = {
+        'group_id': cma.value.groupId,
+        'additional_info':cma.value.additionalInfo,
+        'poll_description': cma.value.pollDescription,
+        'supporting_votes': cma.value.supportingVotes,
+        'opposing_votes': cma.value.opposingVotes,
+        'updated_at': DateTime.now().toIso8601String(),
+      };
+      log(data.toString());
       final response = await dio.patch(
         '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/${cma.value.id}',
         data: {
+          'group_id': cma.value.groupId,
+          'additional_info':cma.value.additionalInfo,
           'poll_description': cma.value.pollDescription,
           'supporting_votes': cma.value.supportingVotes,
           'opposing_votes': cma.value.opposingVotes,

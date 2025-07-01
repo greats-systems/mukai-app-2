@@ -11,6 +11,7 @@ import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
@@ -41,6 +42,8 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
   TextEditingController principalAmountController = TextEditingController();
   TextEditingController repaymentAmountController = TextEditingController();
   LoanController loanController = Get.put(LoanController());
+  CooperativeMemberApprovalsController cmaController =
+      Get.put(CooperativeMemberApprovalsController());
   // ProfileController profileController = Get.put(ProfileController());
   late double height;
   late double width;
@@ -399,25 +402,33 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
           children: [
             GestureDetector(
               onTap: () async {
+                cmaController.cma.value.groupId = widget.group!.id;
+                cmaController.cma.value.pollDescription = 'loan application';
+                cmaController.cma.value.additionalInfo =
+                    widget.loan.principalAmount;
+                cmaController.cma.value.supportingVotes = [userId!];
+
                 // log('loan id: ${widget.loan.id}');
-                loanController.selectedLoan.value.id = widget.loan.id;
-                loanController.selectedCoop.value.id = widget.group!.id;
-                loanController.selectedProfile.value.id = userId;
-                loanController.isSupporting.value = true;
+                // loanController.selectedLoan.value.id = widget.loan.id;
+                // loanController.selectedCoop.value.id = widget.group!.id;
+                // loanController.selectedProfile.value.id = userId;
+                // loanController.isSupporting.value = true;
                 try {
-                  final response = await loanController.updateLoanApproval();
+                  final response = await cmaController.updatePoll();
+                  // log(response.toString())
+                  // final response = await loanController.updateLoanApproval();
                   // log('LoanDetail polling response:\n${JsonEncoder.withIndent(' ').convert(response.data)}');
-                  if (response!['data'] == "You have voted already") {
-                    Helper.warningSnackBar(
-                        title: 'Duplicate vote',
-                        message: response['data'],
-                        duration: 5);
-                  } else {
-                    Helper.successSnackBar(
-                        title: 'Success!',
-                        message: 'You have cast your vote',
-                        duration: 5);
-                  }
+                  // if (response!['data'] == "You have voted already") {
+                  //   Helper.warningSnackBar(
+                  //       title: 'Duplicate vote',
+                  //       message: response['data'],
+                  //       duration: 5);
+                  // } else {
+                  //   Helper.successSnackBar(
+                  //       title: 'Success!',
+                  //       message: 'You have cast your vote',
+                  //       duration: 5);
+                  // }
                 } on DioException catch (e, s) {
                   log('DioException encountered when casting vote $e $s');
                   Helper.errorSnackBar(
@@ -443,7 +454,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
                     spacing: 1,
                     children: [
                       Text(
-                        'Support',
+                        'Supportttt',
                         style: bold16White,
                       ),
                     ],

@@ -149,6 +149,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               ],
             ),
             onTap: () {
+              log(widget.group.id.toString());
               Get.to(() => CoopLoanLandingPageScreen(
                     group: widget.group,
                   ));
@@ -492,13 +493,11 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                   ),
                   MukandoMembersList(
                     group: widget.group,
-                  ),                  
-                  
+                  ),
                   CoopAssetsWidget(
                     group: widget.group,
                   ),
                   CoopPollsScreen(group: widget.group),
-                  
                 ],
               ),
             ),

@@ -172,18 +172,19 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                             interestRate = num.parse(newValue!);
                           });
                           cmaController.cma.value.pollDescription =
-                              'set interest rate';
-                          // loanController.selectedLoan.value.interestRate =
-                          //     interestRate;
-                          // loanController.cma.value.additionalInfo = widget.;
-                          // loanController.selectedLoan.value.updatedAt =
-                          //     DateTime.now().toIso8601String();
+                              'vote for loan';
+                          loanController.selectedLoan.value.interestRate =
+                              interestRate;
+                          // cmaController.cma.value.additionalInfo = widget.;
+                          loanController.selectedLoan.value.updatedAt =
+                              DateTime.now().toIso8601String();
                           cmaController.cma.value.updatedAt =
                               DateTime.now().toIso8601String();
                           // loanController.selectedCoop.value.id =
                           //     widget.group.id;
                           cmaController.cma.value.groupId = widget.group.id!;
-                          loanController.updateCoopLoan();
+                          cmaController.createPoll();
+                          // loanController.updateCoopLoan();
                           // groupController.updateInterestRate(widget.group.id!,
                           //     double.parse(interestRate.toString()));
                           // loanController.calculateRepayAmount();
@@ -193,7 +194,8 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                         }
                       },
                     ),
-                  Text('*based on 2% monthly compound interest')
+                  Text(
+                      '*based on ${(widget.group.interest_rate) * 100}% monthly compound interest')
                 ],
               ),
             ),
@@ -213,8 +215,9 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         onTap: () async {
           try {
             // loanController.createLoan(userId!);
-            // cmaController.selectedGroup.value?.id = widget.group.id;
-            // cmaController.createPoll();
+            cmaController.selectedGroup.value?.id = widget.group.id;
+            cmaController.cma.value.pollDescription = 'loan application';
+            cmaController.createPoll();
             loanController.sendingWallet.value.id = senderWallet![0].id;
             loanController.receivingWallet.value.id = receiverWallet!.id;
             loanController.createLoan(userId!);

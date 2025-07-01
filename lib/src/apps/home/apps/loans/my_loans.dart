@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'dart:developer';
@@ -13,7 +14,8 @@ import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
 class MyLoansScreen extends StatefulWidget {
-  const MyLoansScreen({super.key});
+  final Group group;
+  const MyLoansScreen({super.key, required this.group});
 
   @override
   State<MyLoansScreen> createState() => _LoansScreenState();
@@ -88,6 +90,7 @@ class _LoansScreenState extends State<MyLoansScreen> {
                       onTap: () {
                         // loanController.selectedLoan.value = loan;
                         Get.to(() => LoanDetailScreen(
+                          group: widget.group,
                               // groupId: widget.group.id,
                               loan: loan,
                               // isActive: _showActiveMembers,

@@ -10,6 +10,7 @@ import 'package:mukai/theme/theme.dart';
 
 class LoanItemWidget extends StatefulWidget {
   final Loan? loan;
+  // final Group group;
   const LoanItemWidget({super.key, required this.loan});
 
   @override
@@ -61,59 +62,58 @@ class _LoanItemWidgetState extends State<LoanItemWidget> {
   }
 
   Widget _buildLoanDetail(Loan? loan) {
-  final width = MediaQuery.of(context).size.width;
-  final height = MediaQuery.of(context).size.height;
-  
-  if (loan == null) {
-    return Center(child: Text('No loan'));
-  }
+    final width = MediaQuery.of(context).size.width;
+    final height = MediaQuery.of(context).size.height;
 
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Expanded(
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  loan.loanPurpose ?? 'No loan purpose',
-                  style: semibold12black,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                height5Space,
-                _buildPrincipalAmountInfo(loan),
-              ],
-            ),
-            SizedBox(
-              width: height/8,
-              height: width/8,
-              child: Card(
-                color: loan.hasReceivedVote ?? false
-                    ? tertiaryColor
-                    : primaryColor,
-                child: Center(
-                  child: Text(
-                    loan.hasReceivedVote ?? false
-                        ? 'Voting underway'
-                        : 'Pending vote', 
-                    style: TextStyle(
-                      fontSize: 12, 
-                      fontWeight: FontWeight.bold,
-                      color: whiteColor
+    if (loan == null) {
+      return Center(child: Text('No loan'));
+    }
+
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    loan.loanPurpose ?? 'No loan purpose',
+                    style: semibold12black,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  height5Space,
+                  _buildPrincipalAmountInfo(loan),
+                ],
+              ),
+              SizedBox(
+                width: height / 8,
+                height: width / 8,
+                child: Card(
+                  color: loan.hasReceivedVote ?? false
+                      ? tertiaryColor
+                      : primaryColor,
+                  child: Center(
+                    child: Text(
+                      loan.hasReceivedVote ?? false
+                          ? 'Voting underway'
+                          : 'Pending vote',
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
+                          color: whiteColor),
                     ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
-      ),
-    ],
-  );
-}
+      ],
+    );
+  }
 
   Widget _buildInterestInfo(Loan? loan) {
     return loan != null

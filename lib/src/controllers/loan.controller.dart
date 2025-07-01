@@ -37,7 +37,7 @@ class LoanController extends GetxController {
     }
 
     var monthlyRate = await fetchCoopInterestRate(selectedCoop.value.id!); // 2% monthly interest
-    final repayAmount = principal * pow(1 + num.parse(monthlyRate!.toString()), months);
+    final repayAmount = principal + (principal * num.parse(monthlyRate!.toString()) * months);
 
     selectedLoan.update((loan) {
       loan?.paymentAmount = repayAmount;
@@ -83,7 +83,7 @@ class LoanController extends GetxController {
       loanToCreate.cooperativeId = selectedCoop.value.id;
       loanToCreate.borrowerWalletId = receivingWallet.value.id;
       loanToCreate.lenderWalletId = sendingWallet.value.id;
-      loanToCreate.interestRate = 0.02;
+      loanToCreate.interestRate = selectedCoop.value.interest_rate;
       loanToCreate.nextPaymentDate = nextMonthDate.toString().substring(0, 10);
       loanToCreate.status = 'pending';
       loanToCreate.remainingBalance =
@@ -179,8 +179,9 @@ class LoanController extends GetxController {
         'updated_at': DateTime.now().toIso8601String(),
         'loan_id': selectedLoan.value.id,
       };
-    }
+    }    
     try {
+      dev.log(params.toString());
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${selectedCoop.value.id}/loans',
           data: params);

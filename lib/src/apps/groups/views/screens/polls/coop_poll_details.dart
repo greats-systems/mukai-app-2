@@ -158,9 +158,9 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
                       value: numberOfMembersController.text,
                     ),
                     const SizedBox(height: 16),
-                    _buildInterestField(
+                    _buildDetailField(
                       label: 'Proposed value',
-                      value: num.tryParse(proposedValueController.text) ?? 0,
+                      value: proposedValueController.text,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailField(
