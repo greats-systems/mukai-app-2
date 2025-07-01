@@ -94,6 +94,29 @@ class TransactionController extends MainController {
     });
   }
 
+  Stream<List<Transaction>> streamContributionsTransaction() {
+    return supabase
+        .from('transactions')
+        .stream(primaryKey: ['id']) // primary key column(s)
+        .asyncMap((response) async {
+      final id = await _getStorage.read('userId');
+      var wallet_id = _getStorage.read('profile_wallet_id');
+      log('profile_wallet_id: $wallet_id');
+      final fullResponse = await supabase
+          .from('transactions')
+          .select('''*, 
+                  transactions_member_id_fkey(*), 
+                  transactions_sending_wallet_fkey(*), 
+                  transactions_receiving_wallet_fkey(*)''')
+          .eq('transaction_type', 'contribution')
+          .or("account_id.eq.$id,receiving_wallet.eq.$wallet_id,sending_wallet.eq.$wallet_id")
+          .order('created_date', ascending: false);
+      if (fullResponse.isEmpty) return <Transaction>[];
+
+      return fullResponse.map((item) => Transaction.fromJson(item)).toList();
+    });
+  }
+
   Future<dynamic> getFinancialReport(String walletId) async {
     try {
       final response = await dio.get(

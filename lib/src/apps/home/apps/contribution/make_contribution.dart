@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/components/app_bar.dart';
+import 'package:mukai/src/apps/home/admin/account_contributions_transactions.dart';
 import 'package:mukai/src/apps/home/admin/account_transactions.dart';
 import 'package:mukai/src/apps/home/admin/admin_recent_transactions.dart';
 import 'package:mukai/src/apps/home/apps/contribution/add_contribution.dart';
@@ -35,7 +36,7 @@ class _MakeContributionScreenState extends State<MakeContributionScreen> {
             color: whiteF5Color,
             child: Container(
               height: MediaQuery.sizeOf(context).height * 0.8,
-              child: AccountTransactionsList(),
+              child: AccountContributionsTransactionsList(),
             )));
   }
 }

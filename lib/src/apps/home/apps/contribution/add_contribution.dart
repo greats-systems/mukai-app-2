@@ -152,21 +152,16 @@ class AddContributionScreenState extends State<AddContributionScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Receiving Wallet',
-                            style: bold16Black,
-                          ),
-                          widthBox(10),
-                          if (widget.group.wallet_id != null)
-                            Text(
-                              '... ${widget.group.wallet_id?.substring(28, 36)}',
-                              style: semibold14Grey,
-                            ),
-                        ],
+                      Text(
+                        'Receiving Wallet',
+                        style: bold16Black,
                       ),
+                      widthBox(10),
+                      if (widget.group.wallet_id != null)
+                        Text(
+                          '${widget.group.wallet_id?.substring(24, 36)}',
+                          style: semibold14Grey,
+                        ),
                     ],
                   ),
                   height20Space,
@@ -313,12 +308,12 @@ class AddContributionScreenState extends State<AddContributionScreen> {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Text(
-                    'Wallet ID:\t',
+                    'Wallet ID:',
                     style: TextStyle(
                         fontWeight: FontWeight.bold, color: whiteF5Color),
                   ),
                   Text(
-                    "${transactionController.selectedProfile.value.wallet_id?.substring(0, 8)}...${transactionController.selectedProfile.value.wallet_id?.substring(28, 36)}",
+                    "${transactionController.selectedProfile.value.wallet_id?.substring(24, 36)}",
                     style: TextStyle(color: whiteF5Color),
                     // style: TextStyle(fontWeight: FontWeight.bold),
                   ),
