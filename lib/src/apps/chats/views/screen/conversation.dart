@@ -346,17 +346,21 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chatContents = [
-      Flexible(
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(
-            color: message.isMine
-                ? primaryColor.withValues(alpha: 0.5)
-                : const Color.fromRGBO(224, 224, 224, 1),
-            borderRadius: BorderRadius.circular(8),
+      Column(
+        children: [
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: message.isMine
+                    ? primaryColor.withValues(alpha: 0.5)
+                    : const Color.fromRGBO(224, 224, 224, 1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(message.content),
+            ),
           ),
-          child: Text(message.content),
-        ),
+        ],
       ),
       const SizedBox(width: 12),
       Text(format(message.createdDate ?? DateTime.now(), locale: 'en_short')),

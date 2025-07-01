@@ -33,12 +33,14 @@ late String initialRoute;
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // final environment = kReleaseMode ? AppEnvironment.prod : AppEnvironment.dev;
   log('kReleaseMode? $kReleaseMode');
+  final environment = kReleaseMode ? AppEnvironment.prod : AppEnvironment.dev;
+  
 
   // 1. Initialize environment variables
   // await dotenv.load(fileName: ".env");
   await EnvConstants.init(envFile: '.env');
+  // await EnvConstants.init(envFile: environment.envFile);
 
   // 2. Initialize local storage
   await GetStorage.init();
@@ -106,6 +108,14 @@ Future<void> main() async {
   // 7. Initialize controllers
   Get.put(AuthController());
   Get.put(TransactionController());
+  // debugDefaultTargetPlatformOverride = TargetPlatform.fuchsia;
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Material(
+      child: Center(
+        child: Text('Render Error: ${details.exception}'),
+      ),
+    );
+  };
 
   // 8. Run the app with initial route based on auth state
   runApp(MyApp(

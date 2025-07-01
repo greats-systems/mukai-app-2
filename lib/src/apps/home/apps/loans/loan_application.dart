@@ -3,8 +3,10 @@ import 'dart:developer';
 
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
+import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
@@ -50,9 +52,11 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
   final town_city_key = GlobalKey<DropdownSearchState>();
 
   AuthController get authController => Get.put(AuthController());
-  GroupController get groupController => Get.put(GroupController());
+  // GroupController get groupController => Get.put(GroupController());
   ProfileController get profileController => Get.put(ProfileController());
-  LoanController get loanController => Get.put(LoanController());
+  // LoanController get cmaController => Get.put(LoanController());
+  CooperativeMemberApprovalsController cmaController =
+      Get.put(CooperativeMemberApprovalsController());
   WalletController get walletController => Get.put(WalletController());
   late double height;
   late double width;
@@ -98,6 +102,12 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+    cmaController.cma.value = CooperativeMemberApproval();
+  }
+
+  @override
   Widget build(BuildContext context) {
     profileController.isLoading.value = false;
     final size = MediaQuery.sizeOf(context);
@@ -125,7 +135,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                   heightBox(10),
                   paybackPeriodMonthsField(),
                   heightBox(10),
-                  totalRepaymentField(),
+                  // totalRepaymentField(),
                   heightBox(20),
                   collateralSwitch(),
                   heightBox(20),
@@ -160,17 +170,23 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                           setState(() {
                             interestRate = num.parse(newValue!);
                           });
-                          loanController.selectedLoan.value.interestRate =
-                              interestRate;
-                          loanController.selectedLoan.value.updatedAt =
+                          cmaController.cma.value.pollDescription =
+                              'set interest rate';
+                          // cmaController.selectedLoan.value.interestRate =
+                          //     interestRate;
+                          // cmaController.cma.value.additionalInfo = widget.;
+                          // cmaController.selectedLoan.value.updatedAt =
+                          //     DateTime.now().toIso8601String();
+                          cmaController.cma.value.updatedAt =
                               DateTime.now().toIso8601String();
-                          loanController.selectedCoop.value.id =
-                              widget.group.id;
-                          // loanController.updateCoopLoan();
-                          groupController
-                              .updateInterestRate(widget.group.id!, double.parse(interestRate.toString()));
-                          loanController.calculateRepayAmount();
-                          log(interestRate.toString());
+                          // cmaController.selectedCoop.value.id =
+                          //     widget.group.id;
+                          cmaController.cma.value.groupId = widget.group.id!;
+                          // cmaController.updateCoopLoan();
+                          // groupController.updateInterestRate(widget.group.id!,
+                          //     double.parse(interestRate.toString()));
+                          // cmaController.calculateRepayAmount();
+                          log(cmaController.cma.value.toJson().toString());
                         } on Exception catch (e) {
                           log(e.toString());
                         }
@@ -180,13 +196,12 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                 ],
               ),
             ),
-            bottomNavigationBar:
-                Obx(() => loanController.isLoading.value == true
-                    ? const LinearProgressIndicator(
-                        minHeight: 1,
-                        color: whiteColor,
-                      )
-                    : saveButton(context)),
+            bottomNavigationBar: Obx(() => cmaController.isLoading.value == true
+                ? const LinearProgressIndicator(
+                    minHeight: 1,
+                    color: whiteColor,
+                  )
+                : saveButton(context)),
           );
   }
 
@@ -196,14 +211,15 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
       child: GestureDetector(
         onTap: () async {
           try {
-            loanController.selectedCoop.value.id = widget.group.id;
-            loanController.sendingWallet.value.id = senderWallet![0].id;
-            loanController.receivingWallet.value.id = receiverWallet!.id;
-            loanController.createLoan(userId!);
+            cmaController.selectedGroup.value?.id = widget.group.id;
+            cmaController.createPoll();
+            // cmaController.sendingWallet.value.id = senderWallet![0].id;
+            // cmaController.receivingWallet.value.id = receiverWallet!.id;
+            // cmaController.createLoan(userId!);
           } on Exception catch (e, s) {
             log('saveButton error $e $s');
           }
-          Navigator.pop(context);
+          // Navigator.pop(context);
           Helper.successSnackBar(
               title: 'Success',
               message: 'Loan application created',
@@ -246,10 +262,10 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
-            onChanged: (value) {
-              loanController.selectedLoan.value.loanPurpose = value;
-              loanController.selectedLoan.refresh();
-            },
+            // onChanged: (value) {
+            //   cmaController.selectedLoan.value.loanPurpose = value;
+            //   cmaController.selectedLoan.refresh();
+            // },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
@@ -401,10 +417,10 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
-            onChanged: (value) {
-              loanController.selectedLoan.value.collateralDescription = value;
-              loanController.selectedLoan.refresh();
-            },
+            // onChanged: (value) {
+            //   cmaController.selectedLoan.value.collateralDescription = value;
+            //   cmaController.selectedLoan.refresh();
+            // },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
@@ -453,13 +469,13 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
-            onChanged: (value) {
-              final amount = double.tryParse(value) ?? 0;
-              loanController.selectedLoan.update((val) {
-                val?.principalAmount = amount;
-              });
-              loanController.calculateRepayAmount();
-            },
+            // onChanged: (value) {
+            //   final amount = double.tryParse(value) ?? 0;
+            //   cmaController.selectedLoan.update((val) {
+            //     val?.principalAmount = amount;
+            //   });
+            //   cmaController.calculateRepayAmount();
+            // },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
@@ -486,13 +502,13 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
-            onChanged: (value) {
-              final months = int.tryParse(value) ?? 0;
-              loanController.selectedLoan.update((val) {
-                val?.loanTermMonths = months;
-              });
-              loanController.calculateRepayAmount();
-            },
+            // onChanged: (value) {
+            //   final months = int.tryParse(value) ?? 0;
+            //   cmaController.selectedLoan.update((val) {
+            //     val?.loanTermMonths = months;
+            //   });
+            //   cmaController.calculateRepayAmount();
+            // },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
@@ -527,8 +543,8 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
             keyboardType: TextInputType.name,
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintText: loanController.selectedLoan.value.paymentAmount
-                  ?.toStringAsFixed(2),
+              // hintText: cmaController.selectedLoan.value.paymentAmount
+              //     ?.toStringAsFixed(2),
               hintStyle: semibold14Grey,
               contentPadding: EdgeInsets.all(fixPadding * 1.5),
             ),

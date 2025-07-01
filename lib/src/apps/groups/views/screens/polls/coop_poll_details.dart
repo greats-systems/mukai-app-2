@@ -69,6 +69,7 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
   bool _isSupporting = false;
   bool _isOpposing = false;
   bool _isLoading = true;
+  bool _consensusReached = false;
 
   // List<ProfileModel> pendingMembers = [];
   // List<ProfileModel> activeMembers = [];
@@ -82,16 +83,21 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
 
     // Initialize controllers
     pollDescriptionController.text = widget.poll.pollDescription ?? '';
-    if (widget.group?.interest_rate!=null) {
-  proposedValueController.text =
-      (widget.group?.interest_rate).toString();
-}
-    numberOfMembersController.text =
-        widget.poll.numberOfMembers?.toString() ?? '0';
-    supportingVotesController.text =
-        widget.poll.supportingVotes?.length.toString() ?? '0';
-    opposingVotesController.text =
-        widget.poll.opposingVotes?.length.toString() ?? '0';
+    if (widget.poll.additionalInfo != null) {
+      proposedValueController.text = (widget.poll.additionalInfo).toString();
+    }
+    if (widget.poll.numberOfMembers != null) {
+      numberOfMembersController.text =
+          (widget.poll.numberOfMembers! - 1).toString();
+    }
+    if (widget.poll.supportingVotes != null) {
+      supportingVotesController.text =
+          widget.poll.supportingVotes?.length.toString() ?? '0';
+    }
+    if (widget.poll.opposingVotes != null) {
+      opposingVotesController.text =
+          widget.poll.opposingVotes?.length.toString() ?? '0';
+    }
 
     // Check current vote status
     _checkVoteStatus();
@@ -117,7 +123,7 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-      backgroundColor: whiteColor,
+        backgroundColor: whiteColor,
         appBar: MyAppBar(
           widget: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -154,7 +160,7 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
                     const SizedBox(height: 16),
                     _buildInterestField(
                       label: 'Proposed value',
-                      value: num.tryParse(proposedValueController.text)!,
+                      value: num.tryParse(proposedValueController.text) ?? 0,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailField(
@@ -167,15 +173,15 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
                       value: supportingVotesController.text,
                     ),
                     const SizedBox(height: 24),
-                    Text(
-                      '* Calculated at ${(widget.group!.interest_rate * 100).toStringAsFixed(0)}% monthly compound interest',
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
-                        // fontStyle: FontStyle.italic,
-                      ),
-                    ),
-                    const SizedBox(height: 20),
+                    // Text(
+                    //   '* Calculated at ${(widget.group?.interest_rate ?? 0 * 100).toStringAsFixed(0)}% monthly compound interest',
+                    //   style: TextStyle(
+                    //     fontSize: 16,
+                    //     color: Colors.grey[600],
+                    //     // fontStyle: FontStyle.italic,
+                    //   ),
+                    // ),
+                    // const SizedBox(height: 20),
                   ],
                 ),
               ),
@@ -205,7 +211,7 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
             ],
           ),
           child: Text(
-            '${(value*100).toStringAsFixed(0)}%',
+            '${(value * 100).toStringAsFixed(0)}%',
             style: TextStyle(color: blackColor),
           ),
         ),
@@ -239,76 +245,6 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  supportButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: GestureDetector(
-        onTap: () {
-          log('${widget.group!.id}');
-          // cmaController.updateUser();
-          // Navigator.pop(context);
-        },
-        child: Obx(() => cmaController.isLoading.value == true
-            ? const LinearProgressIndicator(
-                color: whiteColor,
-              )
-            : Container(
-                width: double.maxFinite,
-                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
-                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: buttonShadow,
-                ),
-                child: const Text(
-                  "Support",
-                  style: bold18White,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              )),
-      ),
-    );
-  }
-
-  opposeButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: GestureDetector(
-        onTap: () {
-          log('I oppose');
-          // cmaController.updateUser();
-          // Navigator.pop(context);
-        },
-        child: Obx(() => cmaController.isLoading.value == true
-            ? const LinearProgressIndicator(
-                color: whiteColor,
-              )
-            : Container(
-                width: double.maxFinite,
-                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
-                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: buttonShadow,
-                ),
-                child: const Text(
-                  "Oppose",
-                  style: bold18White,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              )),
-      ),
     );
   }
 
@@ -518,14 +454,35 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
         _isSupporting = false;
         _isOpposing = true;
       }
+      if (_isSupporting) {
+        final supportingVotes = widget.poll.supportingVotes!.length + 1;
+        log((supportingVotes / (widget.poll.numberOfMembers! - 1)).toString());
+        if (supportingVotes / (widget.poll.numberOfMembers! - 1) >= 0.75) {
+          setState(() {
+            _consensusReached = true;
+          });
+        }
+      } else {
+        final supportingVotes = widget.poll.supportingVotes!.length - 1;
+        log((supportingVotes / (widget.poll.numberOfMembers! - 1)).toString());
+        if (supportingVotes / (widget.poll.numberOfMembers! - 1) < 0.75) {
+          setState(() {
+            _consensusReached = false;
+          });
+        }
+      }
     });
 
     try {
+      log(_consensusReached.toString());
       final response = await cmaController.castVote(
-        pollId: widget.poll.id!,
-        memberId: userId!,
-        isSupporting: isSupporting,
-      );
+          groupId: widget.group!.id!,
+          pollId: widget.poll.id!,
+          pollDescription: widget.poll.pollDescription!,
+          memberId: userId!,
+          isSupporting: isSupporting,
+          consensusReahed: _consensusReached,
+          additionalInfo: widget.poll.additionalInfo);
 
       if (response != null && response.containsKey('error')) {
         Helper.errorSnackBar(
@@ -555,7 +512,9 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
         duration: 5,
       );
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
@@ -600,24 +559,11 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
 
   Future<void> _fetchData() async {
     try {
-      // pendingMembers = await _profileController.getPendingMembers();
-      // activeMembers = await _profileController.getActiveMembers();
-      // assets = await _assetController.getAssets();
       setState(() => _isLoading = false);
     } catch (e) {
       Get.snackbar('Error', 'Failed to fetch data: $e');
     }
   }
-
-  // Future<void> _approveMember(String memberId) async {
-  //   try {
-  //     await _profileController.approveMember(memberId);
-  //     await _fetchData();
-  //     Get.snackbar('Success', 'Member approved successfully');
-  //   } catch (e) {
-  //     Get.snackbar('Error', 'Failed to approve member: $e');
-  //   }
-  // }
 
   Widget _buildSectionTitle(String title) {
     return Text(
@@ -625,46 +571,4 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
       style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
     );
   }
-
-  // Widget _buildMemberList(List<ProfileModel> members, bool isPending) {
-  //   return ListView.builder(
-  //     shrinkWrap: true,
-  //     physics: const NeverScrollableScrollPhysics(),
-  //     itemCount: members.length,
-  //     itemBuilder: (context, index) {
-  //       final member = members[index];
-  //       return Card(
-  //         margin: const EdgeInsets.symmetric(vertical: 4.0),
-  //         child: ListTile(
-  //           title: Text(member.fullName ?? 'No Name'),
-  //           subtitle: Text(member.email ?? 'No Email'),
-  //           trailing: isPending
-  //               ? ElevatedButton(
-  //                   onPressed: () => _approveMember(member.id!),
-  //                   child: const Text('Approve'),
-  //                 )
-  //               : null,
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
-
-  // Widget _buildAssetList() {
-  //   return ListView.builder(
-  //     shrinkWrap: true,
-  //     physics: const NeverScrollableScrollPhysics(),
-  //     itemCount: assets.length,
-  //     itemBuilder: (context, index) {
-  //       final asset = assets[index];
-  //       return Card(
-  //         margin: const EdgeInsets.symmetric(vertical: 4.0),
-  //         child: ListTile(
-  //           title: Text(asset.assetName ?? 'No Name'),
-  //           subtitle: Text(asset.assetDescription ?? 'No Description'),
-  //         ),
-  //       );
-  //     },
-  //   );
-  // }
 }

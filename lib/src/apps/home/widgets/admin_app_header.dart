@@ -108,18 +108,6 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
       child: Container(
         height: 90.0,
         width: 90.0,
-        // decoration: BoxDecoration(
-        //   boxShadow: [
-        //     BoxShadow(
-        //       color: whiteF5Color,
-        //       blurRadius: 10.0,
-        //       offset: const Offset(0, 0),
-        //     )
-        //   ],
-        //   shape: BoxShape.circle,
-        //   color: whiteF5Color.withOpacity(0),
-        // ),
-        // alignment: Alignment.center,
         child: Padding(
           padding: const EdgeInsets.all(5.0),
           child: Image.asset(

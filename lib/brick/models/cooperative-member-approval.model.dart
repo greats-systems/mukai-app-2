@@ -9,6 +9,8 @@ class CooperativeMemberApproval {
   String? assetId;
   String? loanId;
   String? updatedAt;
+  dynamic additionalInfo;
+  bool? consensusReached;
 
   CooperativeMemberApproval({
     this.id,
@@ -21,6 +23,8 @@ class CooperativeMemberApproval {
     this.assetId,
     this.loanId,
     this.updatedAt,
+    this.additionalInfo,
+    this.consensusReached,
   });
 
   Map<String, dynamic> toJson() => {
@@ -34,6 +38,8 @@ class CooperativeMemberApproval {
         'asset_id': assetId,
         'loan_id': loanId,
         'updated_at': updatedAt,
+        'consensus_reached': consensusReached,
+        'additional_info': additionalInfo
       };
 
   factory CooperativeMemberApproval.fromJson(Map<String, dynamic> json) {
@@ -57,6 +63,8 @@ class CooperativeMemberApproval {
       assetId: json['asset_id'],
       loanId: json['loan_id'],
       updatedAt: json['updated_at'],
+      additionalInfo: json['additional_info'],
+      consensusReached: json['consensus_reached']
     );
   }
 }

@@ -38,23 +38,6 @@ class _PollItemWidgetState extends State<PollItemWidget> {
     );
   }
 
-  /*
-  Widget _buildStatusSection(CooperativeMemberApproval? cma) {
-    if (cma != null) {
-      switch (cma.supportingVotes) {
-        case >0:
-          return _buildRequestSummary(cma);
-        default:
-          return _buildAccountSummary(cma);
-      }
-    } else {
-      return Center(
-        child: Text('No cma'),
-      );
-    }
-  }
-  */
-
   Widget _buildPollDetail(CooperativeMemberApproval? cma) {
     return cma != null
         ? Row(
@@ -82,37 +65,6 @@ class _PollItemWidgetState extends State<PollItemWidget> {
           );
   }
 
-  // Widget _buildProfileImage(CooperativeMemberApproval? cma) {
-  //   if (cma != null) {
-  //     final imageUrl = cma.profile_image_url;
-  //     return SizedBox(
-  //       height: 50,
-  //       width: 50,
-  //       child: ClipRRect(
-  //         borderRadius: BorderRadius.circular(20),
-  //         child: imageUrl != null && imageUrl.isNotEmpty
-  //             ? RenderSupabaseImageIdWidget(filePath: imageUrl)
-  //             : const Icon(Icons.image, size: 50.0, color: Colors.grey),
-  //       ),
-  //     );
-  //   } else {
-  //     return Center(
-  //       child: Text('No cma image'),
-  //     );
-  //   }
-  // }
-
-  // String _formatName(CooperativeMemberApproval? cma) {
-  //   if (cma != null) {
-  //     final firstName = cma.first_name?.toUpperCase() ?? 'N';
-  //     final lastName = cma.last_name?.toUpperCase() ?? '';
-  //     final idSnippet = cma.id ?? '';
-  //     return '$firstName $lastName';
-  //   } else {
-  //     return 'No name to format in member_item';
-  //   }
-  // }
-
   Widget _buildAccountInfo(CooperativeMemberApproval? cma) {
     return cma != null
         ? Column(
@@ -135,7 +87,7 @@ class _PollItemWidgetState extends State<PollItemWidget> {
                 children: [
                   const Text('Number of members', style: semibold14Primary),
                   Text(
-                    Utils.trimp(cma.numberOfMembers.toString()),
+                    Utils.trimp((cma.numberOfMembers! - 1).toString()),
                     style: semibold14Primary,
                   ),
                 ],
@@ -146,28 +98,6 @@ class _PollItemWidgetState extends State<PollItemWidget> {
             child: Text('No account info to build'),
           );
   }
-
-  // Widget _buildAccountSummary(CooperativeMemberApproval? cma) {
-  //   return cma != null
-  //       ? Row(
-  //           mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  //           children: [
-  //             Row(
-  //               spacing: 20,
-  //               children: [
-  //                 _buildInfoColumn(
-  //                     'Subs Balance', cma.wallet_balance.toString()),
-  //                 _buildInfoColumn('Account ID',
-  //                     cma.id != null ? cma.id!.substring(0, 8) : 'N/A'),
-  //               ],
-  //             ),
-  //             _buildChatButton(cma),
-  //           ],
-  //         )
-  //       : Center(
-  //           child: Text('Cannot build account summary'),
-  //         );
-  // }
 
   Widget _buildInfoColumn(String label, String value) {
     return Column(

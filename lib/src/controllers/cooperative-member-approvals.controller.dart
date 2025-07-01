@@ -16,34 +16,49 @@ class CooperativeMemberApprovalsController {
   final cma = CooperativeMemberApproval().obs;
   final dio = DioClient().dio;
 
-  Future<List<CooperativeMemberApproval>?> getCoopPolls(String coopId) async {
-  try {
-    final response = await dio.get(
-      '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/$coopId'
-    );
-    
-    if (response.data == null) return null;
-    
-    final List<dynamic> jsonList = response.data is List 
-      ? response.data 
-      : [response.data];
-    
-    final polls = jsonList.map((json) {
-      try {
-        return CooperativeMemberApproval.fromJson(json);
-      } catch (e, st) {
-        log('Error parsing poll: $e $st');
-        return null;
-      }
-    }).whereType<CooperativeMemberApproval>().toList();
-    
-    log('Parsed ${polls.length} polls');
-    return polls;
-  } catch (error, st) {
-    log('getCoopPolls error: $error $st');
-    return null;
+  Future<void> createPoll() async {
+    // cma.value.consensusReached = false;
+    try {
+      // log(cma.value.toJson().toString() ?? 'No data');
+      final response = await dio.post(
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals',
+          data: cma.value.toJson());
+      log(response.data.toString());
+    } catch (e, s) {
+      log('createPoll error: $e $s');
+    }
   }
-}
+
+  Future<List<CooperativeMemberApproval>?> getCoopPolls(String coopId) async {
+    try {
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/$coopId');
+      log('getCoopPolls data: ${response.data.toString()}');
+
+      if (response.data == null) return null;
+
+      final List<dynamic> jsonList =
+          response.data is List ? response.data : [response.data];
+
+      final polls = jsonList
+          .map((json) {
+            try {
+              return CooperativeMemberApproval.fromJson(json);
+            } catch (e, st) {
+              log('Error parsing poll: $e $st');
+              return null;
+            }
+          })
+          .whereType<CooperativeMemberApproval>()
+          .toList();
+
+      log('Parsed ${polls.length} polls');
+      return polls;
+    } catch (error, st) {
+      log('getCoopPolls error: $error $st');
+      return null;
+    }
+  }
 
   Future<CooperativeMemberApproval?> viewPollDetails(String pollId) async {
     try {
@@ -61,6 +76,7 @@ class CooperativeMemberApprovalsController {
       final response = await dio.patch(
         '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/${cma.value.id}',
         data: {
+          'poll_description': cma.value.pollDescription,
           'supporting_votes': cma.value.supportingVotes,
           'opposing_votes': cma.value.opposingVotes,
           'updated_at': DateTime.now().toIso8601String(),
@@ -92,9 +108,13 @@ class CooperativeMemberApprovalsController {
   }
 
   Future<Map<String, dynamic>?> castVote({
+    required String groupId,
     required String pollId,
+    required String pollDescription,
     required String memberId,
     required bool isSupporting,
+    required dynamic additionalInfo,
+    required bool consensusReahed,
   }) async {
     try {
       // First get current poll state
@@ -123,9 +143,13 @@ class CooperativeMemberApprovalsController {
       final response = await dio.patch(
         '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId',
         data: {
+          'group_id': groupId,
+          'poll_description': pollDescription,
           'supporting_votes': supportingVotes,
           'opposing_votes': opposingVotes,
           'updated_at': DateTime.now().toIso8601String(),
+          'consensus_reached': consensusReahed,
+          'additional_info': additionalInfo,
         },
       );
 
