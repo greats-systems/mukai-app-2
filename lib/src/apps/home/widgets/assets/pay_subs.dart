@@ -105,7 +105,6 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     // final userjson = await profileController.getUserDetails(userId!);
     final profileWallets = await profileController.getProfileWallets(userId!);
     if (_isDisposed) return;
-    log('profileWallets: $profileWallets');
     setState(() {
       // userProfile = userjson;
       if (coopWalletJsonData != null) {
@@ -130,8 +129,6 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
             (element) => element!['default_currency']?.toLowerCase() == 'usd',
             orElse: () => {'balance': '0.00', 'default_currency': 'USD'},
           );
-          log('zigWallet: $zigWallet');
-          log('usdWallet: $usdWallet');
         } catch (e) {
           log('Error finding wallets: $e');
           zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};

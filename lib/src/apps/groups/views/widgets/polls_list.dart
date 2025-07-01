@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
-import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/apps/groups/views/screens/polls/coop_poll_details.dart';
 import 'package:mukai/src/apps/groups/views/screens/polls/coop_polls.dart';
 import 'dart:developer';
 // import 'package:mukai/src/apps/home/apps/cmas/loan_detail.dart';
-import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
 import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
-import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 

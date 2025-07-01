@@ -105,7 +105,6 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
     final profileWallets = await profileController.getProfileWallet(userId!);
 
     if (_isDisposed) return;
-    log('profileWallets: $profileWallets');
     setState(() {
       userProfile = userjson;
       if (profileWallets != null && profileWallets.isNotEmpty) {
@@ -118,8 +117,6 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
             (element) => element['default_currency']?.toLowerCase() == 'usd',
             orElse: () => {'balance': '0.00', 'default_currency': 'USD'},
           );
-          log('zigWallet: $zigWallet');
-          log('usdWallet: $usdWallet');
         } catch (e) {
           log('Error finding wallets: $e');
           zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};

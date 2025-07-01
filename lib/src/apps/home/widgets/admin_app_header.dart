@@ -51,7 +51,6 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
         _isLoading = false;
       });
     }
-    log('AdminAppHeaderWidget authProfile: ${authProfile.toMap()}');
   }
 
   @override
@@ -68,29 +67,30 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
     super.dispose();
   }
 
+//  _isLoading
+//         ? Center(
+//             child: LoadingShimmerWidget(),
+//           )
+//         :
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-    return _isLoading
-        ? Center(
-            child: LoadingShimmerWidget(),
-          )
-        : Column(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    profileButton(),
-                    logoButton(),
-                  ],
-                ),
-              ),
+              profileButton(),
+              logoButton(),
             ],
-          );
+          ),
+        ),
+      ],
+    );
   }
 
   logoButton() {

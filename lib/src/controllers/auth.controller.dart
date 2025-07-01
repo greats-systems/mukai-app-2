@@ -662,7 +662,6 @@ class AuthController extends GetxController {
   }
 
   Future<bool> getAccount() async {
-    log('Gettting account...');
     try {
       final User? user = supabase.auth.currentUser;
       if (user == null) return false;

@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/material_symbols.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
+import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 // import 'package:mukai/src/apps/groups/views/screens/group_members.dart';
 import 'package:mukai/theme/theme.dart';
@@ -35,15 +36,17 @@ class _MemberSetttingsLandingScreenState
             bottom: Radius.circular(20.0), // Adjust the radius as needed
           ),
         ),
-        elevation: 0,
         backgroundColor: secondaryColor.withAlpha(50),
         automaticallyImplyLeading: false,
         centerTitle: false,
-        titleSpacing: 20.0,
-        toolbarHeight: 70.0,
-        title: Text(
-          Utils.trimp('Member Settings'),
-          style: bold16Black,
+        titleSpacing: 0.0,
+        toolbarHeight: 90.0,
+        elevation: 0,
+        title: Column(
+          children: [
+            const AppHeaderWidget(),
+            // WalletBalancesWidget(),
+          ],
         ),
       ),
       body: Column(

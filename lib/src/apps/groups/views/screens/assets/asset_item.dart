@@ -1,8 +1,6 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
-import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/apps/chats/views/screen/conversation.dart';
@@ -69,9 +67,6 @@ class _AssetItemWidgetState extends State<AssetItemWidget> {
               Expanded(
                 child: Row(
                   children: [
-                    // _buildProfileImage(asset),
-                    // widthSpace,
-                    // width5Space,
                     Expanded(
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,

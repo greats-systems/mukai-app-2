@@ -174,7 +174,9 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                 ],
               ),
               onTap: () {
-                Get.to(() => MySubscriptionsScreen());
+                Get.to(() => MySubscriptionsScreen(
+                      group: widget.group,
+                    ));
               },
             ),
             ListTile(
@@ -238,9 +240,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
             topRight: Radius.circular(5),
           ),
         ),
-        child: ListView(
-          children: [adminOptions()],
-        ));
+        child: tabPreviews());
   }
 
   PreferredSizeWidget appBar() {
@@ -264,44 +264,36 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
           titleSpacing: 0.0,
           toolbarHeight: 150.0,
           elevation: 0,
-          title: _isLoading
-              ? Center(
-                  child: SizedBox(
-                    height: 100,
-                    child: LoadingShimmerWidget(),
-                  ),
-                )
-              : Column(
+          title: Column(
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(20.0),
+                child: Column(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(20.0),
-                      child: Column(
-                        children: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              IconButton(
-                                // Menu button on the right
-                                icon: const Icon(
-                                  Icons.menu,
-                                  color: Colors.white,
-                                  size: 30,
-                                ),
-                                onPressed: () {
-                                  _scaffoldKey.currentState?.openDrawer();
-                                },
-                              ),
-                              profileButton(),
-                            ],
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        profileButton(),
+                        IconButton(
+                          // Menu button on the right
+                          icon: const Icon(
+                            Icons.menu,
+                            color: Colors.white,
+                            size: 30,
                           ),
-                          heightBox(20),
-                          tabBar(),
-                          heightBox(20),
-                        ],
-                      ),
+                          onPressed: () {
+                            _scaffoldKey.currentState?.openDrawer();
+                          },
+                        ),
+                      ],
                     ),
+                    tabBar(),
+                    heightBox(20),
                   ],
                 ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -448,15 +440,6 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     );
   }
 
-  adminOptions() {
-    return Column(
-      children: [
-        // heightBox(20),
-        tabPreviews()
-      ],
-    );
-  }
-
   tabPreviews() {
     return SizedBox(
       height: height,
@@ -477,26 +460,23 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
                   });
                 },
                 children: [
-                  Column(
-                    children: [
-                      // paySubscription(context),
-                      SizedBox(
-                          height: height * 0.4125,
-                          child: _isLoading
-                              ? Center(
-                                  child: LoadingShimmerWidget(),
-                                )
-                              : walletId != null
-                                  ? CoopReportsWidget(
-                                      walletId: walletId!,
-                                      group: widget.group,
-                                    )
-                                  : Center(
-                                      child: Text('Nothing to display'),
-                                    )),
-
-                      CoopWalletBalancesWidget(group: widget.group),
-                    ],
+                  SizedBox(
+                    height: height,
+                    child: Column(
+                      children: [
+                        SizedBox(
+                            height: height * 0.4125,
+                            child: walletId != null
+                                ? CoopReportsWidget(
+                                    walletId: walletId!,
+                                    group: widget.group,
+                                  )
+                                : Center(
+                                    child: Text('Nothing to display'),
+                                  )),
+                        CoopWalletBalancesWidget(group: widget.group),
+                      ],
+                    ),
                   ),
                   MukandoMembersList(
                     group: widget.group,
@@ -519,45 +499,38 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
       height: height * 0.065,
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
-        color: secondaryColor,
+        color: secondaryColor.withAlpha(75),
         borderRadius: BorderRadius.all(Radius.circular(15.0)),
       ),
       child: Row(
         children: List.generate(
           tabList.length,
           (index) {
-            return Column(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedTab = index;
-                      });
-                      pageController.jumpToPage(selectedTab);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.all(
-                        fixPadding * 0.5,
-                      ),
-                      padding: const EdgeInsets.all(fixPadding * 1.3),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                          color: selectedTab == index
-                              ? primaryColor
-                              : Colors.transparent),
-                      child: Text(
-                        tabList[index].toString(),
-                        style: selectedTab == index
-                            ? semibold12White
-                            : semibold12White,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ),
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedTab = index;
+                });
+                pageController.jumpToPage(selectedTab);
+              },
+              child: Container(
+                margin: EdgeInsets.all(
+                  fixPadding * 0.5,
                 ),
-              ],
+                padding: const EdgeInsets.all(fixPadding * 1.3),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                    color: selectedTab == index
+                        ? primaryColor
+                        : Colors.transparent),
+                child: Text(
+                  tabList[index].toString(),
+                  style:
+                      selectedTab == index ? semibold12White : semibold12White,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
             );
           },
         ),

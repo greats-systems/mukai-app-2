@@ -55,8 +55,6 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
         await profileController.getProfileSavingsPortfolios(userId!);
 
     if (_isDisposed) return;
-    log('profileWallets: $profileWallets');
-    log('savingsPortfolios: $savingsPortfolios');
     // Get sum of current_balance of all savingsPortfolios
     if (savingsPortfolios != null && savingsPortfolios.isNotEmpty) {
       setState(() {
@@ -73,7 +71,6 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
           }
         }
       }
-      log('Total Savings: $total');
       setState(() {
         totalSavings = total;
       });
@@ -97,8 +94,6 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
             (element) => element['default_currency']?.toLowerCase() == 'usd',
             orElse: () => {'balance': '0.00', 'default_currency': 'USD'},
           );
-          log('zigWallet: $zigWallet');
-          log('usdWallet: $usdWallet');
         } catch (e) {
           log('Error finding wallets: $e');
           zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
@@ -146,150 +141,148 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
                 color: primaryColor,
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Expanded(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Account-ID',
-                          style: TextStyle(
-                            color: whiteColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(userId?.substring(24, 36) ?? 'N/A',
-                            style: TextStyle(
-                              color: whiteColor,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            )),
-                      ],
-                    ),
-                    height5Space,
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Wallet-ID',
-                          style: TextStyle(
-                            color: whiteColor,
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(profile_wallet_id?.substring(24, 36) ?? 'N/A',
-                            style: TextStyle(
-                              color: whiteColor,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            )),
-                      ],
-                    ),
-                    MetricRow(
-                      icon: "assets/icons/Vector.png",
-                      title: 'Your Wallet balances',
-                      zigValue: '${zigWallet?['balance'] ?? '0.00'}',
-                      usdValue: '\$${usdWallet?['balance'] ?? '0.00'}',
-                    ),
-                    SizedBox(height: 10),
-                    Container(
-                      color: whiteF5Color.withOpacity(0.5),
-                      width: width * 0.5,
-                      height: 1.5,
-                    ),
-                    SizedBox(height: 10),
-                    MetricRow(
-                      icon: "assets/icons/mdi_account-payment-outline.png",
-                      title: 'Total Wallet CashOut',
-                      zigValue: '${zigWallet?['balance'] ?? '0.00'}',
-                      usdValue: '\$${usdWallet?['balance'] ?? '0.00'}',
-                    ),
-                    heightBox(20),
-                    if (profileSavingsPortfolios != null &&
-                        profileSavingsPortfolios!.isNotEmpty)
-                      Column(
-                        spacing: 5,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Container(
-                            padding: EdgeInsets.all(2),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: LinearProgressIndicator(
-                              value: 0.95,
-                              minHeight: 10,
-                              borderRadius: BorderRadius.circular(5),
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(tertiaryColor),
-                              backgroundColor: Colors.grey[200],
-                            ),
-                          ),
-                          Center(
-                            child: Text(
-                              '\$${totalSavings} in Savings Portfolio',
-                              style: TextStyle(
-                                color: whiteColor,
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                          ),
-                        ],
-                      )
-                    else
-                      Center(
-                        child: Column(
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  'You have no Savings Portfolio',
-                                  style: TextStyle(
-                                    color: whiteColor,
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.warning_amber_outlined,
-                                  color: Colors.yellow,
-                                  size: 20,
-                                ),
-                              ],
-                            ),
-                            SizedBox(width: 8),
-                            ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: tertiaryColor,
-                                foregroundColor: Colors.white,
-                                padding: EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                textStyle: TextStyle(
-                                    fontSize: 13, fontWeight: FontWeight.bold),
-                              ),
-                              onPressed: () {
-                                Get.to(
-                                  () => SetSavingsScreen(group: Group()),
-                                );
-                              },
-                              child: Text('Create Portfolio'),
-                            ),
-                          ],
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Account-ID',
+                        style: TextStyle(
+                          color: whiteColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                  ],
-                ),
+                      Text(userId?.substring(24, 36) ?? 'N/A',
+                          style: TextStyle(
+                            color: whiteColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          )),
+                    ],
+                  ),
+                  height5Space,
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Wallet-ID',
+                        style: TextStyle(
+                          color: whiteColor,
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(profile_wallet_id?.substring(24, 36) ?? 'N/A',
+                          style: TextStyle(
+                            color: whiteColor,
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          )),
+                    ],
+                  ),
+                  MetricRow(
+                    icon: "assets/icons/Vector.png",
+                    title: 'Your Wallet balances',
+                    zigValue: '${zigWallet?['balance'] ?? '0.00'}',
+                    usdValue: '\$${usdWallet?['balance'] ?? '0.00'}',
+                  ),
+                  SizedBox(height: 10),
+                  Container(
+                    color: whiteF5Color.withOpacity(0.5),
+                    width: width * 0.5,
+                    height: 1.5,
+                  ),
+                  SizedBox(height: 10),
+                  MetricRow(
+                    icon: "assets/icons/mdi_account-payment-outline.png",
+                    title: 'Total Wallet CashOut',
+                    zigValue: '${zigWallet?['balance'] ?? '0.00'}',
+                    usdValue: '\$${usdWallet?['balance'] ?? '0.00'}',
+                  ),
+                  heightBox(20),
+                  if (profileSavingsPortfolios != null &&
+                      profileSavingsPortfolios!.isNotEmpty)
+                    Column(
+                      spacing: 5,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          padding: EdgeInsets.all(2),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: LinearProgressIndicator(
+                            value: 0.95,
+                            minHeight: 10,
+                            borderRadius: BorderRadius.circular(5),
+                            valueColor:
+                                AlwaysStoppedAnimation<Color>(tertiaryColor),
+                            backgroundColor: Colors.grey[200],
+                          ),
+                        ),
+                        Center(
+                          child: Text(
+                            '\$${totalSavings} in Savings Portfolio',
+                            style: TextStyle(
+                              color: whiteColor,
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  else
+                    Center(
+                      child: Column(
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Text(
+                                'You have no Savings Portfolio',
+                                style: TextStyle(
+                                  color: whiteColor,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              Icon(
+                                Icons.warning_amber_outlined,
+                                color: Colors.yellow,
+                                size: 20,
+                              ),
+                            ],
+                          ),
+                          SizedBox(width: 8),
+                          ElevatedButton(
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: tertiaryColor,
+                              foregroundColor: Colors.white,
+                              padding: EdgeInsets.symmetric(
+                                  horizontal: 12, vertical: 8),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              textStyle: TextStyle(
+                                  fontSize: 13, fontWeight: FontWeight.bold),
+                            ),
+                            onPressed: () {
+                              Get.to(
+                                () => SetSavingsScreen(group: Group()),
+                              );
+                            },
+                            child: Text('Create Portfolio'),
+                          ),
+                        ],
+                      ),
+                    ),
+                ],
               ),
             ),
     );

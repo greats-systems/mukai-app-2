@@ -129,7 +129,9 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
   Widget build(BuildContext context) {
     height = MediaQuery.of(context).size.height;
     width = MediaQuery.of(context).size.width;
-    return _isLoading ? LoadingMessagesShimmerWidget() : body();
+    return _isLoading ? SizedBox(
+      height: height * 0.32,
+      child: LoadingMessagesShimmerWidget()) : body();
   }
 
   Widget body() {

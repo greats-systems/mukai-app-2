@@ -5,7 +5,8 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/src/apps/chats/views/screen/group_chats.dart';
+import 'package:mukai/src/apps/chats/views/screen/cooperatives_list.dart';
+import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/views/screen/notifications/notifications_list.dart';
 import 'package:mukai/src/apps/chats/views/widgets/realtime_conversations_list.dart';
@@ -56,38 +57,21 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
             bottom: Radius.circular(20.0), // Adjust the radius as needed
           ),
         ),
-        elevation: 0,
-        backgroundColor: primaryColor.withAlpha(50),
+        backgroundColor: secondaryColor.withAlpha(50),
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 0.0,
-        toolbarHeight: 100.0,
+        toolbarHeight: 90.0,
+        elevation: 0,
         title: Column(
           children: [
-            // const AdminAppHeaderLogoWidget(),
-            tabBar()
+            const AppHeaderWidget(),
+            // WalletBalancesWidget(),
           ],
         ),
       ),
-      body: Expanded(
-        child: Container(
-          width: double.maxFinite,
-          decoration: BoxDecoration(
-            color: whiteF5Color,
-            borderRadius: const BorderRadius.vertical(
-              top: Radius.circular(0.0),
-            ),
-            border: Border.all(
-              color: whiteF5Color,
-            ),
-            // boxShadow: boxShadow,
-          ),
-          child: ListView(
-            physics: const BouncingScrollPhysics(),
-            padding: const EdgeInsets.all(fixPadding * 2.0),
-            children: [tabPreviews()],
-          ),
-        ),
+      body: CooperativesList(
+        index: 0,
       ),
     );
   }
@@ -119,48 +103,6 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
             'assets/images/logo-nobg.png',
           ),
         ),
-      ),
-    );
-  }
-
-  tabPreviews() {
-    return SizedBox(
-      height: height,
-      child: Column(
-        children: [
-          Expanded(
-            child: PageView(
-              controller: pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  refresh = true;
-                  selectedTab = index;
-                });
-                setState(() {
-                  refresh = false;
-                });
-              },
-              children: [
-                Container(
-                  color: whiteF5Color,
-                  child: GroupsList(
-                    index: 0,
-                  ),
-                ),
-                Container(
-                    color: whiteF5Color,
-                    child: RealTimeConversationsList(
-                      index: 0,
-                    )),
-                Container(
-                    color: whiteF5Color,
-                    child: NotificationsList(
-                      index: 0,
-                    )),
-              ],
-            ),
-          ),
-        ],
       ),
     );
   }

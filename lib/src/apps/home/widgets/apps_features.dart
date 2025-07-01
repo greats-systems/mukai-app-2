@@ -48,12 +48,19 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
 
   final portfolioList = [
     {"image": "assets/icons/game-icons_wallet.png", "title": "Savings"},
-    {"image": "assets/icons/mdi_file-sign.png", "title": "Loans"},
     {
       "image": "assets/icons/material-symbols_folder-managed-rounded.png",
       "title": "Assets"
     },
     {"image": "assets/icons/mdi_bank.png", "title": "Banking"},
+    {"image": "assets/icons/game-icons_cash.png", "title": "Invoices"},
+    {"image": "assets/icons/wpf_bank-cards.png", "title": "POS"},
+    {"image": "assets/icons/mdi_file-sign.png", "title": "Inventory"},
+    {"image": "assets/icons/mdi_folder-transfer.png", "title": "Library"},
+    {
+      "image": "assets/icons/ic_outline-business-center.png",
+      "title": "Courses"
+    },
   ];
   final stocksList = [
     {"image": "assets/icons/Buy stocks.png", "title": "Buy Stocks"},

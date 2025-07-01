@@ -30,9 +30,9 @@ class AdminLandingScreen extends StatefulWidget {
 
 class _AdminLandingScreenState extends State<AdminLandingScreen> {
   final WalletController _walletController = WalletController();
+  final ProfileController _profileController = ProfileController();
 
   AuthController get authController => Get.put(AuthController());
-  final ProfileController _profileController = ProfileController();
   TransactionController get transactionController =>
       Get.put(TransactionController());
   late PageController pageController = PageController();
@@ -72,13 +72,12 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     }
     final walletJson = await _profileController.getProfileWallet(userId!);
     if (mounted) {
-      if (walletJson!=null) {
-  setState(() {
-    walletId = walletJson![0]['id'];
-  });
-}
+      if (walletJson != null) {
+        setState(() {
+          walletId = walletJson![0]['id'];
+        });
+      }
     }
-    log('fetchWalletID walletId: $walletId');
   }
 
   @override
@@ -91,7 +90,6 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
   void initState() {
     pageController = PageController(initialPage: selectedTab);
     userId = _getStorage.read('userId');
-    log('AdminLandingScreen userId: $userId');
     fetchWalletID();
     super.initState();
   }
@@ -103,8 +101,15 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     height = size.height;
     return Scaffold(
       backgroundColor: whiteF5Color,
-      // appBar: MukaiAdminLandingAppBar(),
-      appBar: buildAppBar(),
+      appBar: AppBar(
+        backgroundColor: whiteColor,
+        automaticallyImplyLeading: false,
+        centerTitle: false,
+        titleSpacing: 0.0,
+        toolbarHeight: 120.0,
+        elevation: 0,
+        title: const AdminAppHeaderWidget(),
+      ),
       body: Container(
           padding: EdgeInsets.all(2),
           decoration: BoxDecoration(
@@ -122,11 +127,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
             // ),
           ),
           child: ListView(
-            children: [
-              Obx(() => authController.initiateNewTransaction.value == true
-                  ? memberInitiateTrans()
-                  : adminOptions())
-            ],
+            children: [adminOptions()],
           )),
     );
   }
@@ -258,23 +259,6 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     );
   }
 
-  PreferredSizeWidget buildAppBar() {
-    return PreferredSize(
-      preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
-      child: Container(
-        child: AppBar(
-          backgroundColor: whiteColor,
-          automaticallyImplyLeading: false,
-          centerTitle: false,
-          titleSpacing: 0.0,
-          toolbarHeight: 120.0,
-          elevation: 0,
-          title: const AdminAppHeaderWidget(),
-        ),
-      ),
-    );
-  }
-
   adminInitiateTrans() {
     return Column(
       children: [
@@ -373,45 +357,36 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
   tabPreviews() {
     return SizedBox(
       height: height,
-      child: Padding(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: Column(
-          children: [
-            Expanded(
-              child: PageView(
-                controller: pageController,
-                onPageChanged: (index) {
-                  if (mounted) {
-                    setState(() {
-                      refresh = true;
-                      selectedTab = index;
-                    });
-                    setState(() {
-                      refresh = false;
-                    });
-                  }
-                },
-                children: [
-                  Container(
-                      color: whiteF5Color,
-                      child: const HomeAccountWidgetApps(
-                        category: 'portfolioList',
-                      )),
-                  Container(
-                      color: whiteF5Color,
-                      child: const HomeAccountWidgetApps(
-                        category: 'transactList',
-                      )),
-                  Container(
-                      color: whiteF5Color,
-                      child: const AdminRecentTransactionsWidget(
-                        category: 'monthly',
-                      )),
-                ],
-              ),
-            ),
-          ],
-        ),
+      child: PageView(
+        controller: pageController,
+        onPageChanged: (index) {
+          if (mounted) {
+            setState(() {
+              refresh = true;
+              selectedTab = index;
+            });
+            setState(() {
+              refresh = false;
+            });
+          }
+        },
+        children: [
+          Container(
+              color: whiteF5Color,
+              child: const HomeAccountWidgetApps(
+                category: 'portfolioList',
+              )),
+          Container(
+              color: whiteF5Color,
+              child: const HomeAccountWidgetApps(
+                category: 'transactList',
+              )),
+          Container(
+              color: whiteF5Color,
+              child: const AdminRecentTransactionsWidget(
+                category: 'monthly',
+              )),
+        ],
       ),
     );
   }
@@ -424,35 +399,33 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
         borderRadius: BorderRadius.all(Radius.circular(15.0)),
       ),
       child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: List.generate(
           tabList.length,
           (index) {
-            return Expanded(
-              child: GestureDetector(
-                onTap: () {
-                  setState(() {
-                    selectedTab = index;
-                  });
-                  pageController.jumpToPage(selectedTab);
-                },
-                child: Container(
-                  margin: EdgeInsets.all(
-                    fixPadding * 0.5,
-                  ),
-                  padding: const EdgeInsets.all(fixPadding * 1.3),
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                      color: selectedTab == index
-                          ? primaryColor
-                          : Colors.transparent),
-                  child: Text(
-                    tabList[index].toString(),
-                    style: selectedTab == index
-                        ? semibold12White
-                        : semibold12White,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                  ),
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  selectedTab = index;
+                });
+                pageController.jumpToPage(selectedTab);
+              },
+              child: Container(
+                margin: EdgeInsets.all(
+                  fixPadding * 0.5,
+                ),
+                padding: const EdgeInsets.all(fixPadding * 1.3),
+                decoration: BoxDecoration(
+                    borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                    color: selectedTab == index
+                        ? primaryColor
+                        : Colors.transparent),
+                child: Text(
+                  tabList[index].toString(),
+                  style:
+                      selectedTab == index ? semibold12White : semibold12White,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             );
