@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -6,7 +5,6 @@ import 'package:get/get_rx/src/rx_types/rx_types.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/core/config/dio_interceptor.dart';
-import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/constants.dart';
 
 class CooperativeMemberApprovalsController {
