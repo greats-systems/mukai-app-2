@@ -1,14 +1,14 @@
 /*
 import 'package:flutter/material.dart';
 
-class LoanApplicationScreen extends StatefulWidget {
-  const LoanApplicationScreen({super.key});
+class CoopLoanApplicationScreen extends StatefulWidget {
+  const CoopLoanApplicationScreen({super.key});
 
   @override
-  State<LoanApplicationScreen> createState() => _LoanApplicationScreenState();
+  State<CoopLoanApplicationScreen> createState() => _CoopLoanApplicationScreenState();
 }
 
-class _LoanApplicationScreenState extends State<LoanApplicationScreen> {
+class _CoopLoanApplicationScreenState extends State<CoopLoanApplicationScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -36,18 +36,18 @@ import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class LoanApplicationScreen extends StatefulWidget {
+class CoopLoanApplicationScreen extends StatefulWidget {
   final Group group;
-  LoanApplicationScreen({
+  CoopLoanApplicationScreen({
     super.key,
     required this.group,
   });
 
   @override
-  State<LoanApplicationScreen> createState() => LoanApplicationScreenState();
+  State<CoopLoanApplicationScreen> createState() => CoopLoanApplicationScreenState();
 }
 
-class LoanApplicationScreenState extends State<LoanApplicationScreen> {
+class CoopLoanApplicationScreenState extends State<CoopLoanApplicationScreen> {
   TextEditingController purposeController = TextEditingController();
   TextEditingController principalAmountController = TextEditingController();
   TextEditingController paybackPeriodController = TextEditingController();
@@ -105,9 +105,9 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         });
       }
       log('group id: ${widget.group.id}');
-      log('LoanApplicationScreen data\nuser id: $userId\nsender wallet:${JsonEncoder.withIndent('').convert(senderWallet)}\nreceiver wallet: ${JsonEncoder.withIndent('').convert(receiverWallet)}');
+      log('CoopLoanApplicationScreen data\nuser id: $userId\nsender wallet:${JsonEncoder.withIndent('').convert(senderWallet)}\nreceiver wallet: ${JsonEncoder.withIndent('').convert(receiverWallet)}');
     } catch (e, s) {
-      log('LoanApplicationScreen error: $e $s');
+      log('CoopLoanApplicationScreen error: $e $s');
     }
   }
 
@@ -128,75 +128,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         : Scaffold(
             body: Container(
               color: whiteF5Color,
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(fixPadding * 2.0),
-                children: [
-                  // heightBox(20),
-                  // userProfileImage(size),
-                  // heightBox(10),
-                  heightBox(10),
-                  // loanTypeField(),
-                  // heightBox(10),
-                  purposeField(),
-                  heightBox(10),
-                  // descriptionField(),
-                  principalAmountField(),
-                  heightBox(10),
-                  paybackPeriodMonthsField(),
-                  heightBox(10),
-                  totalRepaymentField(),
-                  heightBox(20),
-                  collateralSwitch(),
-                  heightBox(20),
-                  if (_hasCollateral)
-                    _buildDropdownField(
-                      label: 'Collateral',
-                      value: collateral ?? '',
-                      options: [
-                        'Car',
-                        'House',
-                        'Savings account',
-                      ],
-                      onChanged: (newValue) {
-                        // Handle dropdown selection
-                        setState(() {
-                          collateral = newValue;
-                        });
-                      },
-                    ),
-                  if (role == 'coop-manager')
-                    _buildInterestDropdownField(
-                      label: 'Monthly interest rate',
-                      value: collateral ?? '',
-                      options: [
-                        '0.01',
-                        '0.02',
-                        '0.05',
-                      ],
-                      onChanged: (newValue) {
-                        // Handle dropdown selection
-                        try {
-                          setState(() {
-                            interestRate = num.parse(newValue!);
-                          });
-                          loanController.selectedLoan.value.interestRate =
-                              interestRate;
-                          loanController.selectedLoan.value.updatedAt =
-                              DateTime.now().toIso8601String();
-                          loanController.selectedCoop.value.id =
-                              widget.group.id;
-                          loanController.updateCoopLoan();
-                          loanController.calculateRepayAmount();
-                          log(interestRate.toString());
-                        } on Exception catch (e) {
-                          log(e.toString());
-                        }
-                      },
-                    ),
-                  Text('*based on 2% monthly compound interest')
-                ],
-              ),
+              child: role == 'coop-manager' ? loanApplicationForm() : adjustInterestRate(),
             ),
             bottomNavigationBar:
                 Obx(() => loanController.isLoading.value == true
@@ -206,6 +138,74 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                       )
                     : saveButton(context)),
           );
+  }
+
+  Widget loanApplicationForm() {
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(fixPadding * 2.0),
+      children: [
+        heightBox(10),
+        purposeField(),
+        heightBox(10),
+        principalAmountField(),
+        heightBox(10),
+        paybackPeriodMonthsField(),
+        heightBox(10),
+        totalRepaymentField(),
+        heightBox(20),
+        collateralSwitch(),
+        heightBox(20),
+        if (_hasCollateral)
+          _buildDropdownField(
+            label: 'Collateral',
+            value: collateral ?? '',
+            options: [
+              'Vehicle',
+              'House',
+              'Savings account',
+            ],
+            onChanged: (newValue) {
+              // Handle dropdown selection
+              setState(() {
+                collateral = newValue;
+              });
+            },
+          ),
+        if (role == 'coop-manager') adjustInterestRate(),
+        Text(
+            '*based on ${(widget.group.interest_rate) * 100}% monthly compound interest')
+      ],
+    );
+  }
+
+  Widget adjustInterestRate() {
+    return _buildInterestDropdownField(
+      label: 'Monthly interest rate',
+      value: collateral ?? '',
+      options: [
+        '0.01',
+        '0.02',
+        '0.05',
+      ],
+      onChanged: (newValue) {
+        // Handle dropdown selection
+        try {
+          setState(() {
+            interestRate = num.parse(newValue!);
+          });
+          loanController.selectedLoan.value.interestRate = interestRate;
+          loanController.selectedLoan.value.updatedAt =
+              DateTime.now().toIso8601String();
+          loanController.selectedCoop.value.id = widget.group.id;
+          loanController.updateCoopLoan();
+          loanController.calculateRepayAmount();
+          log(interestRate.toString());
+        } on Exception catch (e) {
+          log(e.toString());
+        }
+      },
+    );
   }
 
   saveButton(BuildContext context) {
@@ -258,7 +258,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Purpose',
+          'Purposeeeeee',
           style: semibold14Black,
         ),
         heightSpace,

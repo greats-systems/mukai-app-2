@@ -98,7 +98,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
               group: Group(),
             ));
       case 'Loans':
-        Get.to(() => LoanLandingPageScreen(group: Group()));
+        Get.to(() => CoopLoanLandingPageScreen(group: Group()));
       case 'Withdraw':
         Get.to(() => TransfersScreen(
               category: 'cashout',

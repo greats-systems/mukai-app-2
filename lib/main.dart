@@ -39,7 +39,7 @@ Future<void> main() async {
 
   // 1. Initialize environment variables
   // await dotenv.load(fileName: ".env");
-  await EnvConstants.init(envFile: '.env');
+  await EnvConstants.init(envFile: '.env.dev');
   // await EnvConstants.init(envFile: environment.envFile);
 
   // 2. Initialize local storage

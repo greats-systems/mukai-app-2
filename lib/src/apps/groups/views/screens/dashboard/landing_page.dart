@@ -149,7 +149,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
               ],
             ),
             onTap: () {
-              Get.to(() => LoanLandingPageScreen(
+              Get.to(() => CoopLoanLandingPageScreen(
                     group: widget.group,
                   ));
             },
@@ -519,38 +519,34 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
         children: List.generate(
           tabList.length,
           (index) {
-            return Column(
-              children: [
-                Expanded(
-                  child: GestureDetector(
-                    onTap: () {
-                      setState(() {
-                        selectedTab = index;
-                      });
-                      pageController.jumpToPage(selectedTab);
-                    },
-                    child: Container(
-                      margin: EdgeInsets.all(
-                        fixPadding * 0.5,
-                      ),
-                      padding: const EdgeInsets.all(fixPadding * 1.3),
-                      decoration: BoxDecoration(
-                          borderRadius: BorderRadius.all(Radius.circular(15.0)),
-                          color: selectedTab == index
-                              ? primaryColor
-                              : Colors.transparent),
-                      child: Text(
-                        tabList[index].toString(),
-                        style: selectedTab == index
-                            ? semibold12White
-                            : semibold12White,
-                        textAlign: TextAlign.center,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
+            return Expanded(
+              child: GestureDetector(
+                onTap: () {
+                  setState(() {
+                    selectedTab = index;
+                  });
+                  pageController.jumpToPage(selectedTab);
+                },
+                child: Container(
+                  margin: EdgeInsets.all(
+                    fixPadding * 0.5,
+                  ),
+                  padding: const EdgeInsets.all(fixPadding * 1.3),
+                  decoration: BoxDecoration(
+                      borderRadius: BorderRadius.all(Radius.circular(15.0)),
+                      color: selectedTab == index
+                          ? primaryColor
+                          : Colors.transparent),
+                  child: Text(
+                    tabList[index].toString(),
+                    style: selectedTab == index
+                        ? semibold12White
+                        : semibold12White,
+                    textAlign: TextAlign.center,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ),
-              ],
+              ),
             );
           },
         ),

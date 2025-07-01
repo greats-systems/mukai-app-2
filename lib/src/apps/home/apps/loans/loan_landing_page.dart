@@ -1,27 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
-import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/src/apps/home/apps/loans/coop_loans.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_application.dart';
 import 'package:mukai/src/apps/home/apps/loans/my_loans.dart';
-import 'package:mukai/src/controllers/loan.controller.dart';
-import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
-class LoanLandingPageScreen extends StatefulWidget {
+class CoopLoanLandingPageScreen extends StatefulWidget {
   final Group group;
-  const LoanLandingPageScreen({super.key, required this.group});
+  const CoopLoanLandingPageScreen({super.key, required this.group});
 
   @override
-  State<LoanLandingPageScreen> createState() => _LoanLandingPageScreenState();
+  State<CoopLoanLandingPageScreen> createState() => _CoopLoanLandingPageScreenState();
 }
 
-class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
-  final tabList = ["Request", "MyLoans", "Approvals"];
+class _CoopLoanLandingPageScreenState extends State<CoopLoanLandingPageScreen> {
+  final tabList = ["Request", "My Loans", "Approvals"];
   int selectedTab = 0;
   List<Wallet>? wallets;
   List<Loan>? loans;
