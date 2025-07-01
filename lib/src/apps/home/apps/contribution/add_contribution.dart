@@ -106,6 +106,7 @@ class AddContributionScreenState extends State<AddContributionScreen> {
       log('profile_wallet_id: $wallet_id');
       if (mounted) {
         walletController.setSaving.value.walletId = wallet_id;
+        walletController.setSaving.value.walletId = wallet_id;
         walletController.setSaving.value.profileId = id;
         walletController.setSaving.refresh();
         setState(() {
@@ -610,6 +611,13 @@ class AddContributionScreenState extends State<AddContributionScreen> {
       onTap: () async {
         var transaction = Transaction(
           id: Uuid().v4(),
+          transactionType: 'contribution',
+          transferCategory: 'cash',
+          transferMode: 'cash',
+          account_id: userId,
+          purpose: 'contribution',
+          status: 'completed',
+          narrative: 'contribution record keeping',
           amount: double.parse(principalAmountController.text),
           receiving_wallet: widget.group.wallet_id,
           sending_wallet: transactionController.selectedProfile.value.wallet_id,
