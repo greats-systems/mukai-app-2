@@ -20,14 +20,14 @@ class MetricRow extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       spacing: 10,
       children: [
-        Container(
-          alignment: Alignment.center,
-          child: Image.asset(
-            icon,
-            height: 40,
-            color: whiteF5Color,
-          ),
-        ),
+        // Container(
+        //   alignment: Alignment.center,
+        //   child: Image.asset(
+        //     icon,
+        //     height: 40,
+        //     color: whiteF5Color,
+        //   ),
+        // ),
         Column(
           children: [
             Text(
@@ -40,7 +40,7 @@ class MetricRow extends StatelessWidget {
             Row(
               children: [
                 Text(
-                  '$zigValue ZIG',
+                  '$zigValue',
                   style: TextStyle(
                     color: whiteColor,
                     fontSize: 14,
@@ -55,7 +55,7 @@ class MetricRow extends StatelessWidget {
                 ),
                 width5Space,
                 Text(
-                  '$usdValue USD',
+                  '$usdValue',
                   style: TextStyle(
                     color: whiteColor,
                     fontSize: 14,

@@ -6,15 +6,15 @@ import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
 // import 'package:mukai/widget/render_supabase_image.dart';
 
-class AdminTransactionItem extends StatefulWidget {
+class ContributionTransactionItem extends StatefulWidget {
   Transaction transaction;
-  AdminTransactionItem({super.key, required this.transaction});
+  ContributionTransactionItem({super.key, required this.transaction});
 
   @override
-  State<AdminTransactionItem> createState() => _MarketTraderState();
+  State<ContributionTransactionItem> createState() => _MarketTraderState();
 }
 
-class _MarketTraderState extends State<AdminTransactionItem> {
+class _MarketTraderState extends State<ContributionTransactionItem> {
   @override
   Widget build(BuildContext context) {
     return productDetail(widget.transaction);
@@ -64,7 +64,7 @@ class _MarketTraderState extends State<AdminTransactionItem> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Innocent Greats',
+                        '${transaction.sending_wallet?.substring(24, 36) ?? ''} - ${transaction.receiving_wallet?.substring(24, 36) ?? ''}',
                         style: semibold12black,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -73,6 +73,7 @@ class _MarketTraderState extends State<AdminTransactionItem> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            spacing: 2,
                             children: [
                               Text(
                                 Utils.formatDateTime(DateTime.parse(

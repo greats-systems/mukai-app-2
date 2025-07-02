@@ -31,27 +31,28 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
   late double height;
   late double width;
   String? userId;
+  String? firstName;
+  String? lastName;
+  String? phone;
+  String? email;
   String? role;
-  Map<String, dynamic>? userProfile = {};
-  Profile authProfile = Profile();
-  bool _isLoading = false;
 
   Future<void> fetchProfile() async {
     if (_isDisposed) return;
+    var _Id = await _getStorage.read('userId');
+    var _Role = await _getStorage.read('role');
+    var _firstName = await _getStorage.read('first_name');
+    var _lastName = await _getStorage.read('last_name');
+    var _phone = await _getStorage.read('phone');
+    var _email = await _getStorage.read('email');
     setState(() {
-      _isLoading = true;
-      userId = _getStorage.read('userId');
-      role = _getStorage.read('account_type');
+      userId = _Id;
+      role = _Role;
+      firstName = _firstName;
+      lastName = _lastName;
+      phone = _phone;
+      email = _email;
     });
-    final userjson = await profileController.getUserDetails(userId!);
-    if (_isDisposed) return;
-    if (userjson != null) {
-      setState(() {
-        authProfile = Profile.fromMap(userjson);
-        _isLoading = false;
-      });
-    }
-    log('AdminAppHeaderWidget authProfile: ${authProfile.toMap()}');
   }
 
   @override
@@ -73,24 +74,20 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-    return _isLoading
-        ? Center(
-            child: LoadingShimmerWidget(),
-          )
-        : Column(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    profileButton(),
-                    logoButton(),
-                  ],
-                ),
-              ),
+              profileButton(),
+              logoButton(),
             ],
-          );
+          ),
+        ),
+      ],
+    );
   }
 
   logoButton() {
@@ -147,14 +144,14 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  '${Utils.trimp(authProfile.first_name ?? 'No name')} ${Utils.trimp(authProfile.last_name ?? 'No name')}',
+                  '${Utils.trimp(firstName ?? '')} ${Utils.trimp(lastName ?? '')}',
                   style: medium14Black,
                 ),
               ),
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  Utils.trimp(authProfile.account_type ?? 'No account type'),
+                  Utils.trimp(role ?? ''),
                   style: medium14Black,
                 ),
               ),

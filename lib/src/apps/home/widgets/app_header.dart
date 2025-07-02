@@ -103,7 +103,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
               children: [
                 Image.asset(
                   'assets/images/logo-nobg.png',
-                  height: 70.0,
+                  height: 60.0,
                 ),
               ],
             ),

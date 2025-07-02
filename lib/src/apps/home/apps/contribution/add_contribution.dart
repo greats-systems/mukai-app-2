@@ -1,14 +1,14 @@
 /*
 import 'package:flutter/material.dart';
 
-class SetSavingsScreen extends StatefulWidget {
-  const SetSavingsScreen({super.key});
+class AddContributionScreen extends StatefulWidget {
+  const AddContributionScreen({super.key});
 
   @override
-  State<SetSavingsScreen> createState() => _SetSavingsScreenState();
+  State<AddContributionScreen> createState() => _AddContributionScreenState();
 }
 
-class _SetSavingsScreenState extends State<SetSavingsScreen> {
+class _AddContributionScreenState extends State<AddContributionScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -26,8 +26,10 @@ import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:mukai/brick/models/group.model.dart';
+import 'package:mukai/brick/models/transaction.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/apps/home/apps/savings/set_milestone.dart';
+import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
@@ -39,19 +41,20 @@ import 'package:mukai/utils/utils.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:uuid/uuid.dart';
 
-class SetSavingsScreen extends StatefulWidget {
+class AddContributionScreen extends StatefulWidget {
   final Group group;
-  SetSavingsScreen({
+  AddContributionScreen({
     super.key,
     required this.group,
   });
 
   @override
-  State<SetSavingsScreen> createState() => SetSavingsScreenState();
+  State<AddContributionScreen> createState() => AddContributionScreenState();
 }
 
-class SetSavingsScreenState extends State<SetSavingsScreen> {
+class AddContributionScreenState extends State<AddContributionScreen> {
   TextEditingController purposeController = TextEditingController();
   TextEditingController principalAmountController = TextEditingController();
   TextEditingController paybackPeriodController = TextEditingController();
@@ -72,7 +75,8 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
   final agritex_officer_key = GlobalKey<DropdownSearchState>();
   final district_key = GlobalKey<DropdownSearchState>();
   final town_city_key = GlobalKey<DropdownSearchState>();
-
+  TransactionController get transactionController =>
+      Get.put(TransactionController());
   AuthController get authController => Get.put(AuthController());
   GroupController get groupController => Get.put(GroupController());
   ProfileController get profileController => Get.put(ProfileController());
@@ -102,6 +106,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
       log('profile_wallet_id: $wallet_id');
       if (mounted) {
         walletController.setSaving.value.walletId = wallet_id;
+        walletController.setSaving.value.walletId = wallet_id;
         walletController.setSaving.value.profileId = id;
         walletController.setSaving.refresh();
         setState(() {
@@ -111,9 +116,9 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
         });
       }
       log('group id: ${widget.group.id}');
-      log('SetSavingsScreen data\nuser id: $userId\nsender wallet:${JsonEncoder.withIndent('').convert(senderWallet)}\nreceiver wallet: ${JsonEncoder.withIndent('').convert(receiverWallet)}');
+      log('AddContributionScreen data\nuser id: $userId\nsender wallet:${JsonEncoder.withIndent('').convert(senderWallet)}\nreceiver wallet: ${JsonEncoder.withIndent('').convert(receiverWallet)}');
     } catch (e, s) {
-      log('SetSavingsScreen error: $e $s');
+      log('AddContributionScreen error: $e $s');
     }
   }
 
@@ -133,7 +138,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
         ? Center(child: LoadingShimmerWidget())
         : Scaffold(
             appBar: AppBar(
-              title: const Text('Set Savings Plan'),
+              title: const Text('Add Contribution Record'),
               backgroundColor: primaryColor,
               foregroundColor: Colors.white,
               elevation: 0,
@@ -147,78 +152,36 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Wallet Address',
-                            style: bold16Black,
-                          ),
-                          widthBox(10),
-                          if (profile_wallet_id != null)
-                            Text(
-                              '... ${profile_wallet_id?.substring(28, 36)}',
-                              style: semibold14Grey,
-                            ),
-                        ],
+                      Text(
+                        'Receiving Wallet',
+                        style: bold16Black,
                       ),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Balance',
-                            style: bold16Black,
-                          ),
-                          widthBox(10),
-                          Text(
-                            '\$${profile_wallet_balance ?? 0.0}',
-                            style: semibold14Grey,
-                          ),
-                        ],
-                      ),
+                      widthBox(10),
+                      if (widget.group.wallet_id != null)
+                        Text(
+                          '${widget.group.wallet_id?.substring(24, 36)}',
+                          style: semibold14Grey,
+                        ),
                     ],
                   ),
                   height20Space,
-                  _buildDropdownField(
-                    label: 'Lock Feature',
-                    value: lock_parameter ?? '',
-                    options: [
-                      'amount',
-                      'date',
-                      'milestone',
-                      'event',
-                    ],
-                    onChanged: (newValue) {
-                      // Handle dropdown selection
-                      walletController.setSaving.update((val) {
-                        val?.lockFeature = newValue;
-                      });
-
-                      setState(() {
-                        lock_parameter = newValue;
-                      });
-                    },
-                  ),
+                  accountNumberField(),
                   heightBox(10),
-                  purposeField(),
+                  heightBox(20),
+                  Obx(() => transactionController.isLoading.value == true
+                      ? SizedBox(
+                          height: MediaQuery.of(context).size.height * 0.8,
+                          child: LoadingShimmerWidget())
+                      : transactionController.selectedProfile.value.id != null
+                          ? Column(
+                              children: [
+                                detailsField(),
+                                heightBox(20),
+                                principalAmountField(),
+                              ],
+                            )
+                          : SizedBox()),
                   heightBox(10),
-                  // descriptionField(),
-                  if (lock_parameter == 'amount') principalAmountField(),
-                  if (lock_parameter == 'date')
-                    datePickerField(
-                      label: 'Select Date',
-                      selectedDate: selectedDate,
-                      onDateSelected: (date) {
-                        setState(() {
-                          selectedDate = date;
-                        });
-                        walletController.setSaving.update((val) {
-                          val?.lockDate = date?.toIso8601String();
-                        });
-                      },
-                    ),
-                  if (lock_parameter == 'milestone') milestoneField(),
-                  if (lock_parameter == 'event') eventField(),
                   heightBox(height * 0.05),
                   Obx(() => walletController.isLoading.value
                       ? const Center(
@@ -233,47 +196,131 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
           );
   }
 
-  saveButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: GestureDetector(
-        onTap: () async {
-          try {
-            loanController.selectedCoop.value.id = widget.group.id;
-            loanController.sendingWallet.value.id = senderWallet![0].id;
-            loanController.receivingWallet.value.id = receiverWallet!.id;
-            loanController.createLoan(userId!);
-          } on Exception catch (e, s) {
-            log('saveButton error $e $s');
+  accountNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        onChanged: (value) async {
+          transactionController.accountNumber.value = value;
+          if (value.length > 4) {
+            await transactionController.getProfileByIDSearch(value);
           }
-          Navigator.pop(context);
-          Helper.successSnackBar(
-              title: 'Success',
-              message: 'Loan application created',
-              duration: 5);
         },
-        child: Obx(() => profileController.isLoading.value == true
-            ? const LinearProgressIndicator(
-                color: whiteColor,
-              )
-            : Container(
-                width: double.maxFinite,
-                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
-                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: buttonShadow,
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: greyB5Color), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Enter Account-ID",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.wallet,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  detailsField() {
+    return Card(
+      color: primaryColor.withAlpha(100),
+      margin: EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Paying Account',
+              style: TextStyle(
+                  color: whiteF5Color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Phone Number:\t',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
                 ),
-                child: const Text(
-                  "Save Loan",
-                  style: bold18White,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
+                Text(
+                  '${transactionController.selectedProfile.value.phone}',
+                  style: TextStyle(color: whiteF5Color),
+                  // style: TextStyle(fontWeight: FontWeight.bold),
                 ),
-              )),
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'First Name:\t',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
+                ),
+                Text(
+                  '${transactionController.selectedProfile.value.first_name}',
+                  style: TextStyle(color: whiteF5Color),
+                  // style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Last Name:\t',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
+                ),
+                Text(
+                  '${transactionController.selectedProfile.value.last_name}',
+                  style: TextStyle(color: whiteF5Color),
+                  // style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            if (transactionController.selectedProfile.value.wallet_id != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Wallet ID:',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: whiteF5Color),
+                  ),
+                  Text(
+                    "${transactionController.selectedProfile.value.wallet_id?.substring(24, 36)}",
+                    style: TextStyle(color: whiteF5Color),
+                    // style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -557,7 +604,20 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
   setSavingPlanButton() {
     return GestureDetector(
       onTap: () async {
-        await walletController.setSavingPlan();
+        var transaction = Transaction(
+          id: Uuid().v4(),
+          transactionType: 'contribution',
+          transferCategory: 'cash',
+          transferMode: 'cash',
+          account_id: userId,
+          purpose: 'contribution',
+          status: 'completed',
+          narrative: 'contribution record keeping',
+          amount: double.parse(principalAmountController.text),
+          receiving_wallet: widget.group.wallet_id,
+          sending_wallet: transactionController.selectedProfile.value.wallet_id,
+        );
+        await transactionController.addTransaction(transaction);
       },
       child: Container(
         width: width * 0.45,
@@ -572,7 +632,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              "Save Portfolio",
+              "Save",
               style: bold18WhiteF5,
             ),
             Iconify(

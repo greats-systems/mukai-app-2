@@ -47,13 +47,26 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
   ];
 
   final portfolioList = [
-    {"image": "assets/icons/game-icons_wallet.png", "title": "Savings"},
-    {"image": "assets/icons/mdi_file-sign.png", "title": "Loans"},
+    {
+      "image": "assets/icons/game-icons_wallet.png",
+      "title": "Savings Portfolio"
+    },
     {
       "image": "assets/icons/material-symbols_folder-managed-rounded.png",
-      "title": "Assets"
+      "title": "Assets Manager"
     },
-    {"image": "assets/icons/mdi_bank.png", "title": "Banking"},
+    {"image": "assets/icons/mdi_bank.png", "title": "Linked Banking"},
+    {"image": "assets/icons/game-icons_cash.png", "title": "Trader Invoices"},
+    {"image": "assets/icons/wpf_bank-cards.png", "title": "Trader POS"},
+    {"image": "assets/icons/mdi_file-sign.png", "title": "Trader Inventory"},
+    {
+      "image": "assets/icons/mdi_folder-transfer.png",
+      "title": "Financial Literacy"
+    },
+    {
+      "image": "assets/icons/ic_outline-business-center.png",
+      "title": "ZSE/VFEX Insights"
+    },
   ];
   final stocksList = [
     {"image": "assets/icons/Buy stocks.png", "title": "Buy Stocks"},
@@ -208,7 +221,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
                 crossAxisCount: 4,
                 mainAxisSpacing: fixPadding * 2.0,
                 crossAxisSpacing: fixPadding * 2.0,
-                childAspectRatio: 0.68),
+                childAspectRatio: 0.57),
             itemCount: activeList.length,
             itemBuilder: (context, index) {
               return InkWell(

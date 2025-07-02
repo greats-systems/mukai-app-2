@@ -50,7 +50,6 @@ class _PaySubTransDetailState extends State<PaySubTransDetail> {
         await profileController.getProfileWallets(widget.group?.id ?? userId!);
 
     if (_isDisposed) return;
-    log('Pay profileWallets: $profileWallets');
     setState(() {
       userProfile = userjson;
       if (profileWallets != null && profileWallets.isNotEmpty) {
@@ -63,8 +62,6 @@ class _PaySubTransDetailState extends State<PaySubTransDetail> {
             (element) => element['default_currency']?.toLowerCase() == 'usd',
             orElse: () => {'balance': '0.00', 'default_currency': 'USD'},
           );
-          log('zigWallet: $zigWallet');
-          log('usdWallet: $usdWallet');
         } catch (e) {
           log('Error finding wallets: $e');
           zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
@@ -196,7 +193,7 @@ class _PaySubTransDetailState extends State<PaySubTransDetail> {
                       Row(
                         children: [
                           Text(
-                            '${widget.group?.wallet_id?.substring(0,8)}...${widget.group?.wallet_id?.substring(28,36) ?? 'No wallet id'}',
+                            '${widget.group?.wallet_id?.substring(0, 8)}...${widget.group?.wallet_id?.substring(28, 36) ?? 'No wallet id'}',
                             style: TextStyle(
                               color: whiteColor,
                               fontSize: 14,

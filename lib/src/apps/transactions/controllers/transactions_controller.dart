@@ -94,6 +94,29 @@ class TransactionController extends MainController {
     });
   }
 
+  Stream<List<Transaction>> streamContributionsTransaction() {
+    return supabase
+        .from('transactions')
+        .stream(primaryKey: ['id']) // primary key column(s)
+        .asyncMap((response) async {
+      final id = await _getStorage.read('userId');
+      var wallet_id = _getStorage.read('profile_wallet_id');
+      log('profile_wallet_id: $wallet_id');
+      final fullResponse = await supabase
+          .from('transactions')
+          .select('''*, 
+                  transactions_member_id_fkey(*), 
+                  transactions_sending_wallet_fkey(*), 
+                  transactions_receiving_wallet_fkey(*)''')
+          .eq('transaction_type', 'contribution')
+          .or("account_id.eq.$id,receiving_wallet.eq.$wallet_id,sending_wallet.eq.$wallet_id")
+          .order('created_date', ascending: false);
+      if (fullResponse.isEmpty) return <Transaction>[];
+
+      return fullResponse.map((item) => Transaction.fromJson(item)).toList();
+    });
+  }
+
   Future<dynamic> getFinancialReport(String walletId) async {
     try {
       final response = await dio.get(
@@ -232,9 +255,12 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'getAllTransaction PostgrestException', message: error.message);
+          Helper.errorSnackBar(
+              title: 'getAllTransaction PostgrestException',
+              message: error.message);
         } else {
-          Helper.errorSnackBar(title: 'getAllTransaction Other exception', message: error);
+          Helper.errorSnackBar(
+              title: 'getAllTransaction Other exception', message: error);
         }
       });
       transactions.refresh();
@@ -333,7 +359,8 @@ class TransactionController extends MainController {
           .from('transactions')
           .insert(transaction.toJson())
           .then((value) async {
-        await Helper.successSnackBar(title: 'Success', message: 'order saved');
+        await Helper.successSnackBar(
+            title: 'Success', message: 'contribution saved', duration: 5);
         isLoading.value = false;
 
         Get.toNamed(Routes.bottomBar);
@@ -342,15 +369,24 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'addTransaction PostgrestException', message: error.message);
+          Helper.errorSnackBar(
+              title: 'addTransaction PostgrestException',
+              message: error.message.toString(),
+              duration: 5);
         } else {
-          Helper.errorSnackBar(title: 'addTransaction Other exception', message: error);
+          Helper.errorSnackBar(
+              title: 'addTransaction Other exception',
+              message: error.toString(),
+              duration: 5);
         }
       });
     } catch (error) {
       log('addNewOrder error $error');
       isLoading.value = false;
-      Helper.errorSnackBar(title: 'addTransaction Error', message: error);
+      Helper.errorSnackBar(
+          title: 'addTransaction Error',
+          message: error.toString(),
+          duration: 5);
       return;
     }
   }
@@ -367,9 +403,12 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'createCloudTransaction PostgrestException', message: error.message);
+          Helper.errorSnackBar(
+              title: 'createCloudTransaction PostgrestException',
+              message: error.message);
         } else {
-          Helper.errorSnackBar(title: 'createCloudTransaction other exception', message: error);
+          Helper.errorSnackBar(
+              title: 'createCloudTransaction other exception', message: error);
         }
       });
     } catch (e) {
@@ -403,9 +442,11 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'buyAirtime PostgrestException', message: error.message);
+          Helper.errorSnackBar(
+              title: 'buyAirtime PostgrestException', message: error.message);
         } else {
-          Helper.errorSnackBar(title: 'buyAirtime other exception', message: error);
+          Helper.errorSnackBar(
+              title: 'buyAirtime other exception', message: error);
         }
       });
     } catch (error) {
@@ -432,9 +473,12 @@ class TransactionController extends MainController {
 
         if (error is PostgrestException) {
           debugPrint('PostgrestException ${error.message}');
-          Helper.errorSnackBar(title: 'buyParkingTicket PostgrestException', message: error.message);
+          Helper.errorSnackBar(
+              title: 'buyParkingTicket PostgrestException',
+              message: error.message);
         } else {
-          Helper.errorSnackBar(title: 'buyParkingTicket other exception', message: error);
+          Helper.errorSnackBar(
+              title: 'buyParkingTicket other exception', message: error);
         }
       });
     } catch (error) {

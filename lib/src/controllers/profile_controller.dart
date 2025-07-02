@@ -53,16 +53,9 @@ class ProfileController extends MainController {
     try {
       final profileJson =
           await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$id');
-      /*
-      final profileJson =
-          await supabase.from('profiles').select().eq('id', id).single();
-          */
-      log('getUserDetails profileJson: $profileJson');
       return profileJson.data;
     } catch (error) {
       isLoading.value = false;
-      // Helper.errorSnackBar(
-      //     title: 'Profiles Error', message: error.toString(), duration: 5);
       return null;
     }
   }
@@ -88,11 +81,9 @@ class ProfileController extends MainController {
 
   Future<List<dynamic>?> getProfileWallet(String id) async {
     List<dynamic>? profileWallet = [];
-    log('getProfileWallets profile_id: $id');
     try {
       final walletJson =
           await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id');
-      log('getProfileWallets walletJson: ${JsonEncoder.withIndent(' ').convert(walletJson.data['data'])}');
       if (walletJson.data.isNotEmpty) {
         final json = [walletJson.data['data'][0]];
         profileWallet = json.map((item) => item).toList();
@@ -113,11 +104,9 @@ class ProfileController extends MainController {
 
   Future<List<dynamic>?> getProfileSavingsPortfolios(String id) async {
     List<dynamic>? profileWallets = [];
-    log('getProfileWallets profile_id: $id');
     try {
       final profileJson = await dio.get(
           '${EnvConstants.APP_API_ENDPOINT}/savings-portfolio/profile-portfolio/$id');
-      log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
       if (profileJson.data.isNotEmpty) {
         final json = profileJson.data['data'];
         /*
@@ -142,11 +131,9 @@ class ProfileController extends MainController {
 
   Future<List<dynamic>?> getProfileWallets(String id) async {
     List<dynamic>? profileWallets = [];
-    log('getProfileWallets profile_id: $id');
     try {
       final profileJson =
           await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id');
-      log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
       if (profileJson.data.isNotEmpty) {
         final json = profileJson.data['data'];
         /*
@@ -172,10 +159,8 @@ class ProfileController extends MainController {
   /*
   Future<List<Map<String, dynamic>>?> getProfileWallets(String id) async {
     List<Map<String, dynamic>> profileWallets = [];
-    log('getProfileWallets profile_id: $id');
     try {
       final profileJson = await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id');
-      log('getProfileWallets profileJson: ${JsonEncoder.withIndent(' ').convert(profileJson.data['data'])}');
       final json = profileJson.data['data'];
       /*
       final profileJson =

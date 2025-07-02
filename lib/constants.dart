@@ -7,7 +7,6 @@ import 'dart:developer';
 
 class Constants {}
 
-
 BoxDecoration bgBoxDecoration = BoxDecoration(
   color: recColor,
   borderRadius: BorderRadius.circular(10.0),
@@ -75,7 +74,7 @@ class EnvConstants {
   static late final String API_VERSION;
   static late final String CUSTOM_GOOGLE_APPLICATION_CREDENTIALS;
 
-  static Future<void> init({String envFile = '.env.dev'}) async {
+  static Future<void> init({String envFile = '.env'}) async {
     try {
       log(envFile);
       await dotenv.load(fileName: envFile);
@@ -88,8 +87,10 @@ class EnvConstants {
           ? dotenv.get('DEVICE') == 'physical'
               ? dotenv.get('LOCAL_NETWORK_ENDPOINT')
               : dotenv.get('LOCAL_API_ENDPOINT')
+          // : 'http://10.0.2.2:3001';
           : dotenv.get('PRODUCTION_API_ENDPOINT');
       APP_API_ENDPOINT = dotenv.get('APP_API_ENDPOINT');
+      // APP_API_ENDPOINT = 'http://10.0.2.2:3001';
       CMS_ENDPOINT = dotenv.get('CMS_ENDPOINT');
       GRAPH_API_TOKEN = dotenv.get('GRAPH_API_TOKEN');
       WEBHOOK_VERIFY_TOKEN = dotenv.get('WEBHOOK_VERIFY_TOKEN');
