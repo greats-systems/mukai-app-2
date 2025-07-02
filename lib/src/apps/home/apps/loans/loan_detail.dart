@@ -150,9 +150,10 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
             ],
           ),
         ),
-        bottomNavigationBar: role == 'coop-member'
-            ? pollSummary(widget.loan)
-            : requestSummary(widget.loan));
+        // bottomNavigationBar: role == 'coop-member'
+        //     ? pollSummary(widget.loan)
+        //     : requestSummary(widget.loan)
+            );
   }
 
   Widget _buildDetailField({required String label, required String value}) {

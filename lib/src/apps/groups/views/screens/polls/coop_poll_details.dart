@@ -1,21 +1,3 @@
-/*
-import 'package:flutter/material.dart';
-
-class CoopPollDetailsScreen extends StatefulWidget {
-  const CoopPollDetailsScreen({super.key});
-
-  @override
-  State<CoopPollDetailsScreen> createState() => _CoopPollDetailsScreenState();
-}
-
-class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
-*/
-
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
@@ -165,7 +147,7 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
                     const SizedBox(height: 16),
                     _buildDetailField(
                       label: 'Opposing votes',
-                      value: '${opposingVotesController.text}',
+                      value: opposingVotesController.text,
                     ),
                     const SizedBox(height: 16),
                     _buildDetailField(
@@ -185,38 +167,10 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
                   ],
                 ),
               ),
-        bottomNavigationBar: role == 'coop-member'
-            ? pollSummary(widget.poll)
-            : requestSummary(widget.poll));
-  }
-
-  Widget _buildInterestField({required String label, required num value}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: semibold14Black,
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                  color: Colors.black12, blurRadius: 4, offset: Offset(0, 2)),
-            ],
-          ),
-          child: Text(
-            '${(value * 100).toStringAsFixed(0)}%',
-            style: TextStyle(color: blackColor),
-          ),
-        ),
-      ],
-    );
+              bottomNavigationBar:  pollSummary(widget.poll));
+        // bottomNavigationBar: role == 'coop-member'
+        //     ? pollSummary(widget.poll)
+        //     : requestSummary(widget.poll));
   }
 
   Widget _buildDetailField({required String label, required String value}) {
@@ -450,39 +404,40 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
       if (isSupporting) {
         _isSupporting = true;
         _isOpposing = false;
-      } else {
-        _isSupporting = false;
-        _isOpposing = true;
-      }
-      if (_isSupporting) {
         final supportingVotes = widget.poll.supportingVotes!.length + 1;
-        log((supportingVotes / (widget.poll.numberOfMembers! - 1)).toString());
+        // log((supportingVotes / (widget.poll.numberOfMembers! - 1)).toString());
         if (supportingVotes / (widget.poll.numberOfMembers! - 1) >= 0.75) {
           setState(() {
             _consensusReached = true;
           });
         }
       } else {
-        final supportingVotes = widget.poll.supportingVotes!.length - 1;
-        log((supportingVotes / (widget.poll.numberOfMembers! - 1)).toString());
-        if (supportingVotes / (widget.poll.numberOfMembers! - 1) < 0.75) {
-          setState(() {
-            _consensusReached = false;
-          });
-        }
+        _isSupporting = false;
+        _isOpposing = true;
       }
+      // else {
+      //   final supportingVotes = widget.poll.supportingVotes!.length - 1;
+      //   log((supportingVotes / (widget.poll.numberOfMembers! - 1)).toString());
+      //   if (supportingVotes / (widget.poll.numberOfMembers! - 1) < 0.75) {
+      //     setState(() {
+      //       _consensusReached = false;
+      //     });
+      //   }
+      // }
     });
 
     try {
       log(_consensusReached.toString());
       final response = await cmaController.castVote(
           groupId: widget.group!.id!,
+          profileId: widget.poll.profileId!,
           pollId: widget.poll.id!,
           pollDescription: widget.poll.pollDescription!,
           memberId: userId!,
           isSupporting: isSupporting,
           consensusReahed: _consensusReached,
-          additionalInfo: widget.poll.additionalInfo);
+          additionalInfo: widget.poll.additionalInfo,
+          loanId: widget.poll.loanId);
 
       if (response != null && response.containsKey('error')) {
         Helper.errorSnackBar(

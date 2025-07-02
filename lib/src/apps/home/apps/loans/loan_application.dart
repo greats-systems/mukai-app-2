@@ -9,7 +9,6 @@ import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/controllers/group.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
@@ -67,30 +66,32 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
   int? paybackPeriodMonths;
   String? userId;
   String? role;
-  List<Wallet>? senderWallet;
-  Wallet? receiverWallet;
+  List<Wallet>? borrowerWallet;
+  Wallet? lenderWallet;
   GetStorage _getStorage = GetStorage();
   num? interestRate;
+  num? principalAmount;
   String? collateral;
 
   void fetchData() async {
     try {
       final id = await _getStorage.read('userId');
       final _role = await _getStorage.read('role');
-      final senderWalletJson = await walletController.getIndividualWallets(id);
-      final receivingWalletJson =
+      final borrowerWalletJson =
+          await walletController.getIndividualWallets(id);
+      final lenderWalletJson =
           await walletController.getGroupWallet(widget.group.id!);
       if (mounted) {
         setState(() {
           userId = id;
           role = _role;
-          senderWallet = senderWalletJson;
-          receiverWallet = receivingWalletJson;
+          borrowerWallet = borrowerWalletJson;
+          lenderWallet = lenderWalletJson;
           loanController.selectedCoop.value.id = widget.group.id;
         });
       }
       log('group id: ${widget.group.id}');
-      log('LoanApplicationScreen data\nuser id: $userId\nsender wallet:${JsonEncoder.withIndent('').convert(senderWallet)}\nreceiver wallet: ${JsonEncoder.withIndent('').convert(receiverWallet)}');
+      log('LoanApplicationScreen data\nuser id: $userId\nborrower wallet:${JsonEncoder.withIndent('').convert(borrowerWallet)}\nlender wallet: ${JsonEncoder.withIndent('').convert(lenderWallet)}');
     } catch (e, s) {
       log('LoanApplicationScreen error: $e $s');
     }
@@ -119,93 +120,129 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         : Scaffold(
             body: Container(
               color: whiteF5Color,
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(fixPadding * 2.0),
-                children: [
-                  // heightBox(20),
-                  // userProfileImage(size),
-                  // heightBox(10),
-                  heightBox(10),
-                  // loanTypeField(),
-                  // heightBox(10),
-                  purposeField(),
-                  heightBox(10),
-                  // descriptionField(),
-                  principalAmountField(),
-                  heightBox(10),
-                  paybackPeriodMonthsField(),
-                  heightBox(10),
-                  totalRepaymentField(),
-                  heightBox(20),
-                  collateralSwitch(),
-                  heightBox(20),
-                  if (_hasCollateral)
-                    _buildDropdownField(
-                      label: 'Collateral',
-                      value: collateral ?? '',
-                      options: [
-                        'Car',
-                        'House',
-                        'Savings account',
-                      ],
-                      onChanged: (newValue) {
-                        // Handle dropdown selection
-                        setState(() {
-                          collateral = newValue;
-                        });
-                      },
-                    ),
-                  if (role == 'coop-manager')
-                    _buildInterestDropdownField(
-                      label: 'Monthly interest rate',
-                      value: collateral ?? '',
-                      options: [
-                        '0.01',
-                        '0.02',
-                        '0.05',
-                      ],
-                      onChanged: (newValue) {
-                        // Handle dropdown selection
-                        try {
-                          setState(() {
-                            interestRate = num.parse(newValue!);
-                          });
-                          cmaController.cma.value.pollDescription =
-                              'vote for loan';
-                          loanController.selectedLoan.value.interestRate =
-                              interestRate;
-                          // cmaController.cma.value.additionalInfo = widget.;
-                          loanController.selectedLoan.value.updatedAt =
-                              DateTime.now().toIso8601String();
-                          cmaController.cma.value.updatedAt =
-                              DateTime.now().toIso8601String();
-                          // loanController.selectedCoop.value.id =
-                          //     widget.group.id;
-                          cmaController.cma.value.groupId = widget.group.id!;
-                          cmaController.createPoll();
-                          // loanController.updateCoopLoan();
-                          // groupController.updateInterestRate(widget.group.id!,
-                          //     double.parse(interestRate.toString()));
-                          // loanController.calculateRepayAmount();
-                          log(cmaController.cma.value.toJson().toString());
-                        } on Exception catch (e) {
-                          log(e.toString());
-                        }
-                      },
-                    ),
-                  Text(
-                      '*based on ${(widget.group.interest_rate) * 100}% monthly compound interest')
-                ],
-              ),
+              child: role == 'coop-manager'
+                  ? Padding(
+                      padding: EdgeInsets.only(
+                          top: height / 4, left: width / 8, right: width / 8),
+                      child: loanInterestAdjustment(),
+                    )
+                  : loanApplicationForm(),
             ),
-            bottomNavigationBar: Obx(() => cmaController.isLoading.value == true
-                ? const LinearProgressIndicator(
-                    minHeight: 1,
-                    color: whiteColor,
-                  )
-                : saveButton(context)),
           );
+  }
+
+  Widget loanApplicationForm() {
+    return ListView(
+      physics: const BouncingScrollPhysics(),
+      padding: const EdgeInsets.all(fixPadding * 2.0),
+      children: [
+        heightBox(10),
+        purposeField(),
+        heightBox(10),
+        principalAmountField(),
+        heightBox(10),
+        paybackPeriodMonthsField(),
+        heightBox(10),
+        totalRepaymentField(),
+        heightBox(20),
+        collateralSwitch(),
+        heightBox(20),
+        if (_hasCollateral) collateralField(),
+        Text(
+            '*based on ${(widget.group.interest_rate) * 100}% monthly simple interest'),
+        Obx(() => cmaController.isLoading.value == true
+            ? const LinearProgressIndicator(
+                minHeight: 1,
+                color: whiteColor,
+              )
+            : saveButton(context)),
+      ],
+    );
+  }
+
+  Widget loanInterestAdjustment() {
+    return ListView(children: [
+      _buildInterestDropdownField(
+        label: 'Monthly interest rate',
+        value: collateral ?? '',
+        options: [
+          '0.01',
+          '0.02',
+          '0.05',
+        ],
+        onChanged: (newValue) {
+          // Handle dropdown selection
+          try {
+            setState(() {
+              interestRate = num.parse(newValue!);
+            });
+            cmaController.cma.value.pollDescription = 'set interest rate';
+            cmaController.cma.value.profileId = userId;
+            // loanController.selectedLoan.value.interestRate = interestRate;
+            // cmaController.cma.value.additionalInfo = widget.;
+            // loanController.selectedLoan.value.updatedAt =
+            //     DateTime.now().toIso8601String();
+            cmaController.cma.value.updatedAt =
+                DateTime.now().toIso8601String();
+            cmaController.cma.value.additionalInfo = newValue;
+            cmaController.cma.value.consensusReached = false;
+            cmaController.cma.value.groupId = widget.group.id!;
+
+            log(cmaController.cma.value.toJson().toString());
+          } on Exception catch (e) {
+            log(e.toString());
+          }
+        },
+      ),
+      Obx(() => cmaController.isLoading.value == true
+          ? const LinearProgressIndicator(
+              minHeight: 1,
+              color: whiteColor,
+            )
+          : saveInterestButton(context)),
+    ]);
+  }
+
+  saveInterestButton(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: GestureDetector(
+        onTap: () async {
+          try {
+            cmaController.createPoll();
+          } on Exception catch (e, s) {
+            log('saveButton error $e $s');
+          }
+          // Navigator.pop(context);
+          Helper.successSnackBar(
+              title: 'Success',
+              message: 'Loan application created',
+              duration: 5);
+        },
+        child: Obx(() => profileController.isLoading.value == true
+            ? const LinearProgressIndicator(
+                color: whiteColor,
+              )
+            : Container(
+                width: double.maxFinite,
+                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
+                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
+                padding: const EdgeInsets.symmetric(
+                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
+                decoration: BoxDecoration(
+                  color: primaryColor,
+                  borderRadius: BorderRadius.circular(10.0),
+                  boxShadow: buttonShadow,
+                ),
+                child: const Text(
+                  "Save Interest Rate",
+                  style: bold18White,
+                  textAlign: TextAlign.center,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              )),
+      ),
+    );
   }
 
   saveButton(BuildContext context) {
@@ -214,17 +251,37 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
       child: GestureDetector(
         onTap: () async {
           try {
-            // loanController.createLoan(userId!);
-            cmaController.selectedGroup.value?.id = widget.group.id;
+            loanController.selectedLoan.value.borrowerWalletId =
+                borrowerWallet![0].id;
+            loanController.selectedLoan.value.lenderWalletId = lenderWallet!.id;
+            loanController.selectedLoan.value.interestRate =
+                widget.group.interest_rate;
+            loanController.selectedLoan.value.profileId = userId;
+            loanController.selectedLoan.value.cooperativeId = widget.group.id!;
+            // loanController.selectedLoan.value.principalAmount = principalAmount;
+            final loanResponse = await loanController.createLoan(userId!);
+            log(loanResponse!['id'].toString());
+
+            // Data for voting
             cmaController.cma.value.pollDescription = 'loan application';
+            cmaController.cma.value.groupId = widget.group.id!;
+            cmaController.cma.value.profileId = userId;
+            cmaController.cma.value.updatedAt =
+                DateTime.now().toIso8601String();
+            cmaController.cma.value.additionalInfo = principalAmount;
+            cmaController.cma.value.consensusReached = false;
+            cmaController.selectedGroup.value?.id = widget.group.id;
+            cmaController.cma.value.loanId = loanResponse['id'].toString();
             cmaController.createPoll();
-            loanController.sendingWallet.value.id = senderWallet![0].id;
-            loanController.receivingWallet.value.id = receiverWallet!.id;
-            loanController.createLoan(userId!);
+
+            // Data for loan applicattion
+            // loanController.selectedLoan.value.loanPurpose = loanP
+            log('Tapped');
+            // log(loanController.selectedLoan.value.borrowerWalletId.toString());
           } on Exception catch (e, s) {
             log('saveButton error $e $s');
           }
-          // Navigator.pop(context);
+          Navigator.pop(context);
           Helper.successSnackBar(
               title: 'Success',
               message: 'Loan application created',
@@ -267,10 +324,10 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         heightSpace,
         boxWidget(
           child: TextField(
-            // onChanged: (value) {
-            //   cmaController.selectedLoan.value.loanPurpose = value;
-            //   cmaController.selectedLoan.refresh();
-            // },
+            onChanged: (value) {
+              loanController.selectedLoan.value.loanPurpose = value;
+              loanController.selectedLoan.refresh();
+            },
             style: semibold14Black,
             cursorColor: primaryColor,
             keyboardType: TextInputType.name,
@@ -343,98 +400,44 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
     );
   }
 
-  Widget _buildDropdownField({
-    required String label,
-    required String value,
-    required List<String> options,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: semibold14Black,
-        ),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 4,
-                offset: Offset(0, 2),
-              ),
-            ],
-          ),
-          child: DropdownButton<String>(
-            value: value.isNotEmpty ? value : null,
-            hint: Text(
-              'Select an option',
-              style: TextStyle(color: Colors.black),
-            ),
-            isExpanded: true,
-            underline: const SizedBox(), // Remove default underline
-            items: options.map((String option) {
-              return DropdownMenuItem<String>(
-                value: option,
-                child: Text(
-                  option,
-                  style: TextStyle(color: Colors.black),
-                ),
-              );
-            }).toList(),
-            onChanged: onChanged,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // _buildDropdownField(
-  //                 label: 'Collateral',
-  //                 value: widget.loan.collateralDescription ?? '',
-  //                 options: [
-  //                   'Car',
-  //                   'House',
-  //                   'Savings account',
-  //                 ],
-  //                 onChanged: (newValue) {
-  //                   // Handle dropdown selection
-  //                   setState(() {
-  //                     widget.loan.status = newValue;
-  //                   });
-  //                 },
-  //               )
-
   collateralField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Collateral description',
+          'Collateral Type',
           style: semibold14Black,
         ),
         heightSpace,
         boxWidget(
-          child: TextField(
-            // onChanged: (value) {
-            //   cmaController.selectedLoan.value.collateralDescription = value;
-            //   cmaController.selectedLoan.refresh();
-            // },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: collateralDescriptionController,
+          child: DropdownButtonFormField<String>(
+            value: loanController.selectedLoan.value.collateralDescription,
+            items: const [
+              DropdownMenuItem(
+                value: 'vehicle',
+                child: Text('Vehicle'),
+              ),
+              DropdownMenuItem(
+                value: 'house',
+                child: Text('House'),
+              ),
+              DropdownMenuItem(
+                value: 'savings account',
+                child: Text('Savings Account'),
+              ),
+            ],
+            onChanged: (value) {
+              loanController.selectedLoan.value.collateralDescription = value;
+              loanController.selectedLoan.refresh();
+            },
             decoration: InputDecoration(
               border: InputBorder.none,
-              hintStyle: semibold14Grey,
               contentPadding: EdgeInsets.all(fixPadding * 1.5),
             ),
+            style: semibold14Black,
+            dropdownColor: Colors.white,
+            icon: const Icon(Icons.arrow_drop_down, color: primaryColor),
+            borderRadius: BorderRadius.circular(10),
           ),
         )
       ],
@@ -480,6 +483,9 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
                 val?.principalAmount = amount;
               });
               loanController.calculateRepayAmount();
+              setState(() {
+                principalAmount = num.tryParse(value);
+              });
             },
             style: semibold14Black,
             cursorColor: primaryColor,

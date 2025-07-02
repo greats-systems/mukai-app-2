@@ -5,6 +5,7 @@ import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/src/apps/groups/views/screens/polls/coop_poll_details.dart';
 import 'package:mukai/src/apps/groups/views/screens/polls/coop_polls.dart';
+import 'package:mukai/src/apps/groups/views/widgets/poll_item.dart';
 import 'dart:developer';
 // import 'package:mukai/src/apps/home/apps/cmas/loan_detail.dart';
 import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
@@ -42,7 +43,7 @@ class _PollsScreenState extends State<CoopPollsScreen> {
         _isLoading = true;
         userId = id;
       });
-      final cmaData = await _cmaController.getCoopPolls(widget.group.id!);
+      final cmaData = await _cmaController.getCoopPolls(widget.group.id!, userId!);
       if (!mounted) return;
       setState(() {
         cmas = cmaData;
@@ -71,7 +72,7 @@ class _PollsScreenState extends State<CoopPollsScreen> {
           )
         : cmas == null
             ? Center(
-                child: Text('No coop cmas yet'),
+                child: Text('No coop polls yet'),
               )
             : ListView.builder(
                 itemCount: cmas!.length,
@@ -105,10 +106,10 @@ class _PollsScreenState extends State<CoopPollsScreen> {
                             borderRadius: BorderRadius.circular(10.0),
                             color: whiteColor.withOpacity(0.1),
                           ),
-                          child: CoopPollsWidget(
-                            group: widget.group,
-                            cma: cma),
-                          // child: Widget(cma: cma),
+                          // child: CoopPollsWidget(
+                          //   group: widget.group,
+                          //   cma: cma),
+                          child: PollItemWidget(cma: cma),
                         ),
                       ),
                     ),

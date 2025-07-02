@@ -15,11 +15,12 @@ class CooperativeMemberApprovalsController {
   final cma = CooperativeMemberApproval().obs;
   final coop = Cooperative().obs;
   final dio = DioClient().dio;
+  // final consensusReached = bool().obs;
 
   Future<void> createPoll() async {
     // cma.value.consensusReached = false;
     try {
-      // log(cma.value.toJson().toString() ?? 'No data');
+      // log(cma.value.toJson().toString());
       final response = await dio.post(
           '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals',
           data: cma.value.toJson());
@@ -29,10 +30,14 @@ class CooperativeMemberApprovalsController {
     }
   }
 
-  Future<List<CooperativeMemberApproval>?> getCoopPolls(String coopId) async {
+  Future<List<CooperativeMemberApproval>?> getCoopPolls(
+      String coopId, String userId) async {
+    var params = {
+      'profile_id': userId,
+    };
     try {
       final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/$coopId');
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/$coopId', data: params);
       log('getCoopPolls data: ${response.data.toString()}');
 
       if (response.data == null) return null;
@@ -75,26 +80,30 @@ class CooperativeMemberApprovalsController {
     try {
       var data = {
         'group_id': cma.value.groupId,
-        'additional_info':cma.value.additionalInfo,
+        'profile_id': cma.value.profileId,
+        'additional_info': cma.value.additionalInfo,
         'poll_description': cma.value.pollDescription,
         'supporting_votes': cma.value.supportingVotes,
         'opposing_votes': cma.value.opposingVotes,
         'updated_at': DateTime.now().toIso8601String(),
+        // 'consensus_reached': consensusReached,
       };
-      log(data.toString());
+      // log(data.toString());
       final response = await dio.patch(
         '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/${cma.value.id}',
         data: {
           'group_id': cma.value.groupId,
+          'profile_id':cma.value.profileId,
           'additional_info':cma.value.additionalInfo,
           'poll_description': cma.value.pollDescription,
           'supporting_votes': cma.value.supportingVotes,
           'opposing_votes': cma.value.opposingVotes,
           'updated_at': DateTime.now().toIso8601String(),
+          // 'consensus_reached': consensusReached,
         },
       );
 
-      log('Poll update response: ${response.data}');
+      // log('Poll update response: ${response.data}');
       return response.data;
     } on DioException catch (error) {
       log('Error updating poll: ${error.response?.data}');
@@ -120,12 +129,15 @@ class CooperativeMemberApprovalsController {
 
   Future<Map<String, dynamic>?> castVote({
     required String groupId,
+    required String profileId,
     required String pollId,
     required String pollDescription,
     required String memberId,
     required bool isSupporting,
     required dynamic additionalInfo,
     required bool consensusReahed,
+    String? loanId,
+    String? assetId,
   }) async {
     try {
       // First get current poll state
@@ -150,10 +162,24 @@ class CooperativeMemberApprovalsController {
         opposingVotes.add(memberId);
       }
 
+      var data = {
+        'profile_id': profileId,
+        'group_id': groupId,
+        'poll_description': pollDescription,
+        'supporting_votes': supportingVotes,
+        'opposing_votes': opposingVotes,
+        'updated_at': DateTime.now().toIso8601String(),
+        'consensus_reached': consensusReahed,
+        'additional_info': additionalInfo,
+        'loan_id': loanId,
+      };
+      // log(data.toString());
+
       // Update the poll
       final response = await dio.patch(
         '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId',
         data: {
+          'profile_id': profileId,
           'group_id': groupId,
           'poll_description': pollDescription,
           'supporting_votes': supportingVotes,
@@ -161,9 +187,9 @@ class CooperativeMemberApprovalsController {
           'updated_at': DateTime.now().toIso8601String(),
           'consensus_reached': consensusReahed,
           'additional_info': additionalInfo,
+          'loan_id': loanId,
         },
       );
-
       return response.data;
     } on DioException catch (error) {
       log('Error casting vote: ${error.response?.data}');

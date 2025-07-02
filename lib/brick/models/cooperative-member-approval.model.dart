@@ -1,6 +1,7 @@
 class CooperativeMemberApproval {
   String? id;
   String? createdAt;
+  String? profileId;
   String? groupId;
   int? numberOfMembers;
   List<String>? supportingVotes;
@@ -15,6 +16,7 @@ class CooperativeMemberApproval {
   CooperativeMemberApproval({
     this.id,
     this.createdAt,
+    this.profileId,
     this.groupId,
     this.numberOfMembers,
     this.supportingVotes,
@@ -30,6 +32,7 @@ class CooperativeMemberApproval {
   Map<String, dynamic> toJson() => {
         'id': id,
         'created_at': createdAt,
+        'profile_id': profileId,
         'group_id': groupId,
         'number_of_members': numberOfMembers,
         'supporting_votes': supportingVotes,
@@ -53,18 +56,18 @@ class CooperativeMemberApproval {
     }
 
     return CooperativeMemberApproval(
-      id: json['id'],
-      createdAt: json['created_at'],
-      groupId: json['group_id'],
-      numberOfMembers: json['number_of_members'],
-      supportingVotes: parseVotes(json['supporting_votes']),
-      opposingVotes: parseVotes(json['opposing_votes']),
-      pollDescription: json['poll_description'],
-      assetId: json['asset_id'],
-      loanId: json['loan_id'],
-      updatedAt: json['updated_at'],
-      additionalInfo: json['additional_info'],
-      consensusReached: json['consensus_reached']
-    );
+        id: json['id'],
+        createdAt: json['created_at'],
+        profileId: json['profile_id'],
+        groupId: json['group_id'],
+        numberOfMembers: json['number_of_members'],
+        supportingVotes: parseVotes(json['supporting_votes']),
+        opposingVotes: parseVotes(json['opposing_votes']),
+        pollDescription: json['poll_description'],
+        assetId: json['asset_id'],
+        loanId: json['loan_id'],
+        updatedAt: json['updated_at'],
+        additionalInfo: json['additional_info'],
+        consensusReached: json['consensus_reached']);
   }
 }

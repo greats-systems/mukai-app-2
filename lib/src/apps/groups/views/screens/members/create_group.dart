@@ -99,9 +99,7 @@ class _CreateGroupState extends State<CreateGroup> {
           backgroundColor: Colors.green,
           colorText: Colors.white,
         );
-        Get.to(() => BottomBar(
-              role: 'admin',
-            ));
+        Get.to(() => BottomBar());
       } else {
         Helper.errorSnackBar(
             title: 'Error', message: response['message'], duration: 5);

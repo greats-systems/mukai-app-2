@@ -5,6 +5,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
+import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
 import 'package:mukai/src/apps/home/landing_quick_transact.dart';
 import 'package:mukai/src/apps/home/qr_code.dart';
@@ -62,8 +63,8 @@ class _BottomBarState extends State<BottomBar> {
   bool _isDisposed = false;
   bool _isLoading = false;
   Future<void> _fetchData() async {
-    userId = await _getStorage.read('userId');
-    userRole = await _getStorage.read('role');
+    userId = _getStorage.read('userId');
+    userRole = _getStorage.read('account_type');
   }
 
   Future<void> fetchWalletID() async {
@@ -131,7 +132,6 @@ class _BottomBarState extends State<BottomBar> {
 
   @override
   void initState() {
-    log(widget.role ?? 'No role');
     super.initState();
     _fetchData();
     authController.getAccount();
@@ -146,6 +146,7 @@ class _BottomBarState extends State<BottomBar> {
         subIndex = 0;
       });
     }
+    log(userRole?? 'No role');
   }
 
   changeIndex(index, subIndex) {
@@ -175,7 +176,7 @@ class _BottomBarState extends State<BottomBar> {
                   ? managerPages[_currentIndex]
                   : membermanagerPages[_currentIndex],
             )),
-      floatingActionButton: userRole == 'coop-manager' && selectedIndex == 2
+      floatingActionButton: userRole == 'coop-manager' && _currentIndex == 2
           ? addGroup()
           : scanQR(),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -243,7 +244,7 @@ class _BottomBarState extends State<BottomBar> {
   addGroup() {
     return GestureDetector(
       onTap: () {
-        Get.to(() => CreateGroup());
+        Get.to(() => AdminRegisterCoopScreen());
       },
       child: Container(
         height: 52.0,

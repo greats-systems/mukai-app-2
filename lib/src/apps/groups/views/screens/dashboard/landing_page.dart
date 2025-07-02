@@ -18,6 +18,7 @@ import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_reports.dart'
 import 'package:mukai/src/apps/groups/views/screens/dashboard/coop_wallet_balances.dart';
 import 'package:mukai/src/apps/groups/views/widgets/polls_list.dart';
 import 'package:mukai/src/apps/home/apps/contribution/make_contribution.dart';
+import 'package:mukai/src/apps/home/apps/group_loans/loan_landing_page.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_landing_page.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_application.dart';
 import 'package:mukai/src/apps/home/apps/subscriptions/subscriptions.dart';

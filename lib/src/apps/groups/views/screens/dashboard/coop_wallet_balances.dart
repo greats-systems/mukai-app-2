@@ -75,35 +75,42 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
       if (response.data['data'] != 'No wallet found') {
         if (response.data != null && response.data['data'] != null) {
           final walletData = response.data['data'];
-          setState(() {
-            // Create wallet maps based on the currency
-            if (walletData['default_currency']?.toLowerCase() == 'usd') {
-              usdWallet = {
-                'balance': walletData['balance']?.toStringAsFixed(2) ?? '0.00',
-                'default_currency': 'USD'
-              };
-              zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
-            } else if (walletData['default_currency']?.toLowerCase() == 'zig') {
-              zigWallet = {
-                'balance': walletData['balance']?.toStringAsFixed(2) ?? '0.00',
-                'default_currency': 'ZIG'
-              };
-              usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
-            }
+          if (mounted) {
+            setState(() {
+              // Create wallet maps based on the currency
+              if (walletData['default_currency']?.toLowerCase() == 'usd') {
+                usdWallet = {
+                  'balance':
+                      walletData['balance']?.toStringAsFixed(2) ?? '0.00',
+                  'default_currency': 'USD'
+                };
+                zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
+              } else if (walletData['default_currency']?.toLowerCase() ==
+                  'zig') {
+                zigWallet = {
+                  'balance':
+                      walletData['balance']?.toStringAsFixed(2) ?? '0.00',
+                  'default_currency': 'ZIG'
+                };
+                usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
+              }
 
-            log('USD Wallet: $usdWallet');
-            log('ZIG Wallet: $zigWallet');
-          });
+              log('USD Wallet: $usdWallet');
+              log('ZIG Wallet: $zigWallet');
+            });
+          }
         }
       } else {
         log('No wallet');
       }
     } catch (e, s) {
       log('Error fetching wallet data: $e $s');
-      setState(() {
-        zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
-        usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
-      });
+      if (mounted) {
+        setState(() {
+          zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
+          usdWallet = {'balance': '0.00', 'default_currency': 'USD'};
+        });
+      }
     } finally {
       if (mounted) {
         setState(() => _isLoading = false);

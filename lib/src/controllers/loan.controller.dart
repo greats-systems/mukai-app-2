@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer' as dev;
 import 'dart:math';
 
@@ -36,8 +37,10 @@ class LoanController extends GetxController {
       return;
     }
 
-    var monthlyRate = await fetchCoopInterestRate(selectedCoop.value.id!); // 2% monthly interest
-    final repayAmount = principal + (principal * num.parse(monthlyRate!.toString()) * months);
+    var monthlyRate = await fetchCoopInterestRate(
+        selectedCoop.value.id!); // 2% monthly interest
+    final repayAmount =
+        principal + (principal * num.parse(monthlyRate!.toString()) * months);
 
     selectedLoan.update((loan) {
       loan?.paymentAmount = repayAmount;
@@ -66,7 +69,7 @@ class LoanController extends GetxController {
     }
   }
 
-  Future<void> createLoan(String userId) async {
+  Future<Map<String, dynamic>?> createLoan(String userId) async {
     try {
       DateTime today = DateTime.now();
 
@@ -77,31 +80,26 @@ class LoanController extends GetxController {
         today.day,
       );
       isLoading.value = true;
-      final loanToCreate = selectedLoan.value;
-      loanToCreate.profileId = userId;
-      loanToCreate.createdAt = DateTime.now().toIso8601String();
-      loanToCreate.cooperativeId = selectedCoop.value.id;
-      loanToCreate.borrowerWalletId = receivingWallet.value.id;
-      loanToCreate.lenderWalletId = sendingWallet.value.id;
-      loanToCreate.interestRate = selectedCoop.value.interest_rate;
-      loanToCreate.nextPaymentDate = nextMonthDate.toString().substring(0, 10);
-      loanToCreate.status = 'pending';
-      loanToCreate.remainingBalance =
-          num.parse(selectedLoan.value.paymentAmount!.toStringAsFixed(2));
-      // loanToCreate.dueDate = calculateDueDate(loanToCreate.loanTermMonths!)
-      //     .toString()
-      //     .substring(0, 10);
-      // dev.log(JsonEncoder.withIndent(' ').convert(loanToCreate.toJson()));
+      selectedLoan.value.status = 'pending';
+      if (selectedLoan.value.loanTermMonths != null) {
+        selectedLoan.value.dueDate =
+            calculateDueDate(selectedLoan.value.loanTermMonths!)
+                .toString()
+                .substring(0, 10);
+      }
+      // selectedLoan.value.remainingBalance = selectedLoan.value.repay;
+      // dev.log(JsonEncoder.withIndent(' ').convert(selectedLoan.toJson()));
 
       final response = await dio.post(
         '${EnvConstants.APP_API_ENDPOINT}/loans',
-        data: loanToCreate.toJson(),
+        data: selectedLoan.toJson(),
       );
-
-      dev.log('Loan created: ${response.data}');
+      // dev.log('Loan created: ${response.data}');
+      return response.data;
     } catch (e, s) {
       dev.log('Error creating loan: $e', stackTrace: s);
       Get.snackbar('Error', 'Failed to create loan');
+      return null;
     } finally {
       isLoading.value = false;
     }
@@ -179,7 +177,7 @@ class LoanController extends GetxController {
         'updated_at': DateTime.now().toIso8601String(),
         'loan_id': selectedLoan.value.id,
       };
-    }    
+    }
     try {
       dev.log(params.toString());
       final response = await dio.patch(

@@ -403,6 +403,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
             GestureDetector(
               onTap: () async {
                 cmaController.cma.value.groupId = widget.group!.id;
+                cmaController.cma.value.profileId = userId;
                 cmaController.cma.value.pollDescription = 'loan application';
                 cmaController.cma.value.additionalInfo =
                     widget.loan.principalAmount;

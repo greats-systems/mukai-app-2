@@ -31,7 +31,6 @@ import 'package:mukai/src/apps/groups/views/widgets/poll_item.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 // import 'package:mukai/src/controllers/cma.controller.dart';
 import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
-import 'package:mukai/theme/theme.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
 class CoopPollsWidget extends StatefulWidget {
@@ -58,7 +57,7 @@ class _MyCoopPollsWidgetState extends State<CoopPollsWidget> {
   void _fetchGroupMembers() async {
     setState(() => _isLoading = true);
     try {
-      var polls_list = await cmaController.getCoopPolls(widget.group.id ?? '');
+      var polls_list = await cmaController.getCoopPolls(widget.group.id ?? '', loggedInUserId!);
       setState(() {
         polls = polls_list;
         _isLoading = false;
@@ -110,9 +109,5 @@ class _MyCoopPollsWidgetState extends State<CoopPollsWidget> {
                   // MukandoMembersListTile(groupMember: member);
                 },
               );
-  }
-
-  Widget _buildListTile(CooperativeMemberApproval cma) {
-    return ListTile();
   }
 }

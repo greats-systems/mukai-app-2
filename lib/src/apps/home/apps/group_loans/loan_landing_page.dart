@@ -1,8 +1,5 @@
-import 'dart:developer';
 
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
@@ -10,9 +7,7 @@ import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/src/apps/home/apps/loans/coop_loans.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_application.dart';
-import 'package:mukai/src/apps/home/apps/loans/loan_detail.dart';
 import 'package:mukai/src/apps/home/apps/loans/my_loans.dart';
-import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
@@ -29,8 +24,8 @@ class LoanLandingPageScreen extends StatefulWidget {
 class _LoanLandingPageScreenState extends State<LoanLandingPageScreen> {
   final tabList = ["Create Loan", "My Loans", "Coop Loans"];
   int selectedTab = 0;
-  final GetStorage _getStorage = GetStorage();
-  final WalletController _walletController = WalletController();
+  // final GetStorage _getStorage = GetStorage();
+  // final WalletController _walletController = WalletController();
   final LoanController _loanController = LoanController();
   List<Wallet>? wallets;
   List<Loan>? loans;
