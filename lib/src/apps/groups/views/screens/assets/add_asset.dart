@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:dropdown_search/dropdown_search.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
@@ -29,7 +30,7 @@ class AddAssetWidget extends StatefulWidget {
 
   AddAssetWidget({
     super.key,
-    required this.group,
+    this.group,
   });
 
   @override
@@ -332,9 +333,10 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
       padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
       child: GestureDetector(
         onTap: () {
+          final id = GetStorage().read('userId');
           // log(widget.group!.id!);
-          assetController.createAsset(widget.group!.id!, null, 'group');
-          Navigator.pop(context);
+          assetController.createIndividualAsset(id);
+          // Navigator.pop(context);
         },
         child: Obx(() => profileController.isLoading.value == true
             ? const LinearProgressIndicator(
@@ -352,7 +354,7 @@ class _MemberDetailScreenState extends State<AddAssetWidget> {
                   boxShadow: buttonShadow,
                 ),
                 child: const Text(
-                  "Save Asset",
+                  "Save Individual Asset",
                   style: bold18White,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,

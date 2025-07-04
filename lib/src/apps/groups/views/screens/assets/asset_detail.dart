@@ -80,7 +80,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     assetController.asset.value = widget.asset;
     userId = GetStorage().read('userId');
     role = GetStorage().read('role');
-    log('AssetDetailScreen userId: $userId\nrole: $role\ngroup id: ${widget.group!.id}');
+    log('AssetDetailScreen userId: $userId\nrole: $role\ngroup id: ${widget.group?.id}');
     // getProfile().then((value) {});
     setDetails();
     super.initState();
@@ -1048,7 +1048,11 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                       if (asset.id != null) {
                         await assetController.updateAsset(asset.id!);
                         Navigator.pop(context);
-                        Get.back();
+                        Helper.successSnackBar(
+                            title: 'Success',
+                            message: 'Asset updated successfully',
+                            duration: 5);
+                        // Get.back();
                       } else {
                         Helper.errorSnackBar(
                             title: 'Blank ID',

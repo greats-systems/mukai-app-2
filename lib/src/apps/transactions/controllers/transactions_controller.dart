@@ -87,7 +87,7 @@ class TransactionController extends MainController {
                   transactions_sending_wallet_fkey(*), 
                   transactions_receiving_wallet_fkey(*)''')
           .or("member_id.eq.$id,receiving_wallet.eq.$wallet_id,sending_wallet.eq.$wallet_id")
-          .order('created_date', ascending: false);
+          .order('created_at', ascending: false);
       if (fullResponse.isEmpty) return <Transaction>[];
 
       return fullResponse.map((item) => Transaction.fromJson(item)).toList();
@@ -296,8 +296,10 @@ class TransactionController extends MainController {
         '${EnvConstants.APP_API_ENDPOINT}/transactions',
         data: transferTransaction.toJson(),
         options: Options(
-          validateStatus: (status) {
-            return status! < 500;
+          headers: {
+            'apikey': _getStorage.read('access_token'),
+            'Authorization': 'Bearer ${_getStorage.read('access_token')}',
+            'Content-Type': 'application/json',
           },
         ),
       ).timeout(Duration(seconds: 30));

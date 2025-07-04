@@ -68,7 +68,13 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
     });
     try {
       final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group.id}');
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group.id}', options: Options(
+            headers: {
+              'apikey': _getStorage.read('access_token'),
+              'Authorization': 'Bearer ${_getStorage.read('access_token')}',
+              'Content-Type': 'application/json',
+            },
+          ));
       log(response.data.toString());
       if (response.data['data'] != 'No wallet found') {
         final walletJson = response.data['data'];

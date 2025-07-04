@@ -8,7 +8,9 @@ import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/transaction.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
+import 'package:mukai/src/apps/home/admin/account_transactions.dart';
 import 'package:mukai/src/apps/home/qr_code.dart';
+import 'package:mukai/src/apps/home/transactions_list.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/widgets/transfer_to_wallet.dart';
@@ -33,7 +35,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
 
-  final WalletController walletController = WalletController();
+  // final WalletController walletController = WalletController();
 
   final TextEditingController amountController = TextEditingController();
 
@@ -103,6 +105,9 @@ class _TransfersScreenState extends State<TransfersScreen> {
     _isDisposed = true;
     amountController.dispose();
     phoneController.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      transactionController.selectedProfile.value = Profile();
+    });
     // transactionController.transferTransaction.value = Transaction();
     // transactionController.selectedTransaction.value = Transaction();
     super.dispose();
@@ -186,10 +191,10 @@ class _TransfersScreenState extends State<TransfersScreen> {
                                                   ? memberInitiateTrans()
                                                   : sendToMobileWallet()),
                   height20Space,
-                  if (transactionController
-                          .transferTransaction.value.receiving_wallet !=
-                      null)
-                    detailsField(),
+                  Obx(() =>
+                      transactionController.selectedProfile.value.id != null
+                          ? detailsField()
+                          : SizedBox()),
                   height20Space,
                   registerContent(),
                 ],
@@ -197,6 +202,49 @@ class _TransfersScreenState extends State<TransfersScreen> {
             ),
           )
         ],
+      ),
+    );
+  }
+
+  accountNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        onChanged: (value) async {
+          transactionController.accountNumber.value = value;
+          if (value.length > 4) {
+            await transactionController.getProfileByIDSearch(value);
+          }
+        },
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: greyB5Color), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Enter Account-ID",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.wallet,
+              color: primaryColor,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -277,26 +325,6 @@ class _TransfersScreenState extends State<TransfersScreen> {
                     )),
               ),
               heightBox(20),
-              Container(
-                  alignment: Alignment(0, 0),
-                  height: height * 0.05,
-                  width: width * 0.9,
-                  // padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 5,
-                    children: [
-                      Text(
-                        "Use NFC Tap n' Pay",
-                        style: bold16White,
-                      ),
-                    ],
-                  )),
-              heightBox(20),
               GestureDetector(
                 onTap: () {
                   transactionController.selectedTransferOption.value =
@@ -313,7 +341,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
                     width: width * 0.9,
                     // padding: EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: tertiaryColor,
+                      color: primaryColor,
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Row(
@@ -472,7 +500,8 @@ class _TransfersScreenState extends State<TransfersScreen> {
     return Column(
       children: [
         heightSpace,
-        agentNumberField(),
+        // agentNumberField(),
+        accountNumberField(),
         heightSpace,
         amountField(),
         heightSpace,
@@ -518,7 +547,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
             Text(
               'Recieving Account',
               style: TextStyle(
-                  color: blackOrignalColor,
+                  color: whiteF5Color,
                   fontWeight: FontWeight.bold,
                   fontSize: 22),
             ),
@@ -526,11 +555,13 @@ class _TransfersScreenState extends State<TransfersScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'Email:\t',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  'Phone Number:\t',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
                 ),
                 Text(
-                  '${transactionController.selectedProfile.value.email}',
+                  '${transactionController.selectedProfile.value.phone}',
+                  style: TextStyle(color: whiteF5Color),
                   // style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -541,10 +572,12 @@ class _TransfersScreenState extends State<TransfersScreen> {
               children: [
                 Text(
                   'First Name:\t',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
                 ),
                 Text(
                   '${transactionController.selectedProfile.value.first_name}',
+                  style: TextStyle(color: whiteF5Color),
                   // style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
@@ -555,28 +588,33 @@ class _TransfersScreenState extends State<TransfersScreen> {
               children: [
                 Text(
                   'Last Name:\t',
-                  style: TextStyle(fontWeight: FontWeight.bold),
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
                 ),
                 Text(
                   '${transactionController.selectedProfile.value.last_name}',
+                  style: TextStyle(color: whiteF5Color),
                   // style: TextStyle(fontWeight: FontWeight.bold),
                 ),
               ],
             ),
             SizedBox(height: 12),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Wallet ID:\t',
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-                // Text(
-                //   "${wallet_id.substring(0, 8)}...${wallet_id.substring(28, 36)}",
-                //   // style: TextStyle(fontWeight: FontWeight.bold),
-                // ),
-              ],
-            ),
+            if (transactionController.selectedProfile.value.wallet_id != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Wallet ID:',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: whiteF5Color),
+                  ),
+                  Text(
+                    "${transactionController.selectedProfile.value.wallet_id?.substring(24, 36)}",
+                    style: TextStyle(color: whiteF5Color),
+                    // style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -621,6 +659,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
         transactionController.accountNumber.value = '';
         // transactionController.
         await transactionController.initiateTransfer();
+        Get.to(() => TransactionsList());
       },
       child: Container(
         width: width * 0.3,
@@ -793,49 +832,6 @@ class _TransfersScreenState extends State<TransfersScreen> {
           prefixIcon: Center(
             child: Icon(
               Icons.phone_android_outlined,
-              color: primaryColor,
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-
-  accountNumberField() {
-    return Container(
-      decoration: BoxDecoration(
-        color: recWhiteColor,
-        borderRadius: BorderRadius.circular(10.0),
-      ),
-      child: TextField(
-        onChanged: (value) async {
-          transactionController.transferTransaction.value.receiving_wallet =
-              value;
-          final json = await _walletController.getWalletLikeID(value);
-          log(json.toString());
-        },
-        style: medium14Black,
-        cursorColor: primaryColor,
-        keyboardType: TextInputType.name,
-        decoration: InputDecoration(
-          border: InputBorder.none,
-          enabledBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: greyB5Color), // Border color when not focused
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderSide:
-                BorderSide(color: primaryColor), // Border color when focused
-            borderRadius: BorderRadius.circular(10.0),
-          ),
-          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
-          hintText: "Account number",
-          hintStyle: medium15Grey,
-          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
-          prefixIcon: Center(
-            child: Icon(
-              Icons.wallet,
               color: primaryColor,
             ),
           ),

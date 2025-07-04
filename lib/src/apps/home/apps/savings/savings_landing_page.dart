@@ -86,7 +86,7 @@ class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
           },
           icon: const Icon(
             Icons.arrow_back,
-            color: blackOrignalColor,
+            color: whiteColor,
           ),
         ),
         backgroundColor: primaryColor,

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
+import 'package:mukai/src/apps/groups/views/screens/assets/add_asset.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/asset_detail.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/asset_item.dart';
 // import 'package:mukai/src/apps/home/widgets/transaction_item.dart';
@@ -87,7 +88,8 @@ class _MyWidgetState extends State<MemberAssetsList> {
         ),
         floatingActionButton: FloatingActionButton(
           onPressed: () {
-            Get.toNamed('/asset/create');
+            // Get.toNamed('/asset/create');
+            Get.to(() => AddAssetWidget());
           },
           backgroundColor: primaryColor,
           child: const Icon(Icons.add, color: whiteF5Color),

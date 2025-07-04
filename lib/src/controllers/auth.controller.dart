@@ -68,8 +68,9 @@ class AuthController extends GetxController {
 
   Future<void> _loadUserData(String userId) async {
     try {
-      final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$userId', options: Options(
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$userId',
+          options: Options(
             headers: {
               'apikey': _getStorage.read('access_token'),
               'Authorization': 'Bearer ${_getStorage.read('access_token')}',
@@ -1153,15 +1154,32 @@ class AuthController extends GetxController {
       };
 
       // log('Auth data: ${EnvConstants.APP_API_ENDPOINT}');
+      // final x = (
+      //   '${EnvConstants.APP_API_ENDPOINT}/auth/create-account',
+      //   data: auth_data,
+      //   options: Options(
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       'Accept': 'application/json',
+      //       'apikey': EnvConstants.SUPABASE_ROLE_KEY,
+      //       'Authorization': 'Bearer ${EnvConstants.SUPABASE_ROLE_KEY}',
+      //     },
+      //   ).toString(),
+      // ).toString();
+      // log(x);
       var auth_response = await dio.post(
         '${EnvConstants.APP_API_ENDPOINT}/auth/create-account',
         data: auth_data,
         options: Options(
-          validateStatus: (status) {
-            return status! < 500; // Don't throw for 4xx errors
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'apikey': EnvConstants.SUPABASE_ROLE_KEY,
+            'Authorization': 'Bearer ${EnvConstants.SUPABASE_ROLE_KEY}',
           },
         ),
       );
+      log(auth_response.data.toString());
       if (auth_response.data == null || auth_response.data == '') {
         Helper.errorSnackBar(
             title: 'Empty response',

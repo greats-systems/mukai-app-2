@@ -105,7 +105,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
 
   void _handleItemTap(String title) {
     switch (title) {
-      case 'Savings':
+      case 'Savings Portfolio':
         Get.to(() => SavingsLandingPageScreen(
               group: Group(),
             ));

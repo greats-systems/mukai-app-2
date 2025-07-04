@@ -150,11 +150,11 @@ class AssetController {
   }
 
   Future<void> updateAsset(String assetId) async {
-    log('deleteAsset: $assetId');
+    log('updateAsset: $assetId');
 
     try {
       final response =
-          await dio.put('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId',
+          await dio.patch('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId',
               options: Options(headers: {
                 'apikey': accessToken,
                 'Authorization': 'Bearer $accessToken',
@@ -203,6 +203,53 @@ class AssetController {
       log('deleteAsset error: $e');
       await Helper.errorSnackBar(
           title: 'Asset Deletion Failed', message: e.toString(), duration: 5);
+    }
+  }
+
+  Future<void> createIndividualAsset(
+String? profileId) async {
+    // final groupJson = await supabase.from('cooperatives').select('id').eq('name', value)
+    try {
+      var assetData = {
+        "asset_descriptive_name": asset.value.assetDescriptiveName,
+        "asset_description": asset.value.assetDescription,
+        "status": "active",
+        "valuation_currency": asset.value.valuationCurrency ?? 'USD',
+        "fiat_value": double.parse(asset.value.fiatValue.toString()),
+        "token_value": double.parse(asset.value.fiatValue.toString()),
+        "asset_images": null,
+        "last_transaction_timestamp": null,
+        "verifiable_certificate_issuer_id": null,
+        "governing_board": null,
+        "holding_account": null,
+        "legal_documents": null,
+        "has_verifiable_certificate": false,
+        "is_valuated": false,
+        "is_minted": false,
+        "is_shared": false,
+        "is_active": false,
+        "has_documents": false,
+        "profile_id": profileId,
+        "has_received_vote": false,
+      };
+      log('assetData: $assetData');
+      final response = await dio.post('${EnvConstants.APP_API_ENDPOINT}/assets/individual',
+          data: assetData,
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
+      if (response.statusCode == 201) {
+        await Helper.successSnackBar(
+            title: 'Asset Created',
+            message: response.data['message'],
+            duration: 5);
+      }
+    } catch (e) {
+      log('getTransactionById error: $e');
+      await Helper.errorSnackBar(
+          title: 'Asset Creation Failed', message: e.toString(), duration: 5);
     }
   }
 

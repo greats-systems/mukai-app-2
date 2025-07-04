@@ -51,6 +51,13 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
     final response = await dio.get(
       '${EnvConstants.APP_API_ENDPOINT}/group_members/${widget.group!.id}/members',
       cancelToken: _cancelToken,
+      options: Options(
+        headers: {
+          'apikey': _getStorage.read('access_token'),
+          'Authorization': 'Bearer ${_getStorage.read('access_token')}',
+          'Content-Type': 'application/json',
+        },
+      ),
     );
 
     if (!mounted) return;
@@ -68,7 +75,10 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
       });
 
       final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group?.id ?? 'No wallet ID'}');
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/coop/${widget.group?.id ?? 'No wallet ID'}', options: Options(contentType: 'application/json', headers: {
+            'apikey': _getStorage.read('access_token'),
+            'Authorization': 'Bearer ${_getStorage.read('access_token')}',
+          }));
 
       log('Wallet Data: ${response.data}');
 

@@ -93,7 +93,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
 
   void fetchId() async {
     if (_isDisposed) return;
-    profileController.isLoading.value = true;
+    // profileController.isLoading.value = true;
     setState(() {
       _isLoading = true;
       userId = _getStorage.read('userId');
