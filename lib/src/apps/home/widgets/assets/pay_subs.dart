@@ -265,7 +265,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
       transactionController.transferTransaction.value.sending_wallet =
           sendingWallet![0].id;
       transactionController.transferTransaction.value.receiving_wallet =
-          receivingWallet![0].id;
+          receivingWallet![1].id;
       transactionController.transferTransaction.value.transferCategory =
           'transfer';
       transactionController.transferTransaction.value.transferMode =

@@ -293,16 +293,7 @@ class _MemberLandingScreenState extends State<MemberLandingScreen> {
                     color: primaryColor,
                     borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 5,
-                    children: [
-                      Text(
-                        "Use NFC Tap n' Pay",
-                        style: bold16White,
-                      ),
-                    ],
-                  )),
+                  ),
               heightBox(20),
               GestureDetector(
                 onTap: () {

@@ -203,20 +203,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
                   height: height * 0.05,
                   width: width * 0.9,
                   // padding: EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: primaryColor,
-                    borderRadius: BorderRadius.circular(10),
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    spacing: 5,
-                    children: [
-                      Text(
-                        "Use NFC Tap n' Pay",
-                        style: bold16White,
-                      ),
-                    ],
-                  )),
               heightBox(20),
               GestureDetector(
                 onTap: () {

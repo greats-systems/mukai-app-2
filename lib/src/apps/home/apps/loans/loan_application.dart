@@ -71,6 +71,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
   GetStorage _getStorage = GetStorage();
   num? interestRate;
   num? principalAmount;
+  num? paymentAmount;
   String? collateral;
 
   void fetchData() async {
@@ -91,6 +92,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         });
       }
       log('group id: ${widget.group.id}');
+      log('group balance: ${lenderWallet?.balance.toString()}');
       log('LoanApplicationScreen data\nuser id: $userId\nborrower wallet:${JsonEncoder.withIndent('').convert(borrowerWallet)}\nlender wallet: ${JsonEncoder.withIndent('').convert(lenderWallet)}');
     } catch (e, s) {
       log('LoanApplicationScreen error: $e $s');
@@ -107,6 +109,8 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
   void dispose() {
     super.dispose();
     cmaController.cma.value = CooperativeMemberApproval();
+    paymentAmount = 0;
+    principalAmount = 0;
   }
 
   @override
@@ -149,7 +153,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         heightBox(20),
         if (_hasCollateral) collateralField(),
         Text(
-            '*based on ${(widget.group.interest_rate) * 100}% monthly simple interest'),
+            '*based on ${((widget.group.interest_rate) * 100).toStringAsFixed(0)}% monthly simple interest'),
         Obx(() => cmaController.isLoading.value == true
             ? const LinearProgressIndicator(
                 minHeight: 1,
@@ -245,24 +249,27 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
     );
   }
 
-  saveButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: GestureDetector(
-        onTap: () async {
-          try {
-            loanController.selectedLoan.value.borrowerWalletId =
-                borrowerWallet![0].id;
-            loanController.selectedLoan.value.lenderWalletId = lenderWallet!.id;
-            loanController.selectedLoan.value.interestRate =
-                widget.group.interest_rate;
-            loanController.selectedLoan.value.profileId = userId;
-            loanController.selectedLoan.value.cooperativeId = widget.group.id!;
-            // loanController.selectedLoan.value.principalAmount = principalAmount;
-            final loanResponse = await loanController.createLoan(userId!);
-            log(loanResponse!['id'].toString());
+  void saveData(BuildContext context) async {
+    try {
+      // Data for loan creation
+      if (principalAmount != null || lenderWallet?.balance != null) {
+        if (principalAmount! <
+            num.tryParse(lenderWallet!.balance.toString())!) {
+          loanController.selectedLoan.value.borrowerWalletId =
+              borrowerWallet![0].id;
+          loanController.selectedLoan.value.lenderWalletId = lenderWallet!.id;
+          loanController.selectedLoan.value.interestRate =
+              widget.group.interest_rate;
+          loanController.selectedLoan.value.profileId = userId;
+          loanController.selectedLoan.value.cooperativeId = widget.group.id!;
+          loanController.selectedLoan.value.paymentAmount = paymentAmount;
+          final loanResponse = await loanController.createLoan(userId!);
+          if (loanResponse != null) {
+            log('loan response ${loanResponse['id'].toString()}');
+          }
 
-            // Data for voting
+          // Data for voting
+          if (loanResponse != null) {
             cmaController.cma.value.pollDescription = 'loan application';
             cmaController.cma.value.groupId = widget.group.id!;
             cmaController.cma.value.profileId = userId;
@@ -273,20 +280,28 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
             cmaController.selectedGroup.value?.id = widget.group.id;
             cmaController.cma.value.loanId = loanResponse['id'].toString();
             cmaController.createPoll();
-
-            // Data for loan applicattion
-            // loanController.selectedLoan.value.loanPurpose = loanP
-            log('Tapped');
-            // log(loanController.selectedLoan.value.borrowerWalletId.toString());
-          } on Exception catch (e, s) {
-            log('saveButton error $e $s');
+          } else {
+            log('No response from loan creation');
           }
-          Navigator.pop(context);
-          Helper.successSnackBar(
-              title: 'Success',
-              message: 'Loan application created',
-              duration: 5);
-        },
+        }
+      } else {
+        Helper.warningSnackBar(title: 'Infeasible',
+            message: 'The coop cannot lend that much',
+            duration: 5);
+      }
+    } on Exception catch (e, s) {
+      log('saveButton error $e $s');
+    }
+    // Navigator.pop(context);
+    Helper.successSnackBar(
+        title: 'Success', message: 'Loan application created', duration: 5);
+  }
+
+  saveButton(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
+      child: GestureDetector(
+        onTap: () => saveData(context),
         child: Obx(() => profileController.isLoading.value == true
             ? const LinearProgressIndicator(
                 color: whiteColor,
@@ -548,6 +563,11 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
         boxWidget(
             child: Obx(
           () => TextField(
+            onChanged: (value) {
+              setState(() {
+                paymentAmount = num.tryParse(value);
+              });
+            },
             enabled: false,
             style: semibold14Black,
             cursorColor: primaryColor,

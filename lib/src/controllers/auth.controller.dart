@@ -1180,17 +1180,8 @@ class AuthController extends GetxController {
         await _getStorage.write(
             'role', auth_response.data['user']['account_type']);
         if (account_type.value == 'coop-member') {
-          
-          // log('chats POST response: ${JsonEncoder.withIndent(' ').convert(chat_response.data)}');
-          // log(response.data);
           AuthDataResponse new_auth_data =
               AuthDataResponse.fromJson(auth_response.data);
-          // log('Registration successful: ${JsonEncoder.withIndent(' ').convert(new_auth_data)}');
-          // await _getStorage.write(
-          //     'role', auth_response.data['user']['account_type']);
-          // final x = await _getStorage.read('role');
-          // log('authenticated user role: $x');
-          // await _getStorage.write('userId', new_auth_data.user.id);
           if (profileImageFile.value.path.isNotEmpty) {
             profileImageUrl.value = (await uploadFile(profileImageFile.value))!;
           }
@@ -1201,14 +1192,13 @@ class AuthController extends GetxController {
               nIDFile.value.path.isNotEmpty) {
             await updateAccount(new_auth_data.user.id);
           }
-          /*
+
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
               message: 'Your account successfully created',
               duration: 5);
           Get.to(() => MemberRegisterCoopScreen());
-          */
-          Get.to(() => BottomBar());
+          // Get.to(() => BottomBar());
         } else if (account_type.value == 'coop-manager') {
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
@@ -1286,7 +1276,7 @@ class AuthController extends GetxController {
             title: 'Well Done',
             message: 'Your cooperative successfully created',
             duration: 5);
-        // _handleSuccessfulLogin();
+        _handleSuccessfulLogin();
       } else {
         isLoading.value = false;
       }

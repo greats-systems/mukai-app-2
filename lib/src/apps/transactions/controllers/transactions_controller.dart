@@ -167,11 +167,12 @@ class TransactionController extends MainController {
     try {
       final response = await dio
           .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/like/$id');
-      final List<dynamic> jsonList = response.data;
+      final List<dynamic> jsonList = [response.data];
+      log('getProfileByIDSearch jsonList ${JsonEncoder.withIndent(' ').convert(jsonList)}');
 
       if (jsonList.isNotEmpty) {
         var data = jsonList.first;
-        log('data ${data}');
+        log('getProfileByIDSearch data ${data}');
         profile = Profile.fromMap(data);
         selectedProfile.value = profile;
         selectedProfile.refresh();
@@ -321,16 +322,6 @@ class TransactionController extends MainController {
             message: response.data['message'],
             duration: 5);
         authController.initiateNewTransaction.value = false;
-        // final role = await _getStorage.read('account_type');
-        // if (role == 'coop-member') {
-        //   Get.to(() => BottomBar(
-        //         role: 'member',
-        //       ));
-        // } else {
-        //   Get.to(() => BottomBar(
-        //         role: 'admin',
-        //       ));
-        // }
       }
     } on DioException catch (e) {
       isLoading.value = false;
