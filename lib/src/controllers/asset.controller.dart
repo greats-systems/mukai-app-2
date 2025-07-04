@@ -1,7 +1,8 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+import 'package:get_storage/get_storage.dart';
+
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
@@ -13,7 +14,8 @@ class AssetController {
   var selectedGroup = Rx<Group?>(null);
   final isLoading = Rx<bool>(false);
   final asset = Asset().obs;
-  final dio = DioClient().dio;
+  final dio = Dio();
+  final accessToken = GetStorage().read('access_token');
 
   Future<List<Asset>?> getGroupAssets(String groupId) async {
     List<Asset> assets = [];
@@ -21,8 +23,13 @@ class AssetController {
     try {
       isLoading.value = true;
       log('getGroupAssets: $groupId');
-      final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/assets/group/$groupId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/assets/group/$groupId',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       if (response.statusCode == 200) {
         isLoading.value = false;
         var data = response.data['data'];
@@ -60,8 +67,13 @@ class AssetController {
     try {
       isLoading.value = true;
       log('getMemberAssets: $profileId');
-      final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/assets/profile/$profileId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/assets/profile/$profileId',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       if (response.statusCode == 200) {
         isLoading.value = false;
         var data = response.data['data'];
@@ -100,7 +112,12 @@ class AssetController {
       isLoading.value = true;
       log('getAssetByID: $assetId');
       final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId',
+              options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       if (response.statusCode == 200) {
         isLoading.value = false;
         var data = response.data['data'];
@@ -136,15 +153,21 @@ class AssetController {
     log('deleteAsset: $assetId');
 
     try {
-      final response = await dio
-          .put('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId', data: {
-        "asset_descriptive_name": asset.value.assetDescriptiveName ?? '',
-        "asset_description": asset.value.assetDescription ?? '',
-        "status": "active",
-        "valuation_currency": asset.value.valuationCurrency ?? 'USD',
-        "fiat_value": double.parse(asset.value.fiatValue.toString()),
-        "token_value": double.parse(asset.value.tokenValue.toString()),
-      });
+      final response =
+          await dio.put('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId',
+              options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }),
+              data: {
+            "asset_descriptive_name": asset.value.assetDescriptiveName ?? '',
+            "asset_description": asset.value.assetDescription ?? '',
+            "status": "active",
+            "valuation_currency": asset.value.valuationCurrency ?? 'USD',
+            "fiat_value": double.parse(asset.value.fiatValue.toString()),
+            "token_value": double.parse(asset.value.tokenValue.toString()),
+          });
       if (response.statusCode == 200) {
         await Helper.successSnackBar(
             title: 'Asset Updated',
@@ -163,7 +186,12 @@ class AssetController {
     log('deleteAsset: $assetId');
     try {
       final response =
-          await dio.delete('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId');
+          await dio.delete('${EnvConstants.APP_API_ENDPOINT}/assets/$assetId',
+              options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       if (response.statusCode == 200) {
         await Helper.successSnackBar(
             title: 'Asset Deleted',
@@ -207,7 +235,12 @@ class AssetController {
       };
       log('assetData: $assetData');
       final response = await dio.post('${EnvConstants.APP_API_ENDPOINT}/assets',
-          data: assetData);
+          data: assetData,
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       if (response.statusCode == 201) {
         await Helper.successSnackBar(
             title: 'Asset Created',

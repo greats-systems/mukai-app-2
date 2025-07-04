@@ -5,7 +5,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'package:mukai/brick/models/auth.model.dart';
 import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
@@ -42,9 +42,8 @@ class AuthBind extends Bindings {
 
 class AuthController extends GetxController {
   var uuid = const Uuid();
-  final dio = DioClient().dio;
+  final dio = Dio();
   final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
-  // final GetStorage _storage = GetStorage();
 
   @override
   void onInit() {
@@ -70,7 +69,13 @@ class AuthController extends GetxController {
   Future<void> _loadUserData(String userId) async {
     try {
       final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$userId');
+          .get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$userId', options: Options(
+            headers: {
+              'apikey': _getStorage.read('access_token'),
+              'Authorization': 'Bearer ${_getStorage.read('access_token')}',
+              'Content-Type': 'application/json',
+            },
+          ));
       // Update your profile controller with the user data
       profileController.profile.value = Profile.fromMap(response.data);
     } catch (e, s) {
@@ -494,6 +499,8 @@ class AuthController extends GetxController {
   }
 
   updateUser() {}
+
+  final accessToken = GetStorage().read('access_token');
 
   Future<List<String>> getCitiesFromCountry(String countryName) async {
     log('Fetching cities for country: $countryName');

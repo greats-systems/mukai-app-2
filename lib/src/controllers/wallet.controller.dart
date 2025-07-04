@@ -2,8 +2,9 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/saving.model.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
@@ -13,16 +14,22 @@ import 'package:mukai/src/apps/home/apps/savings/savings_landing_page.dart';
 import 'package:uuid/uuid.dart';
 
 class WalletController {
-  final dio = DioClient().dio;
+  final dio = Dio();
   final setSaving = Saving().obs;
   var isLoading = false.obs;
   var unlockPortfolio = false.obs;
   var lockKey = ''.obs;
   var selectedWallet = Wallet().obs;
+  final accessToken = GetStorage().read('access_token');
   Future<List<Wallet>?> getWalletsByProfileID(String userId) async {
     try {
       final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$userId');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$userId',
+              options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
       final List<dynamic> walletList = response.data['data'];
       return walletList.map((item) => Wallet.fromJson(item)).toList();
@@ -48,8 +55,13 @@ class WalletController {
 
   Future<List<Wallet>?> getIndividualWallets(String userId) async {
     try {
-      final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/wallets/member/$userId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/member/$userId',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
       final List<dynamic> walletList = response.data['data'];
       return walletList.map((item) => Wallet.fromJson(item)).toList();
@@ -61,8 +73,13 @@ class WalletController {
 
   Future<Wallet?> getGroupWallet(String groupId) async {
     try {
-      final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/groups/$groupId/wallet');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/groups/$groupId/wallet',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
       if (response.data != null) {
         // log(response.data['data']);
@@ -80,7 +97,12 @@ class WalletController {
     log('--------- getWalletLikeID $id ----------');
     try {
       final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallet/like/$id');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/like/$id',
+              options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       final dynamic json = response.data;
       log(JsonEncoder.withIndent(' ').convert(json));
       final wallet = Wallet.fromJson(json);
@@ -127,8 +149,8 @@ class WalletController {
       log('unlockSavingPortfolio error: $e $s');
     }
   }
-    Future<void> lockSavingPortfolio(
-      String portfolioId) async {
+
+  Future<void> lockSavingPortfolio(String portfolioId) async {
     try {
       isLoading.value = true;
       final json = await supabase
@@ -175,5 +197,4 @@ class WalletController {
       log('setSavingPlan error: $e $s');
     }
   }
-  
 }

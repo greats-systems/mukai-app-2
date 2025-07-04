@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
@@ -75,85 +75,85 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-        appBar: MyAppBar(
-          widget: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                Utils.trimp(widget.loan.loanPurpose ?? 'Loan Details'),
-                style: semibold18WhiteF5,
-              ),
-              Text(
-                "Loan ID: ${widget.loan.id?.substring(28, 36) ?? ''}",
-                style: semibold14WhiteF5,
-              ),
-            ],
-          ),
+      appBar: MyAppBar(
+        widget: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              Utils.trimp(widget.loan.loanPurpose ?? 'Loan Details'),
+              style: semibold18WhiteF5,
+            ),
+            Text(
+              "Loan ID: ${widget.loan.id?.substring(28, 36) ?? ''}",
+              style: semibold14WhiteF5,
+            ),
+          ],
         ),
-        body: Container(
-          color: whiteF5Color,
-          child: ListView(
-            padding: const EdgeInsets.all(16.0),
-            children: [
-              _buildDetailField(
-                label: 'Purpose',
-                value: purposeController.text,
-              ),
+      ),
+      body: Container(
+        color: whiteF5Color,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            _buildDetailField(
+              label: 'Purpose',
+              value: purposeController.text,
+            ),
+            const SizedBox(height: 16),
+            _buildDetailField(
+              label: 'Principal Amount',
+              value: '${principalAmountController.text}',
+            ),
+            const SizedBox(height: 16),
+            _buildDetailField(
+              label: 'Payback Period (months)',
+              value: paybackPeriodController.text,
+            ),
+            const SizedBox(height: 16),
+            _buildDetailField(
+              label: 'Total Repayment Amount',
+              value: repaymentAmountController.text,
+            ),
+            if (widget.loan.collateralDescription?.isNotEmpty ?? false) ...[
               const SizedBox(height: 16),
-              _buildDetailField(
-                label: 'Principal Amount',
-                value: '${principalAmountController.text}',
-              ),
-              const SizedBox(height: 16),
-              _buildDetailField(
-                label: 'Payback Period (months)',
-                value: paybackPeriodController.text,
-              ),
-              const SizedBox(height: 16),
-              _buildDetailField(
-                label: 'Total Repayment Amount',
-                value: repaymentAmountController.text,
-              ),
-              if (widget.loan.collateralDescription?.isNotEmpty ?? false) ...[
-                const SizedBox(height: 16),
-                /*
+              /*
                 _buildDetailField(
                   label: 'Collateral Description',
                   value: collateralDescriptionController.text,
                 ),
                 */
-                // _buildDropdownField(
-                //   label: 'Collateral',
-                //   value: widget.loan.collateralDescription ?? '',
-                //   options: [
-                //     'Car',
-                //     'House',
-                //     'Savings account',
-                //   ],
-                //   onChanged: (newValue) {
-                //     // Handle dropdown selection
-                //     setState(() {
-                //       widget.loan.status = newValue;
-                //     });
-                //   },
-                // )
-              ],
-              const SizedBox(height: 24),
-              Text(
-                '* Calculated at 2% monthly compound interest',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                  fontStyle: FontStyle.italic,
-                ),
-              ),
+              // _buildDropdownField(
+              //   label: 'Collateral',
+              //   value: widget.loan.collateralDescription ?? '',
+              //   options: [
+              //     'Car',
+              //     'House',
+              //     'Savings account',
+              //   ],
+              //   onChanged: (newValue) {
+              //     // Handle dropdown selection
+              //     setState(() {
+              //       widget.loan.status = newValue;
+              //     });
+              //   },
+              // )
             ],
-          ),
+            const SizedBox(height: 24),
+            Text(
+              '* Calculated at 2% monthly compound interest',
+              style: TextStyle(
+                fontSize: 12,
+                color: Colors.grey[600],
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
         ),
-        // bottomNavigationBar: role == 'coop-member'
-        //     ? pollSummary(widget.loan)
-        //     : requestSummary(widget.loan)
-            );
+      ),
+      // bottomNavigationBar: role == 'coop-member'
+      //     ? pollSummary(widget.loan)
+      //     : requestSummary(widget.loan)
+    );
   }
 
   Widget _buildDetailField({required String label, required String value}) {

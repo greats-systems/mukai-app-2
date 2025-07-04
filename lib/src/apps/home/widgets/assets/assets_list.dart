@@ -85,6 +85,13 @@ class _MyWidgetState extends State<MemberAssetsList> {
             ),
           ),
         ),
+        floatingActionButton: FloatingActionButton(
+          onPressed: () {
+            Get.toNamed('/asset/create');
+          },
+          backgroundColor: primaryColor,
+          child: const Icon(Icons.add, color: whiteF5Color),
+        ),
         body: _isLoading
             ? const Center(child: LoadingShimmerWidget())
             : assets!.isEmpty

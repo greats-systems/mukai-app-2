@@ -6,6 +6,7 @@ import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/brick/models/transaction.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/apps/home/qr_code.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
@@ -59,6 +60,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
   String? userId;
   List<Wallet>? wallets;
   String? walletId;
+  Wallet? receivingWallet;
   bool _isDisposed = false;
   bool _isLoading = false;
 
@@ -91,9 +93,19 @@ class _TransfersScreenState extends State<TransfersScreen> {
   @override
   void initState() {
     setState(() => userId = _getStorage.read('userId'));
-    log(userId!);
+    log(widget.category);
     super.initState();
     fetchProfile();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    amountController.dispose();
+    phoneController.dispose();
+    // transactionController.transferTransaction.value = Transaction();
+    // transactionController.selectedTransaction.value = Transaction();
+    super.dispose();
   }
 
   @override
@@ -155,11 +167,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
                 padding: const EdgeInsets.all(fixPadding * 2.0),
                 children: [
                   height20Space,
-                  // if (transactionController.selectedTransferOptionCategory.value ==
-                  //     'mobile_money')
-                  //   sendToMobileWallet(),
-                  // Text(
-                  //     '${transactionController.selectedTransferOption.value}'),
+                  Text('${transactionController.selectedTransferOption.value}'),
                   Obx(() =>
                       transactionController.selectedTransferOption.value ==
                               'manual_wallet'
@@ -177,7 +185,11 @@ class _TransfersScreenState extends State<TransfersScreen> {
                                               : widget.category == 'zipit'
                                                   ? memberInitiateTrans()
                                                   : sendToMobileWallet()),
-
+                  height20Space,
+                  if (transactionController
+                          .transferTransaction.value.receiving_wallet !=
+                      null)
+                    detailsField(),
                   height20Space,
                   registerContent(),
                 ],
@@ -799,7 +811,7 @@ class _TransfersScreenState extends State<TransfersScreen> {
         onChanged: (value) async {
           transactionController.transferTransaction.value.receiving_wallet =
               value;
-          final json = await _walletController.getWalletLikeID(userId!);
+          final json = await _walletController.getWalletLikeID(value);
           log(json.toString());
         },
         style: medium14Black,

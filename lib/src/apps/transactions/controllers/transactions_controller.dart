@@ -2,7 +2,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'dart:convert';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/transaction.model.dart';
@@ -23,7 +23,7 @@ class TransactionController extends MainController {
   AuthController get authController => Get.put(AuthController());
 
   TransactionController();
-  final dio = DioClient().dio;
+  final dio = Dio();
   var accountNumber = ''.obs;
   var phoneNumber = ''.obs;
   var orderId = ''.obs;

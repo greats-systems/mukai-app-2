@@ -2,7 +2,8 @@ import 'dart:async';
 import 'dart:developer';
 // import 'dart:convert';
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+import 'package:get_storage/get_storage.dart';
+
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
@@ -10,13 +11,18 @@ import 'package:mukai/constants.dart';
 import 'package:mukai/main.dart';
 
 class GroupController {
-  final dio = DioClient().dio;
+  final dio = Dio();
+  final accessToken = GetStorage().read('access_token');
   Future<Map<String, dynamic>> createGroup(Group group) async {
     // log(group.toJson().toString());
     // List<String?> walletIDs = [];
     try {
       final response = await dio
-          .patch('${EnvConstants.APP_API_ENDPOINT}/cooperatives', data: group);
+          .patch('${EnvConstants.APP_API_ENDPOINT}/cooperatives', data: group,options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       final groupCreated = Group.fromMap(response.data);
       log(groupCreated.toString());
       return {'statusCode': 200, 'message': 'Group created'};
@@ -28,7 +34,11 @@ class GroupController {
 
   Future<List<Group>> getGroups() async {
     try {
-      final response = await dio.get('${EnvConstants.APP_API_ENDPOINT}/groups');
+      final response = await dio.get('${EnvConstants.APP_API_ENDPOINT}/groups',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       return response.data.map((data) => Group.fromMap(data)).toList();
     } catch (e, s) {
       log('Error fetching groups: $e\n$s');
@@ -39,7 +49,11 @@ class GroupController {
   Future<Group>? getGroup(String coop_id) async {
     try {
       final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/cooperatives/$coop_id');
+          .get('${EnvConstants.APP_API_ENDPOINT}/cooperatives/$coop_id',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       return Group.fromMap(response.data);
     } catch (e, s) {
       log('Error fetching groups: $e\n$s');
@@ -56,7 +70,11 @@ class GroupController {
     try {
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/cooperatives/$groupId',
-          data: params);
+          data: params,options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       log(response.data.toString());
       return response.data;
     } catch (error) {
@@ -73,6 +91,11 @@ class GroupController {
       final response = await dio.get(
         '${EnvConstants.APP_API_ENDPOINT}/cooperatives/$groupId/members',
         options: Options(
+          headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          },
           validateStatus: (status) => status! < 500, // Accept <500 status codes
         ),
       );
@@ -121,7 +144,11 @@ class GroupController {
   Future<List<Profile>?> getPendingMukandoGroupMembers(String groupId) async {
     try {
       final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$groupId/unresolved');
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$groupId/unresolved',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
 
       log('Pending members raw response: ${response.data}');
 
@@ -164,7 +191,11 @@ class GroupController {
   Future<Wallet?> getGroupWallet(String groupId) async {
     try {
       final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/groups/$groupId');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/groups/$groupId',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       final walletJson = Wallet.fromJson(response.data);
       // log('getGroupWallet ${JsonEncoder.withIndent(' ').convert(walletJson)}');
       // log(walletJson.id ?? 'No wallet id');
@@ -178,7 +209,11 @@ class GroupController {
   Future<List<Wallet>?> getChildrenWallets(String walletId) async {
     try {
       final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$walletId');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$walletId',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       return response.data.map((wallet) => Wallet.fromJson(wallet)).toList();
     } catch (e, s) {
       log('getChildrenWallets error: $e $s');
@@ -189,8 +224,12 @@ class GroupController {
   Future<Group?> getGroupById(String groupId) async {
     try {
       log('${EnvConstants.APP_API_ENDPOINT}/cooperatives/$groupId');
-      final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/cooperatives/$groupId');
+      final response = await dio
+          .get('${EnvConstants.APP_API_ENDPOINT}/cooperatives/$groupId',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       if (response.data.isNotEmpty) {
         return Group.fromMap(response.data);
       }
@@ -205,7 +244,11 @@ class GroupController {
     try {
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/groups/${group.id}',
-          data: group);
+          data: group,options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       log(response.data);
     } catch (e, s) {
       log('updateGroup error: $e $s');
@@ -215,7 +258,11 @@ class GroupController {
   Future<void> deleteGroup(Group group) async {
     try {
       final response = await dio
-          .delete('${EnvConstants.APP_API_ENDPOINT}/groups/${group.id}');
+          .delete('${EnvConstants.APP_API_ENDPOINT}/groups/${group.id}',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       log(response.data);
     } catch (e, s) {
       log('updateGroup error: $e $s');

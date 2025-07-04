@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
@@ -129,10 +129,14 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
     width = size.width;
     height = size.height;
     return Scaffold(
-            appBar: appBar(),
-            body: _isLoading ? Center(child: LoadingShimmerWidget(),): body(),
-            bottomNavigationBar: bottomNavigationBar(),
-          );
+      appBar: appBar(),
+      body: _isLoading
+          ? Center(
+              child: LoadingShimmerWidget(),
+            )
+          : body(),
+      bottomNavigationBar: bottomNavigationBar(),
+    );
   }
 
   PreferredSizeWidget appBar() {
@@ -1053,7 +1057,7 @@ class _MemberDetailScreenState extends State<MemberDetailScreen> {
       String member_id, String group_id, String status) async {
     try {
       setState(() => _isLoading = true);
-      final dio = DioClient().dio;
+      final dio = Dio();
 
       var coopRequestUpdateParams = {
         'status': status,

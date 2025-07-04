@@ -3,7 +3,6 @@ import 'dart:developer';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
 
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
@@ -47,12 +46,18 @@ class ProfileController extends MainController {
   final GetStorage _getStorage = GetStorage();
 
   AuthController get authController => Get.put(AuthController());
-  final dio = DioClient().dio;
+  final dio = Dio();
+  final accessToken = GetStorage().read('access_token');
 
   Future<Map<String, dynamic>?> getUserDetails(String id) async {
     try {
       final profileJson =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$id');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$id',
+              options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       return profileJson.data;
     } catch (error) {
       isLoading.value = false;
@@ -83,7 +88,11 @@ class ProfileController extends MainController {
     List<dynamic>? profileWallet = [];
     try {
       final walletJson =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       if (walletJson.data.isNotEmpty) {
         final json = [walletJson.data['data'][0]];
         profileWallet = json.map((item) => item).toList();
@@ -106,7 +115,11 @@ class ProfileController extends MainController {
     List<dynamic>? profileWallets = [];
     try {
       final profileJson = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/savings-portfolio/profile-portfolio/$id');
+          '${EnvConstants.APP_API_ENDPOINT}/savings-portfolio/profile-portfolio/$id',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       if (profileJson.data.isNotEmpty) {
         final json = profileJson.data['data'];
         /*
@@ -133,7 +146,11 @@ class ProfileController extends MainController {
     List<dynamic>? profileWallets = [];
     try {
       final profileJson =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       if (profileJson.data.isNotEmpty) {
         final json = profileJson.data['data'];
         /*

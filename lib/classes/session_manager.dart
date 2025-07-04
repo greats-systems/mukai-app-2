@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/constants.dart';
 

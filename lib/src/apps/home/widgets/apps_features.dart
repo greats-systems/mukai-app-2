@@ -8,7 +8,6 @@ import 'package:mukai/src/apps/converter/views/converter_screen.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_landing_page.dart';
 import 'package:mukai/src/apps/home/apps/pay_bills/pay_bills_transactions.dart';
 import 'package:mukai/src/apps/home/apps/savings/savings_landing_page.dart';
-import 'package:mukai/src/apps/home/widgets/assets/add_asset.dart';
 import 'package:mukai/src/apps/home/widgets/assets/assets_list.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfer_transaction.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
@@ -55,18 +54,18 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
       "image": "assets/icons/material-symbols_folder-managed-rounded.png",
       "title": "Assets Manager"
     },
-    {"image": "assets/icons/mdi_bank.png", "title": "Linked Banking"},
-    {"image": "assets/icons/game-icons_cash.png", "title": "Trader Invoices"},
-    {"image": "assets/icons/wpf_bank-cards.png", "title": "Trader POS"},
-    {"image": "assets/icons/mdi_file-sign.png", "title": "Trader Inventory"},
-    {
-      "image": "assets/icons/mdi_folder-transfer.png",
-      "title": "Financial Literacy"
-    },
-    {
-      "image": "assets/icons/ic_outline-business-center.png",
-      "title": "ZSE/VFEX Insights"
-    },
+    // {"image": "assets/icons/mdi_bank.png", "title": "Linked Banking"},
+    // {"image": "assets/icons/game-icons_cash.png", "title": "Trader Invoices"},
+    // {"image": "assets/icons/wpf_bank-cards.png", "title": "Trader POS"},
+    // {"image": "assets/icons/mdi_file-sign.png", "title": "Trader Inventory"},
+    // {
+    //   "image": "assets/icons/mdi_folder-transfer.png",
+    //   "title": "Financial Literacy"
+    // },
+    // {
+    //   "image": "assets/icons/ic_outline-business-center.png",
+    //   "title": "ZSE/VFEX Insights"
+    // },
   ];
   final stocksList = [
     {"image": "assets/icons/Buy stocks.png", "title": "Buy Stocks"},
@@ -143,7 +142,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
         Get.to(() => TransfersScreen(
               category: 'cashout',
             ));
-      case 'Assets':
+      case 'Assets Manager':
         Get.to(() => MemberAssetsList());
         break;
       // case 'Pay Subs':

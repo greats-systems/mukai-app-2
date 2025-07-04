@@ -4,6 +4,7 @@ import 'dart:math';
 
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
@@ -21,11 +22,9 @@ class LoanController extends GetxController {
   final selectedProfile = Profile().obs;
   final isLoading = Rx<bool>(false);
   final isSupporting = Rx<bool>(false);
-  final dio = Dio(BaseOptions(baseUrl: EnvConstants.APP_API_ENDPOINT, headers: {
-    'Content-Type': 'application/json', // Explicit content-type
-    'Accept': 'application/json',
-  }));
+  final dio = Dio();
   final GroupController groupController = GroupController();
+  final accessToken = GetStorage().read('access_token');
 
   void calculateRepayAmount() async {
     final principal = selectedLoan.value.principalAmount ?? 0;
@@ -92,7 +91,11 @@ class LoanController extends GetxController {
 
       final response = await dio.post(
         '${EnvConstants.APP_API_ENDPOINT}/loans',
-        data: selectedLoan.toJson(),
+        data: selectedLoan.toJson(),options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              })
       );
       // dev.log('Loan created: ${response.data}');
       return response.data;
@@ -108,7 +111,11 @@ class LoanController extends GetxController {
   Future<List<Loan>?> getProfileLoans(String profileId) async {
     try {
       final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/loans/profile/$profileId');
+          .get('${EnvConstants.APP_API_ENDPOINT}/loans/profile/$profileId',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       for (var loan in response.data) {
         dev.log(loan['loan_term_months'].toString());
       }
@@ -126,7 +133,11 @@ class LoanController extends GetxController {
     try {
       final response = await dio.get(
           '${EnvConstants.APP_API_ENDPOINT}/loans/coop/$coopId',
-          data: params);
+          data: params,options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       final List<dynamic> json = response.data;
       return json.map((item) => Loan.fromMap(item)).toList();
     } catch (error) {
@@ -139,7 +150,11 @@ class LoanController extends GetxController {
     try {
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/loans/${selectedLoan.value.id}',
-          data: selectedLoan.value.toJson());
+          data: selectedLoan.value.toJson(),options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       dev.log(response.data.toString());
       return response.data;
     } catch (error) {
@@ -152,7 +167,11 @@ class LoanController extends GetxController {
     try {
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/loans/coop/${selectedCoop.value.id}',
-          data: selectedLoan.value.toJson());
+          data: selectedLoan.value.toJson(),options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       dev.log(response.data.toString());
       return response.data;
     } catch (error) {
@@ -182,7 +201,11 @@ class LoanController extends GetxController {
       dev.log(params.toString());
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${selectedCoop.value.id}/loans',
-          data: params);
+          data: params,options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       dev.log('updateLoanApproval response: ${response.data.toString()}');
       return response.data;
     } catch (error) {

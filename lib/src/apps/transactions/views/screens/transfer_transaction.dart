@@ -439,7 +439,7 @@ class _TransferTransactionScreenState extends State<TransferTransactionScreen> {
       onTap: () async {
         Get.to(() => TransfersScreen(
               category: transactionController
-                  .transferTransaction.value.transferCategory!,
+                  .transferTransaction.value.transferCategory ?? 'No category',
             ));
         // transactionController.accountNumber.value = '';
         // // transactionController.

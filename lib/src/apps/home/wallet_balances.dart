@@ -9,7 +9,6 @@ import 'package:mukai/src/apps/home/apps/savings/set_saving.dart';
 import 'package:mukai/src/apps/home/widgets/metric_row.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:mukai/widget/loading_shimmer.dart';
 
 class WalletBalancesWidget extends StatefulWidget {
   const WalletBalancesWidget({super.key});
@@ -117,6 +116,7 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
     super.initState();
     fetchUserDetails();
     fetchId();
+    log('WalletBalancesWidget initialized with userId: $userId, role: $role');
   }
 
   bool _isDisposed = false;
@@ -139,7 +139,7 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
 
   walletData() {
     return Container(
-      height: height * 0.24,
+      height: height * 0.29,
       width: width * 0.9,
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -262,7 +262,7 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
 
   walletDataDummy() {
     return Container(
-      height: height * 0.25,
+      height: height * 0.35,
       width: width * 0.9,
       padding: EdgeInsets.all(16),
       decoration: BoxDecoration(

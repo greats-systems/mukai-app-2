@@ -1,17 +1,25 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+import 'package:get_storage/get_storage.dart';
+
 // import 'package:mukai/brick/models/chat.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/src/apps/chats/schema/chat.dart';
 
+final accessToken = GetStorage().read('access_token');
+
 class ChatController {
-  final dio = DioClient().dio;
+  final dio = Dio();
   Future<List<Chat>?> getPendingRequests() async {
     try {
-      final response = await dio.get('${EnvConstants.APP_API_ENDPOINT}/chats');
+      final response = await dio.get('${EnvConstants.APP_API_ENDPOINT}/chats',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       final json = response.data;
       return json.map((item) => Chat.fromJson(item)).toList();
     } catch (e) {
@@ -23,7 +31,12 @@ class ChatController {
   Future<Map<String, dynamic>> getPendingRequestDetails(String memberId) async {
     try {
       final response =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/pendng/$memberId');
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/pendng/$memberId',
+              options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       /*
       final response = await supabase
           .from('cooperative_member_requests')
@@ -45,7 +58,12 @@ class ChatController {
         throw Exception('Member ID is required');
       }
       final response = await dio.patch(
-          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/${request.memberId}');
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/${request.memberId}',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       /*
       final response =
           await supabase.from('cooperative_member_requests').update({

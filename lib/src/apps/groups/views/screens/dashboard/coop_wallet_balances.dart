@@ -1,7 +1,7 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -41,7 +41,7 @@ class _CoopWalletBalancesWidgetState extends State<CoopWalletBalancesWidget> {
   Map<String, dynamic>? zigWallet = {};
   Map<String, dynamic>? usdWallet = {};
   bool _isLoading = false;
-  final dio = DioClient().dio;
+  final dio = Dio();
   CancelToken _cancelToken = CancelToken(); // For canceling requests
   int numberOfMembers = 0;
 

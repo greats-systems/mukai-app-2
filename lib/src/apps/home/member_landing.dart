@@ -6,8 +6,6 @@ import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
-import 'package:mukai/components/member_landing_app_bar.dart';
-import 'package:mukai/constants.dart';
 import 'package:mukai/src/apps/home/qr_code.dart';
 import 'package:mukai/src/apps/home/wallet_balances.dart';
 import 'package:mukai/src/apps/home/widgets/app_header.dart';

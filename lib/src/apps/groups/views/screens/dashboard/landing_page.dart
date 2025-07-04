@@ -2,7 +2,7 @@ import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -57,7 +57,7 @@ class _CoopLandingScreenState extends State<CoopLandingScreen> {
   String? userId;
   String? role;
   bool _isLoading = false;
-  final dio = DioClient().dio;
+  final dio = Dio();
 
   void fetchProfile() async {
     if (_isDisposed) return;

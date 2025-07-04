@@ -1,12 +1,13 @@
 import 'dart:developer';
 
 import 'package:dio/dio.dart';
-import 'package:mukai/core/config/dio_interceptor.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/constants.dart';
 
 class CooperativeMemberRequestController {
-  final dio = DioClient().dio;
+  final accessToken = GetStorage().read('access_token');
+  final dio = Dio();
   Future<List<CooperativeMemberRequest>?> getUnresolvedRequests() async {
     try {
       final response =
@@ -24,7 +25,11 @@ class CooperativeMemberRequestController {
   Future<Map<String, dynamic>?> viewRequestDetails(String memberId) async {
     try {
       final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$memberId');
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$memberId',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       /*
       final response = await supabase
           .from('cooperative_member_requests')
@@ -43,7 +48,11 @@ class CooperativeMemberRequestController {
     var params = {'status': 'resolved'};
     try {
       final response = await dio.patch(
-          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$memberId',
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests/$memberId',options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }),
           data: params);
       log(response.data);
 

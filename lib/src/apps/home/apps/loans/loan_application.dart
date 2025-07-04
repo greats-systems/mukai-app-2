@@ -70,7 +70,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
   Wallet? lenderWallet;
   GetStorage _getStorage = GetStorage();
   num? interestRate;
-  num? principalAmount;
+  double? principalAmount;
   num? paymentAmount;
   String? collateral;
 
@@ -499,7 +499,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
               });
               loanController.calculateRepayAmount();
               setState(() {
-                principalAmount = num.tryParse(value);
+                principalAmount = double.tryParse(value);
               });
             },
             style: semibold14Black,
