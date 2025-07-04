@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:mukai/theme/theme.dart';
 
 class ConverterScreen extends StatefulWidget {
   const ConverterScreen({super.key});
@@ -62,10 +63,27 @@ class _ConverterScreenState extends State<ConverterScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Zig ↔ USD Converter'),
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(
+            bottom: Radius.circular(20.0), // Adjust the radius as needed
+          ),
+        ),
+        elevation: 0,
+        backgroundColor: primaryColor,
+        automaticallyImplyLeading: false,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+          icon: const Icon(
+            Icons.arrow_back,
+            color: whiteF5Color,
+          ),
+        ),
+        centerTitle: false,
+        title: const Text(
+          'Zig ↔ USD Converter',
+          style: TextStyle(color: whiteColor),
         ),
       ),
       body: Padding(

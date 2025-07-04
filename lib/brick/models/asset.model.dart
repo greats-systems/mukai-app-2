@@ -43,42 +43,42 @@ class Asset extends OfflineFirstWithSupabaseModel {
   bool? hasDocuments;
   String? profileId;
   String? groupId;
+  bool? hasReceivedVote;
 
   List<dynamic>? childrenWallets;
 
   double? amountValue;
 
-  Asset(
-      {
-        this.id,
-        this.assetDescriptiveName,
-      this.assetDescription,
-      this.valuationCurrency,
-      this.fiatValue,
-      this.tokenValue,
-      this.assetImages,
-      this.lastTransactionTimestamp,
-      this.verifiableCertificateIssuerId,
-      this.governingBoard,
-      this.holdingAccount,
-      this.legalDocuments,
-      this.hasVerifiableCertificate,
-      this.isValuated,
-      this.isMinted,
-      this.isShared,
-      this.isActive,
-      this.hasDocuments,
-      this.profileId,
-      this.groupId,
-      this.country,
-      this.city,
-      this.province,
-      this.neighborhood,
-      this.status,
-      this.createdAt,
-      this.updatedAt,
-      
-      });
+  Asset({
+    this.id,
+    this.assetDescriptiveName,
+    this.assetDescription,
+    this.valuationCurrency,
+    this.fiatValue,
+    this.tokenValue,
+    this.assetImages,
+    this.lastTransactionTimestamp,
+    this.verifiableCertificateIssuerId,
+    this.governingBoard,
+    this.holdingAccount,
+    this.legalDocuments,
+    this.hasVerifiableCertificate,
+    this.isValuated,
+    this.isMinted,
+    this.isShared,
+    this.isActive,
+    this.hasDocuments,
+    this.profileId,
+    this.groupId,
+    this.country,
+    this.city,
+    this.province,
+    this.neighborhood,
+    this.status,
+    this.createdAt,
+    this.updatedAt,
+    this.hasReceivedVote
+  });
 
   // Factory method to create an Wallet from a JSON map
   factory Asset.fromJson(Map<String, dynamic> json) {
@@ -98,35 +98,35 @@ class Asset extends OfflineFirstWithSupabaseModel {
     // log('Wallet.fromJson amount_value: ${json['amount_value']}');
 
     return Asset(
-        id: json['id'],
-        assetDescriptiveName: json['asset_descriptive_name'],
-        assetDescription: json['asset_description'],
-        valuationCurrency: json['valuation_currency'],
-        fiatValue: parseDouble(json['fiat_value'], 0.0),
-        tokenValue: parseDouble(json['token_value'], 0.0),
-        assetImages: json['asset_images'],
-        lastTransactionTimestamp: json['last_transaction_timestamp'],
-        verifiableCertificateIssuerId: json['verifiable_certificate_issuer_id'],
-        governingBoard: json['governing_board'],
-        holdingAccount: json['holding_account'],
-        legalDocuments: json['legal_documents'],
-        hasVerifiableCertificate: json['has_verifiable_certificate'],
-        isValuated: json['is_valuated'],
-        isMinted: json['is_minted'],
-        isShared: json['is_shared'],
-        isActive: json['is_active'],
-        hasDocuments: json['has_documents'],
-        profileId: json['profile_id'],
-        groupId: json['group_id'],
-        country: json['country'],
-        city: json['city'],
-        province: json['province'],
-        neighborhood: json['neighborhood'],
-        status: json['status'],
-        createdAt: json['created_at'],
-        updatedAt: json['updated_at'],
-        
-        );
+      id: json['id'],
+      assetDescriptiveName: json['asset_descriptive_name'],
+      assetDescription: json['asset_description'],
+      valuationCurrency: json['valuation_currency'],
+      fiatValue: parseDouble(json['fiat_value'], 0.0),
+      tokenValue: parseDouble(json['token_value'], 0.0),
+      assetImages: json['asset_images'],
+      lastTransactionTimestamp: json['last_transaction_timestamp'],
+      verifiableCertificateIssuerId: json['verifiable_certificate_issuer_id'],
+      governingBoard: json['governing_board'],
+      holdingAccount: json['holding_account'],
+      legalDocuments: json['legal_documents'],
+      hasVerifiableCertificate: json['has_verifiable_certificate'],
+      isValuated: json['is_valuated'],
+      isMinted: json['is_minted'],
+      isShared: json['is_shared'],
+      isActive: json['is_active'],
+      hasDocuments: json['has_documents'],
+      profileId: json['profile_id'],
+      groupId: json['group_id'],
+      country: json['country'],
+      city: json['city'],
+      province: json['province'],
+      neighborhood: json['neighborhood'],
+      status: json['status'],
+      createdAt: json['created_at'],
+      updatedAt: json['updated_at'],
+      hasReceivedVote: json['has_received_vote']
+    );
   }
   Map<String, dynamic> toJson() {
     return {
@@ -161,6 +161,7 @@ class Asset extends OfflineFirstWithSupabaseModel {
       'category': category,
       'created_at': createdAt,
       'updated_at': updatedAt,
+      'has_received_vote': hasReceivedVote,
     };
   }
 }

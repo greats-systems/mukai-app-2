@@ -5,14 +5,13 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/src/apps/chats/views/screen/group_chats.dart';
+import 'package:mukai/src/apps/chats/views/screen/cooperatives_list.dart';
+import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/views/screen/notifications/notifications_list.dart';
-import 'package:mukai/src/apps/chats/views/screen/notifications/directchats_list.dart';
 import 'package:mukai/src/apps/chats/views/widgets/realtime_conversations_list.dart';
 // import 'package:mukai/src/apps/groups/views/widgets/group_members_list.dart';
 // import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
-import 'package:mukai/src/apps/home/widgets/admin_app_header_logo.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/theme/theme.dart';
 // import 'package:mukai/utils/utils.dart';
@@ -58,42 +57,21 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
             bottom: Radius.circular(20.0), // Adjust the radius as needed
           ),
         ),
-        elevation: 0,
-        backgroundColor: primaryColor,
+        backgroundColor: secondaryColor.withAlpha(50),
         automaticallyImplyLeading: false,
         centerTitle: false,
         titleSpacing: 0.0,
-        toolbarHeight: 100.0,
+        toolbarHeight: 90.0,
+        elevation: 0,
         title: Column(
           children: [
-            // const AdminAppHeaderLogoWidget(),
-            tabBar()
+            const AppHeaderWidget(),
+            // WalletBalancesWidget(),
           ],
         ),
       ),
-      body: Column(
-        children: [
-          Expanded(
-            child: Container(
-              width: double.maxFinite,
-              decoration: BoxDecoration(
-                color: whiteF5Color,
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(0.0),
-                ),
-                border: Border.all(
-                  color: whiteF5Color,
-                ),
-                boxShadow: boxShadow,
-              ),
-              child: ListView(
-                physics: const BouncingScrollPhysics(),
-                padding: const EdgeInsets.all(fixPadding * 2.0),
-                children: [tabPreviews()],
-              ),
-            ),
-          )
-        ],
+      body: CooperativesList(
+        index: 0,
       ),
     );
   }
@@ -129,55 +107,13 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
     );
   }
 
-  tabPreviews() {
-    return SizedBox(
-      height: height,
-      child: Column(
-        children: [
-          Expanded(
-            child: PageView(
-              controller: pageController,
-              onPageChanged: (index) {
-                setState(() {
-                  refresh = true;
-                  selectedTab = index;
-                });
-                setState(() {
-                  refresh = false;
-                });
-              },
-              children: [
-                Container(
-                  color: whiteF5Color,
-                  child: GroupsList(
-                    index: 0,
-                  ),
-                ),
-                Container(
-                    color: whiteF5Color,
-                    child: RealTimeConversationsList(
-                      index: 0,
-                    )),
-                Container(
-                    color: whiteF5Color,
-                    child: NotificationsList(
-                      index: 0,
-                    )),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   tabBar() {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Container(
         clipBehavior: Clip.hardEdge,
         decoration: BoxDecoration(
-          color: primaryColor,
+          color: primaryColor.withAlpha(100),
           borderRadius: BorderRadius.all(Radius.circular(15.0)),
         ),
         child: Row(
@@ -209,14 +145,14 @@ class _GroupMembersScreenState extends State<CommunicationsScreen> {
                                 ? Ri.chat_3_line
                                 : Ri.notification_2_fill,
                         color: selectedTab == index
-                            ? secondaryColor
-                            : whiteF5Color,
+                            ? blackOrignalColor
+                            : blackColor,
                       ),
                       Text(
                         tabList[index].toString(),
                         style: selectedTab == index
-                            ? TextStyle(color: secondaryColor, fontSize: 14)
-                            : semibold14White,
+                            ? TextStyle(color: blackColor, fontSize: 14)
+                            : semibold14Black,
                         textAlign: TextAlign.center,
                         overflow: TextOverflow.ellipsis,
                       ),

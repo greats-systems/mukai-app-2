@@ -7,6 +7,7 @@ import 'package:get_storage/get_storage.dart';
 import 'package:intl/intl.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/schema/message.dart';
 import 'package:mukai/theme/theme.dart';
@@ -279,7 +280,7 @@ class _MessageBarState extends State<_MessageBar> {
     String text,
   ) async {
     await GetConnect().post(
-      '${constants.APP_API_ENDPOINT}/notify/v1/message_notification',
+      '${EnvConstants.APP_API_ENDPOINT}/notify/v1/message_notification',
       {
         "user_id": accountController.person.value.id,
         "message": "message notification",
@@ -345,17 +346,21 @@ class _ChatBubble extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chatContents = [
-      Flexible(
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
-          decoration: BoxDecoration(
-            color: message.isMine
-                ? primaryColor.withValues(alpha: 0.5)
-                : const Color.fromRGBO(224, 224, 224, 1),
-            borderRadius: BorderRadius.circular(8),
+      Column(
+        children: [
+          Flexible(
+            child: Container(
+              padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+              decoration: BoxDecoration(
+                color: message.isMine
+                    ? primaryColor.withValues(alpha: 0.5)
+                    : const Color.fromRGBO(224, 224, 224, 1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Text(message.content),
+            ),
           ),
-          child: Text(message.content),
-        ),
+        ],
       ),
       const SizedBox(width: 12),
       Text(format(message.createdDate ?? DateTime.now(), locale: 'en_short')),

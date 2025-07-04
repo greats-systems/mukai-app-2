@@ -1,36 +1,35 @@
 import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
-import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
-import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/brick/models/coop.model.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
+import 'package:mukai/src/apps/home/widgets/subs/pay_sub_trans_detail.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
+// import 'package:muc/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
+import 'package:mukai/src/components/my_app_bar.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class MemberPaySubs extends StatefulWidget {
-  const MemberPaySubs({super.key});
+  MemberPaySubs({super.key, required this.group});
+  Group group;
 
   @override
-  State<MemberPaySubs> createState() =>
-      _TransferTransactionScreenState();
+  State<MemberPaySubs> createState() => _TransferTransactionScreenState();
 }
 
 class _TransferTransactionScreenState extends State<MemberPaySubs> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
   final WalletController walletController = WalletController();
-  final coops_field_key = GlobalKey<DropdownSearchState>();
   AuthController get authController => Get.put(AuthController());
   ProfileController get profileController => Get.put(ProfileController());
 
@@ -80,14 +79,15 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
   int selectedTab = 0;
   String? userId;
   String? role;
-  Map<String, dynamic>? userProfile = {};
-  Map<String, dynamic>? walletProfile = {};
+  // Map<String, dynamic>? userProfile = {};
+  List<Wallet>? sendingWallet = [];
+  List<Wallet>? receivingWallet = [];
   List<Map<String, dynamic>>? profileWallets = [];
   Map<String, dynamic>? zigWallet = {};
   Map<String, dynamic>? usdWallet = {};
   bool _isLoading = false;
-    Wallet? wallet;
-  Future? _fetchDataFuture;
+  Wallet? wallet;
+  // Future? _fetchDataFuture;
 
   void fetchId() async {
     if (_isDisposed) return;
@@ -97,27 +97,38 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
       userId = _getStorage.read('userId');
       role = _getStorage.read('account_type');
     });
-
-    final userjson = await profileController.getUserDetails(userId!);
-    // final walletJson = await profileController.getWalletDetails(userId!);
+    final coopWalletJsonData =
+        await walletController.getWalletsByProfileID(widget.group.admin_id!);
+    final userWalletJsonData =
+        await walletController.getWalletsByProfileID(userId!);
+    log(userWalletJsonData.toString());
+    // final userjson = await profileController.getUserDetails(userId!);
     final profileWallets = await profileController.getProfileWallets(userId!);
-
     if (_isDisposed) return;
-    log('profileWallets: $profileWallets');
     setState(() {
-      userProfile = userjson;
+      // userProfile = userjson;
+      if (coopWalletJsonData != null) {
+        for (var data in coopWalletJsonData) {
+          if (data.is_group_wallet!) {
+            log('Group wallet id: ${data.id!}');
+            receivingWallet = coopWalletJsonData;
+            widget.group.wallet_id = data.id;
+            transactionController.selectedTransaction.value.receiving_wallet =
+                data.id;
+          }
+          sendingWallet = userWalletJsonData;
+        }
+      }
       if (profileWallets != null && profileWallets.isNotEmpty) {
         try {
           zigWallet = profileWallets.firstWhere(
-            (element) => element['default_currency']?.toLowerCase() == 'zig',
+            (element) => element!['default_currency']?.toLowerCase() == 'zig',
             orElse: () => {'balance': '0.00', 'default_currency': 'ZIG'},
           );
           usdWallet = profileWallets.firstWhere(
-            (element) => element['default_currency']?.toLowerCase() == 'usd',
+            (element) => element!['default_currency']?.toLowerCase() == 'usd',
             orElse: () => {'balance': '0.00', 'default_currency': 'USD'},
           );
-          log('zigWallet: $zigWallet');
-          log('usdWallet: $usdWallet');
         } catch (e) {
           log('Error finding wallets: $e');
           zigWallet = {'balance': '0.00', 'default_currency': 'ZIG'};
@@ -135,6 +146,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
   void initState() {
     super.initState();
     fetchId();
+    log('MemberPaySubs group admin ID: ${widget.group.admin_id}');
   }
 
   bool _isDisposed = false;
@@ -144,233 +156,229 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
     _isDisposed = true;
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
     return Scaffold(
-        appBar: AppBar(
-          shape: const RoundedRectangleBorder(
-            borderRadius: BorderRadius.vertical(
-              bottom: Radius.circular(20.0), // Adjust the radius as needed
-            ),
-          ),
-          elevation: 0,
-          backgroundColor: primaryColor,
-          automaticallyImplyLeading: false,
-          leading: IconButton(
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(
-              Icons.arrow_back,
-              color: whiteF5Color,
-            ),
-          ),
-          centerTitle: false,
-          titleSpacing: 20.0,
-          toolbarHeight: 70.0,
-          title: const SizedBox(
-            child: Text(
-              'Pay Cooperative Subscription',
-              style: medium18WhiteF5,
-            ),
-          ),
-        ),
+        appBar: MyAppBar(title: 'Pay Subscription'),
         body: Container(
           color: whiteF5Color,
           child: Column(
             children: [
-              heightBox(30),
-              Obx(() => walletController.selectedWallet.value.id != null ? SizedBox(
-                height: height * 0.5,
-                child: Column(
-                  children: [
-                      Text('No wallet selected', style: semibold12black,),
-                  Text('Please select a wallet first', style: semibold12black,),
-               Center(child: Column(
-                children: [
-                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: zigWallet?['default_currency'] == 'ZIG' ? primaryColor : tertiaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          walletController.selectedWallet.value = Wallet.fromJson(zigWallet!);
-                          transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
-                          transactionController.transferTransaction.refresh();
-                          authController.getAcountCooperatives(userId!);
-                        });
-                      },
-                      child: Column(
-                        children: [
-                          Text(
-                            'Select ZIG Wallet',
-                            style: semibold12White,
-                          ),
-                          Text(
-                            '${zigWallet?['balance']} ZIG',
-                            style: semibold12White,
-                          ),
-                        ],
-                      ),
-                    ),
-                    widthBox(10),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: usdWallet?['default_currency'] == 'USD' ? primaryColor : tertiaryColor,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                        ),
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          walletController.selectedWallet.value = Wallet.fromJson(usdWallet!);
-                          transactionController.transferTransaction.value.sending_wallet = walletController.selectedWallet.value.id;
-                          transactionController.transferTransaction.refresh();
-                          authController.getAcountCooperatives(userId!);
-                        });
-                      },
-                      child: Column(
-                        children: [
-                          Text(
-                            'Select USD Wallet ',
-                            style: semibold12black,
-                          ),
-                          Text(
-                            '${usdWallet?['balance']} USD',
-                            style: semibold12black,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                ],
-              ))
-                  ],
-                ),
-              ): authController.isLoading.value ? const Center(child: LinearProgressIndicator(minHeight: 1, color: primaryColor,)) : authController.coops_options.isNotEmpty ? Column(children: [
-                   heightBox(10),
-                                       Text('Select Cooperative', style: semibold12black,),
+              receivingWallet != null
+                  ? Column(
+                      children: [
+                        heightBox(10),
+                        // transactionController.isLoading.value
+                        //     ? Center(
+                        //         child: Column(
+                        //         children: [
+                        //           Text(
+                        //             'Processing payment...',
+                        //             style: semibold12black,
+                        //           ),
+                        //           heightBox(10),
+                        //           LinearProgressIndicator(
+                        //             minHeight: 2,
+                        //             color: primaryColor,
+                        //           ),
+                        //         ],
+                        //       ))
+                        //     :
 
-                    coops_field(),
-                    heightBox(10),
-              ],) : Center(child: Column(
-                children: [
-                  Text('No cooperative found', style: semibold12black,),
-                ],
-              )))
-              
-              
-               ,
+                        Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              PaySubTransDetail(group: widget.group),
+                              heightBox(10),
+                              _isLoading
+                                  ? Center(
+                                      child: Container(
+                                          height: height * 0.2,
+                                          child: LoadingShimmerWidget()),
+                                    )
+                                  : accountWallets(),
+                              _isLoading
+                                  ? Center(
+                                      child: Container(
+                                          height: height * 0.3,
+                                          child: LoadingShimmerWidget()),
+                                    )
+                                  : transactionController.isLoading.value
+                                      ? Center(
+                                          child: Column(
+                                          children: [
+                                            Text(
+                                              'Processing payment...',
+                                              style: semibold12black,
+                                            ),
+                                            heightBox(10),
+                                            LinearProgressIndicator(
+                                              minHeight: 2,
+                                              color: primaryColor,
+                                            ),
+                                          ],
+                                        ))
+                                      : ElevatedButton(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: primaryColor,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(10),
+                                            ),
+                                          ),
+                                          onPressed: processPayment,
+                                          child: Text(
+                                            'Pay Subscription',
+                                            style: semibold12White,
+                                          )),
+                            ],
+                          ),
+                        )
+                      ],
+                    )
+                  : SizedBox(
+                      child: Center(
+                        child: Text(
+                          'No  Cooperative wallet found',
+                          style: semibold12black,
+                        ),
+                      ),
+                    ),
             ],
           ),
         ));
   }
 
-  coops_field() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Container(
-        decoration: BoxDecoration(
-          color: recWhiteColor,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Obx(() {
-          final selectedCoop = authController.selected_coop.value;
+  void processPayment() async {
+    try {
+      setState(() {
+        _isLoading = true;
+      });
+      transactionController.transferTransaction.value.amount =
+          widget.group.monthly_sub;
+      transactionController.transferTransaction.value.sending_wallet =
+          sendingWallet![0].id;
+      transactionController.transferTransaction.value.receiving_wallet =
+          receivingWallet![1].id;
+      transactionController.transferTransaction.value.transferCategory =
+          'transfer';
+      transactionController.transferTransaction.value.transferMode =
+          'WALLETPLUS';
+      transactionController.transferTransaction.value.transactionType =
+          'subscription';
+      transactionController.transferTransaction.value.currency =
+          sendingWallet![0].default_currency;
+      transactionController.transferTransaction.value.narrative = 'debit';
+      await transactionController.initiateTransfer();
+    } catch (e, s) {
+      log('processPayment error: $e $s');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
 
-          return DropdownSearch<Cooperative>(
-            compareFn: (item1, item2) => item1 == item2,
-            onChanged: (value) {
-              log('selected_coop.value.name ${authController.selected_coop.value.name}');
-              log('selected_coop.value.id ${authController.selected_coop.value.id}');
-              authController.selected_coop.value = value!;
-            },
-            key: coops_field_key,
-            selectedItem: selectedCoop,
-            items: (filter, infiniteScrollProps) =>
-                authController.coops_options,
-            decoratorProps: DropDownDecoratorProps(
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                labelText: 'Select Cooperative',
-                labelStyle: const TextStyle(color: blackColor, fontSize: 22),
-                filled: true,
-                fillColor: recWhiteColor,
-              ),
-            ),
-            dropdownBuilder: (context, selectedItem) {
-              if (selectedItem == null) {
-                return const Text(
-                  'Select Cooperative',
-                  style: TextStyle(color: blackColor),
-                );
-              }
-              return Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      selectedItem.name != null
-                          ? '${Utils.trimp(selectedItem.name!)}'
-                          : 'No name',
-                      style: const TextStyle(
-                        color: blackColor,
-                        fontSize: 16.0,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
+  accountWallets() {
+    return Padding(
+      padding: const EdgeInsets.all(10.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Text(
+            'Select Wallet',
+            style: semibold12black,
+          ),
+          heightBox(10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: zigWallet?['default_currency'] == 'ZIG'
+                      ? primaryColor
+                      : tertiaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
                   ),
-                ],
-              );
-            },
-            popupProps: PopupProps.menu(
-              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Row(
+                ),
+                onPressed: () {
+                  setState(() {
+                    walletController.selectedWallet.value =
+                        Wallet.fromJson(zigWallet!);
+                    transactionController
+                            .transferTransaction.value.sending_wallet =
+                        walletController.selectedWallet.value.id;
+                    transactionController.transferTransaction.refresh();
+                  });
+                },
+                child: Column(
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            item.id != null
-                                ? '${Utils.trimp(item.name!)}'
-                                : 'No name',
-                            style: const TextStyle(
-                              color: blackColor,
-                              fontSize: 16.0,
-                            ),
-                          ),
-                        ],
-                      ),
+                    Text(
+                      'ZIG Wallet',
+                      style: semibold12White,
+                    ),
+                    Text(
+                      'Current Balance:',
+                      style: semibold12White,
+                    ),
+                    Text(
+                      ' ${zigWallet?['balance']} ZIG',
+                      style: semibold12White,
                     ),
                   ],
                 ),
               ),
-              showSelectedItems: true,
-              fit: FlexFit.loose,
-              constraints: const BoxConstraints(),
-              menuProps: const MenuProps(
-                backgroundColor: whiteF5Color,
-                elevation: 4,
+              widthBox(10),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: tertiaryColor,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+                onPressed: () {
+                  setState(() {
+                    walletController.selectedWallet.value =
+                        Wallet.fromJson(usdWallet!);
+                    transactionController
+                            .transferTransaction.value.sending_wallet =
+                        walletController.selectedWallet.value.id;
+                    transactionController.transferTransaction.refresh();
+                  });
+                },
+                child: Column(
+                  children: [
+                    Text(
+                      'USD Wallet ',
+                      style: semibold12black,
+                    ),
+                    Text(
+                      'Current Balance',
+                      style: semibold12black,
+                    ),
+                    Text(
+                      '${usdWallet?['balance']} USD',
+                      style: semibold12black,
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }),
+            ],
+          ),
+        ],
       ),
     );
   }
-
 
   Widget divider() {
     return Container(
@@ -379,6 +387,7 @@ class _TransferTransactionScreenState extends State<MemberPaySubs> {
       color: blackOrignalColor.withOpacity(0.1),
     );
   }
+
   BoxDecoration bgBoxDecoration = BoxDecoration(
     border: Border(
         left: BorderSide(color: greyB5Color),

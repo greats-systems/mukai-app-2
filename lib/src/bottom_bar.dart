@@ -1,26 +1,33 @@
 import 'dart:developer';
-import 'dart:io';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/src/apps/groups/views/screens/create_group.dart';
+import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/brick/models/wallet.model.dart';
+import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
+import 'package:mukai/src/apps/home/landing_quick_transact.dart';
+import 'package:mukai/src/apps/home/qr_code.dart';
+import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
 import 'package:mukai/src/apps/reports/views/reports_screen.dart';
+import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
+import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/views/screen/communications_screen.dart';
 // import 'package:mukai/src/apps/chats/views/widgets/realtime_conversations_list.dart';
 import 'package:mukai/src/apps/home/admin_landing.dart';
-import 'package:mukai/src/apps/home/member_landing.dart';
 import 'package:mukai/src/apps/settings/screens/adming_setttings_landing.dart';
 import 'package:mukai/src/apps/settings/screens/member_settings_landing.dart';
+import 'package:mukai/src/controllers/profile_controller.dart';
+import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:mukai/widget/render_supabase_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
-import 'package:iconify_flutter_plus/icons/carbon.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class BottomBar extends StatefulWidget {
   final String? role;
@@ -37,28 +44,59 @@ class BottomBar extends StatefulWidget {
 
 class _BottomBarState extends State<BottomBar> {
   AuthController get authController => Get.put(AuthController());
-  final GetStorage _getStrorage = GetStorage();
+  final GetStorage _getStorage = GetStorage();
   final autoSizeGroup = AutoSizeGroup();
-  // late List<Widget> memberPages;
+  TransactionController get transactionController =>
+      Get.put(TransactionController());
+  final WalletController _walletController = WalletController();
+  final ProfileController _profileController = ProfileController();
+
+  // late List<Widget> membermanagerPages;
   String? userId;
   String? userRole;
+  int _currentIndex = 0;
+  late double height;
+  late double width;
+  List<Wallet>? wallets;
+  String? walletId;
 
-  void _fetchData() async {
-    final id = await _getStrorage.read('userId');
-    // final role = await _getStrorage.read('account_type');
+  bool _isDisposed = false;
+  bool _isLoading = false;
+  Future<void> _fetchData() async {
+    userId = _getStorage.read('userId');
+    userRole = _getStorage.read('account_type');
+  }
+
+  Future<void> fetchWalletID() async {
     setState(() {
-      userId = id;
-      // userRole = role;
-      /*
-      memberPages = [
-        MemberLandingScreen(userId: userId),
-        const Text('Members Page'),
-        CommunicationsScreen(initialselectedTab: 0),
-        const AdmingSettingsLandingScreen(),
-      ];
-      */
+      _isLoading = true;
+      userId = _getStorage.read('userId');
     });
-    log('BottomBar userId: $userId, role: $userRole');
+
+    try {
+      final walletJson = await _walletController.getIndividualWallets(userId!);
+
+      if (!_isDisposed && mounted) {
+        setState(() {
+          wallets = walletJson;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+    final walletJson = await _profileController.getProfileWallet(userId!);
+    if (mounted) {
+      if (walletJson != null) {
+        setState(() {
+          walletId = walletJson[0]['id'];
+        });
+      }
+    }
   }
 
   final iconList = <IconData>[
@@ -70,8 +108,8 @@ class _BottomBarState extends State<BottomBar> {
   final iconTitleList = <String>['Home', 'Reports', 'Coops', 'Settings'];
   int selectedIndex = 0;
   DateTime? backPressTime;
-  
-  final pages = [
+
+  final managerPages = [
     const AdminLandingScreen(),
     ReportsScreen(),
     CommunicationsScreen(
@@ -80,8 +118,8 @@ class _BottomBarState extends State<BottomBar> {
     const AdmingSettingsLandingScreen(),
   ];
 
-  final memberPages = [
-    MemberLandingScreen(),
+  final membermanagerPages = [
+    AdminLandingScreen(),
     ReportsScreen(),
     CommunicationsScreen(
       initialselectedTab: 0,
@@ -94,18 +132,9 @@ class _BottomBarState extends State<BottomBar> {
 
   @override
   void initState() {
-    log(widget.role ?? 'No role');
     super.initState();
     _fetchData();
     authController.getAccount();
-    /*
-    memberPages = [
-      const MemberLandingScreen(userId: null), // Handle null case in MemberLandingScreen
-      const Text('Members Page'),
-      CommunicationsScreen(initialselectedTab: 0),
-      const AdmingSettingsLandingScreen(),
-    ];
-    */
     if (widget.index != null) {
       setState(() {
         selectedIndex = widget.index!;
@@ -117,6 +146,7 @@ class _BottomBarState extends State<BottomBar> {
         subIndex = 0;
       });
     }
+    log(userRole?? 'No role');
   }
 
   changeIndex(index, subIndex) {
@@ -128,57 +158,60 @@ class _BottomBarState extends State<BottomBar> {
   }
 
   @override
+  void dispose() {
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvoked: (didPop) {
-        bool backStatus = onPopInvoked();
-        if (backStatus) {
-          exit(0);
-        }
-      },
-      child: Scaffold(
-        extendBody: true,
-        body: widget.role == 'admin'
-            ? pages.elementAt(selectedIndex)
-            : memberPages.elementAt(selectedIndex),
-        floatingActionButton: selectedIndex==2 ? addGroup() : addButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: gappedBottombar(),
-      ),
-      /*
-      child: widget.role == 'admin'
-          ? Scaffold(
-              extendBody: true,
-              body: pages.elementAt(selectedIndex),
-              floatingActionButton: addButton(),
-              floatingActionButtonLocation:
-                  FloatingActionButtonLocation.centerDocked,
-              bottomNavigationBar: gappedBottombar(),
-            )
-          : Scaffold(
-              extendBody: true,
-              body: memberPages.elementAt(selectedIndex),
-              floatingActionButton: addButton(),
-              floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-              bottomNavigationBar: gappedBottombar(),
-            ),
-            */
-      /*
-      child: Scaffold(
-        extendBody: true,
-        body: widget.role == 'admin'
-            ? pages.elementAt(selectedIndex)
-            : memberPages.elementAt(selectedIndex),
-        floatingActionButton: addButton(),
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        bottomNavigationBar: gappedBottombar(),
-      ),
-      */
+    final size = MediaQuery.sizeOf(context);
+    width = size.width;
+    height = size.height;
+    return Scaffold(
+      body: Obx(() => authController.initiateNewTransaction.value == true
+          ? LandingQuickTransactScreen()
+          : Container(
+              color: whiteF5Color, // Background color
+              child: userRole == 'coop-manager'
+                  ? managerPages[_currentIndex]
+                  : membermanagerPages[_currentIndex],
+            )),
+      floatingActionButton: userRole == 'coop-manager' && _currentIndex == 2
+          ? addGroup()
+          : scanQR(),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: gappedBottombar(),
     );
   }
 
-  addButton() {
+  PreferredSizeWidget buildAppBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(105.0), // Match the toolbarHeight
+      child: Container(
+        decoration: BoxDecoration(
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.2), // Shadow color
+              blurRadius: 8.0, // Blur radius
+              spreadRadius: 2.0, // Spread radius
+              offset: const Offset(0, 4), // Shadow position (bottom)
+            ),
+          ],
+        ),
+        child: AppBar(
+          backgroundColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          centerTitle: false,
+          titleSpacing: 0.0,
+          toolbarHeight: 100.0,
+          elevation: 0,
+          title: const AdminAppHeaderWidget(),
+        ),
+      ),
+    );
+  }
+
+  scanQR() {
     return GestureDetector(
       onTap: () {
         log('Tapped!');
@@ -211,7 +244,7 @@ class _BottomBarState extends State<BottomBar> {
   addGroup() {
     return GestureDetector(
       onTap: () {
-        Get.to(() => CreateGroup());
+        Get.to(() => AdminRegisterCoopScreen());
       },
       child: Container(
         height: 52.0,
@@ -294,7 +327,7 @@ class _BottomBarState extends State<BottomBar> {
           ],
         );
       },
-      activeIndex: selectedIndex,
+      activeIndex: _currentIndex,
       gapLocation: GapLocation.center,
       notchSmoothness: NotchSmoothness.softEdge,
       borderColor: recWhiteColor,
@@ -306,201 +339,10 @@ class _BottomBarState extends State<BottomBar> {
       ),
       splashRadius: 0,
       scaleFactor: 0.9,
-      onTap: (index) => setState(() => selectedIndex = index),
-    );
-  }
-
-  Widget bottombar() {
-    return Container(
-      decoration: const BoxDecoration(
-        color: whiteColor,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
-      ),
-      padding:
-          const EdgeInsets.fromLTRB(0, 2.0, 0, 5.0), // Increased bottom padding
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: GestureDetector(
-              onTap: () => setState(() => selectedIndex = 0),
-              child: Iconify(
-                Carbon.home,
-                color: selectedIndex == 0 ? primaryColor : recColor,
-                size: 40.0,
-              ),
-            ),
-          ),
-          _buildNavItem(
-            icon: BoxIcons.bx_command,
-            label: 'Accounts',
-            index: 1,
-          ),
-          // Cart Icon with Label
-
-          // Search Icon with Label
-          _buildNavItem(
-            icon: BoxIcons.bx_abacus,
-            label: 'Books',
-            index: 2,
-          ),
-          Obx(() => authController.person.value.account_type != null
-              ? _buildNavItemWithBadge(
-                  icon: BoxIcons.bx_message_check,
-                  label: 'Inbox',
-                  index: 3,
-                )
-              : const SizedBox()),
-          // Favorites Icon with Label
-          GestureDetector(
-            // onTap: () => Get.to(() => const ProfileScreen()),
-            child: Wrap(
-              crossAxisAlignment: WrapCrossAlignment.center,
-              direction: Axis.vertical,
-              spacing: -3, //
-              children: [
-                picInfo(),
-                heightBox(5),
-                Text(
-                  'Profile',
-                  style: TextStyle(
-                    color: selectedIndex == 4 ? primaryColor : recColor,
-                    fontSize: 13,
-                  ),
-                ),
-              ],
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  picInfo() {
-    double height = MediaQuery.of(context).size.height;
-    double width = MediaQuery.of(context).size.width;
-    return Obx(() => authController.person.value.profile_picture_id != null
-        ? SizedBox(
-            height: height * 0.04,
-            width: width * 0.08,
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(10),
-              child: RenderSupabaseImageIdWidget(
-                filePath: authController.person.value.profile_picture_id!,
-              ),
-            ),
-          )
-        : const Icon(
-            size: 37,
-            Icons.person_2_outlined,
-            color: recColor,
-          ));
-  }
-
-// Method to build a nav item without badge
-  Widget _buildNavItem({
-    required IconData icon,
-    required String label,
-    required int index,
-  }) {
-    return GestureDetector(
-      onTap: () => setState(() => selectedIndex = index),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        direction: Axis.vertical,
-        spacing: -12,
-        children: [
-          IconButton(
-            icon: Icon(icon, size: 25),
-            color: selectedIndex == index ? primaryColor : recColor,
-            onPressed: () => setState(() => selectedIndex = index),
-          ),
-          Text(
-            label,
-            style: TextStyle(
-              color: selectedIndex == index ? primaryColor : recColor,
-              fontSize: 13,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-// Method to build a nav item with badge
-  Widget _buildNavItemWithBadge({
-    required IconData icon,
-    required String label,
-    required int index,
-  }) {
-    return GestureDetector(
-      onTap: () => setState(() => selectedIndex = index),
-      child: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        direction: Axis.vertical,
-        spacing: -12, //
-        children: [
-          GestureDetector(
-            onTap: () => setState(() => selectedIndex = index),
-            child: Stack(
-              clipBehavior: Clip.none,
-              children: [
-                IconButton(
-                  icon: Icon(icon, size: 25),
-                  color: selectedIndex == index ? primaryColor : recColor,
-                  onPressed: () => setState(() => selectedIndex = index),
-                ),
-                Obx(() => authController.messages.isNotEmpty
-                    ? Positioned(
-                        left: 30,
-                        top: 2,
-                        child: Container(
-                          padding: const EdgeInsets.all(2),
-                          decoration: BoxDecoration(
-                            color: primaryColor,
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          constraints: const BoxConstraints(
-                            minWidth: 25,
-                            minHeight: 10,
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Text(
-                                '${authController.messages.length}',
-                                style: const TextStyle(
-                                  color: recColor,
-                                  fontSize: 12,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    : const SizedBox()),
-              ],
-            ),
-          ),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.end,
-            children: [
-              Padding(
-                padding: const EdgeInsets.only(left: 11.0),
-                child: Text(
-                  label,
-                  style: TextStyle(
-                    color: selectedIndex == index ? primaryColor : recColor,
-                    fontSize: 13,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
+      onTap: (index) {
+        authController.initiateNewTransaction.value = false;
+        setState(() => _currentIndex = index);
+      },
     );
   }
 

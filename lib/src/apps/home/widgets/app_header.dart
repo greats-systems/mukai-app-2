@@ -13,6 +13,7 @@ import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 
 class AppHeaderWidget extends StatefulWidget {
   final String? title;
@@ -39,17 +40,17 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
   late PageController pageController = PageController();
   final tabList = ["Account", "Wallets", "Assets", 'FinMarket'];
   int selectedTab = 0;
-  Wallet? wallet;
+  List<Wallet>? wallet;
   Future? _fetchDataFuture;
 
   Future<void> _fetchData() async {
     try {
       final userId = await _getStorage.read('userId');
       if (!mounted) return;
-      
-      final walletData = await _walletController.getWalletDetailsByID(userId);
+
+      final walletData = await _walletController.getWalletsByProfileID(userId);
       if (!mounted) return;
-      
+
       setState(() => wallet = walletData);
     } catch (e) {
       if (!mounted) return;
@@ -76,45 +77,15 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              profileButton(),
-              logoButton(),
-            ],
-          ),
-        ),
-        // heightBox(30),
-        // Padding(
-        //   padding: EdgeInsets.only(left: width * 0.3),
-        //   child: Column(
-        //     children: [
-        //       SizedBox(
-        //         width: width,
-        //         child: AutoSizeText(
-        //           'Your available balance',
-        //           style: medium14Black,
-        //         ),
-        //       ),
-        //       height5Space,
-        //       Padding(
-        //         padding: EdgeInsets.only(left: width * 0.06),
-        //         child: SizedBox(
-        //           width: width,
-        //           child: AutoSizeText(
-        //             '\$${(wallet?.balance ?? 0.0).toStringAsFixed(2)}',
-        //             style: medium14Black,
-        //           ),
-        //         ),
-        //       ),
-        //     ],
-        //   ),
-        // ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(left: 10, right: 10, top: 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          profileButton(),
+          logoButton(),
+        ],
+      ),
     );
   }
 
@@ -124,7 +95,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
         Navigator.pushNamed(context, '/bottomBar');
       },
       child: Container(
-        height: 50.0,
+        height: 70.0,
         alignment: Alignment.center,
         child: Column(
           children: [
@@ -132,7 +103,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
               children: [
                 Image.asset(
                   'assets/images/logo-nobg.png',
-                  height: 50.0,
+                  height: 60.0,
                 ),
               ],
             ),
@@ -171,21 +142,15 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  profileController.profile.value.first_name ?? 'No name',
-                  style: medium14Black,
-                ),
-              ),
-              SizedBox(
-                width: width * 0.5,
-                child: AutoSizeText(
-                  'Greats Coop',
+                  '${Utils.trimp(profileController.profile.value.first_name ?? 'No name')} ${Utils.trimp(profileController.profile.value.last_name ?? 'No name')}',
                   style: medium14Black,
                 ),
               ),
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  profileController.profile.value.account_type ?? 'No account type',
+                  Utils.trimp(profileController.profile.value.account_type ??
+                      'No account type'),
                   style: medium14Black,
                 ),
               ),

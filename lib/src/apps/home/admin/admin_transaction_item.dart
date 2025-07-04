@@ -99,12 +99,12 @@ class _MarketTraderState extends State<AdminTransactionItem> {
               Column(
                 children: [
                   Text(
-                    '${transaction.category ?? 'No category'}- ${transaction.status ?? 'initiated'}',
+                    '${transaction.status ?? 'initiated'}',
                     style: semibold12black,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
-                    '\$${transaction.amount}',
+                    '\$${transaction.amount?.toStringAsFixed(2) ?? '0.00'}',
                     style: semibold16Primary,
                     overflow: TextOverflow.ellipsis,
                   ),

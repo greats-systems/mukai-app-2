@@ -8,20 +8,21 @@ import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:intl_phone_field/country_picker_dialog.dart';
 import 'package:intl_phone_field/intl_phone_field.dart';
 import 'package:mukai/brick/models/profile.model.dart';
-import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
-import 'package:mukai/src/apps/transactions/views/widgets/confirm_transfer.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
-class TransferToWalletWidget extends StatefulWidget {
-  TransferToWalletWidget({super.key});
+class ManualTransferToWalletWidget extends StatefulWidget {
+  ManualTransferToWalletWidget({super.key});
 
   @override
-  State<TransferToWalletWidget> createState() => _TransferToWalletWidgetState();
+  State<ManualTransferToWalletWidget> createState() =>
+      _ManualTransferToWalletWidgetState();
 }
 
-class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
+class _ManualTransferToWalletWidgetState
+    extends State<ManualTransferToWalletWidget> {
   // final walletProfileWidget_key = GlobalKey<DropdownSearchState>();
   TransactionController get transactionController =>
       Get.put(TransactionController());
@@ -42,7 +43,7 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
       walletId = wallet_id;
       transactionController.transferTransaction.value.sending_wallet = walletId;
     });
-    log('TransferToWalletWidget userId: $userId and walletId: $walletId');
+    log('ManualTransferToWalletWidget userId: $userId and walletId: $walletId');
   }
 
   void initState() {
@@ -52,26 +53,36 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return Obx(() => transactionController.confirmTransfer.value == true
-        ? ConfirmTransferWidget()
-        : Column(
-            children: [
-              height20Space,
-              accountNumberField(),
-              heightBox(20),
-              // height5Space,
-              Obx(() => transactionController.selectedWallet.value.id != null
-                  ? walletProfileWidget()
-                  : SizedBox()),
-              walletProfileWidget(),
-              heightBox(20),
-              transactionController.selectedProfile.value.email != null
-                  ? Column(
-                      children: [detailsField(), heightBox(20), amountField()],
-                    )
-                  : amountField()
-            ],
-          ));
+    return Column(
+      children: [
+        height20Space,
+        accountNumberField(),
+        heightBox(20),
+        Obx(() => transactionController.isLoading.value == true
+            ? SizedBox(
+                height: MediaQuery.of(context).size.height * 0.8,
+                child: LoadingShimmerWidget())
+            : transactionController.selectedProfile.value.id != null
+                ? Column(
+                    children: [detailsField(), heightBox(20), amountField()],
+                  )
+                : SizedBox())
+      ],
+    );
+
+    // Obx(() => transactionController.confirmTransfer.value == true
+    //     ? ConfirmTransferWidget()
+    //     : Column(
+    //         children: [
+    //           height20Space,
+    //           accountNumberField(),
+    //           heightBox(20),
+    //           if (transactionController.selectedProfile.value.id != null)
+    //             Column(
+    //               children: [detailsField(), heightBox(20), amountField()],
+    //             )
+    //         ],
+    //       ));
   }
 
   mobileNumberField() {
@@ -127,17 +138,25 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
 
   detailsField() {
     return Card(
+      color: primaryColor.withAlpha(100),
       margin: EdgeInsets.only(bottom: 16),
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text(
+              'Recieving Account',
+              style: TextStyle(
+                  color: blackOrignalColor,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22),
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'email:\t',
+                  'Email:\t',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -151,7 +170,7 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'first name:\t',
+                  'First Name:\t',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -165,7 +184,7 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  'last name:\t',
+                  'Last Name:\t',
                   style: TextStyle(fontWeight: FontWeight.bold),
                 ),
                 Text(
@@ -175,39 +194,20 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
               ],
             ),
             SizedBox(height: 12),
-            /*
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('From', style: TextStyle(color: Colors.grey)),
-                        Text(constants.returnLocation(departure['iataCode'])),
-                        Text(constants.formatDateTime(departure['at'])),
-                        if (departure['terminal'] != null)
-                          Text('Terminal ${departure['terminal']}'),
-                      ],
-                    ),
-                    Icon(Icons.airplanemode_active, size: 24),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text('To', style: TextStyle(color: Colors.grey)),
-                        Text(constants.returnLocation(arrival['iataCode'])),
-                        Text(constants.formatDateTime(arrival['at'])),
-                        if (arrival['terminal'] != null)
-                          Text('Terminal ${arrival['terminal']}'),
-                      ],
-                    ),
-                  ],
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Duration: ${constants.calculateDuration(departure['at'], arrival['at'])}',
-                ),
-                Text('Aircraft: $aircraft'),
-                */
+            if (transactionController.selectedProfile.value.wallet_id != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Wallet ID:\t',
+                    style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    "${transactionController.selectedProfile.value.wallet_id?.substring(0, 8)}...${transactionController.selectedProfile.value.wallet_id?.substring(28, 36)}",
+                    // style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
+              ),
           ],
         ),
       ),
@@ -228,7 +228,7 @@ class _TransferToWalletWidgetState extends State<TransferToWalletWidget> {
           //     .transferTransaction.value.receiving_account_number = value,
           transactionController.accountNumber.value = value;
           if (value.length > 4) {
-            await transactionController.getMemberLikeID(value);
+            await transactionController.getProfileByIDSearch(value);
           }
 
           // transactionController.getAllMembers()

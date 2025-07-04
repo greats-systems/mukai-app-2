@@ -406,6 +406,7 @@ class AdminRegisterCoopScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         authController.registerCoop();
+        // log('Tapped');
       },
       child: Container(
         width: width * 0.3,

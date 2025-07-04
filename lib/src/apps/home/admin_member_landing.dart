@@ -97,7 +97,7 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
           alignment: Alignment.center,
           child: Center(
             child: QrImageView(
-              data: walletId ?? 'No wallet ID',
+              data: walletId ?? 'No wallet ID 2',
               version: QrVersions.auto,
               size: 250.0,
             ),

@@ -116,10 +116,10 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
     if (profile != null) {
       final firstName = profile.first_name?.toUpperCase() ?? 'N';
       final lastName = profile.last_name?.toUpperCase() ?? '';
-      final idSnippet = profile.id?.substring(0, 8) ?? '';
+      final idSnippet = profile.id ?? '';
       return '$firstName $lastName';
     } else {
-      return 'No name to format';
+      return 'No name to format in member_item';
     }
   }
 
@@ -163,8 +163,8 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
                 children: [
                   _buildInfoColumn(
                       'Subs Balance', profile.wallet_balance.toString()),
-                  _buildInfoColumn(
-                      'Account ID', profile.id?.substring(0, 8) ?? ''),
+                  _buildInfoColumn('Account ID',
+                      profile.id != null ? profile.id!.substring(0, 8) : 'N/A'),
                 ],
               ),
               _buildChatButton(profile),
@@ -277,21 +277,13 @@ class _MemberItemWidgetState extends State<MemberItemWidget> {
       onCancel: () => Get.back(),
     );
   }
-
   void _navigateToConversation(Profile? profile) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ConversationPage(
-          firstName: _getFullName(profile),
-          profileImageUrl: profile?.profile_image_url ?? '',
-          receiverId: profile?.id ?? Uuid().v4(),
-          receiverFirstName: _getFirstName(profile),
-          receiverLastName: profile?.last_name ?? '',
-          conversationId: Uuid().v4(),
-        ),
-      ),
-    );
+    Get.to(() => ConversationPage(
+        firstName: _getFullName(profile),
+        receiverId: profile?.id ?? Uuid().v4(),
+        conversationId: Uuid().v4(),
+        receiverFirstName: _getFirstName(profile),
+        receiverLastName: profile?.last_name ?? ''));
   }
 
   String _getFullName(Profile? profile) {

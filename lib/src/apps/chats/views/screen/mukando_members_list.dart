@@ -2,24 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
-import 'package:mukai/src/apps/chats/views/widgets/mukando_members_list_tile.dart';
-import 'package:mukai/src/components/my_app_bar.dart';
 // import 'package:mukai/constants.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
 // import 'package:mukai/theme/theme.dart';
 // import 'package:mukai/utils/utils.dart';
 import 'dart:developer';
-import 'dart:developer';
 
-import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:mukai/brick/models/profile.model.dart';
-import 'package:mukai/constants.dart';
-import 'package:mukai/src/apps/groups/views/screens/member_detail.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/member_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/member_item.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
-import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class MukandoMembersList extends StatefulWidget {
   final Group group;
@@ -37,21 +31,34 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
   List<Profile>? mukandoMembers = [];
   List<Profile>? pendingMukandoMembers = [];
   bool _isLoading = true;
-  bool _showActiveMembers = true; // Toggle state
+  bool _showActiveMembers = true;
+  bool _isDisposed = false; // Add disposal flag
+
+  @override
+  void dispose() {
+    _isDisposed = true; // Set flag when widget is disposed
+    super.dispose();
+  }
 
   void _fetchGroupMembers() async {
+    if (!mounted) return; // Check if widget is still mounted
+
     setState(() => _isLoading = true);
     try {
       final members =
           await _groupController.getMukandoGroupMembers(widget.group.id ?? '');
       final pendingMembers = await _groupController
           .getPendingMukandoGroupMembers(widget.group.id ?? '');
+
+      if (!mounted) return; // Check again after async operations
+
       setState(() {
         mukandoMembers = members;
         pendingMukandoMembers = pendingMembers;
         _isLoading = false;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isLoading = false);
       log('Error fetching members: $e');
     }
@@ -59,6 +66,7 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
 
   @override
   void initState() {
+    log('MukandoMembersList group.id: ${widget.group.id}');
     super.initState();
     loggedInUserId = _getStorage.read('userId');
     _fetchGroupMembers();
@@ -98,7 +106,7 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
     }
 
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(child: LoadingShimmerWidget());
     }
 
     final membersToShow =
@@ -112,38 +120,51 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
       );
     }
 
-    return ListView.builder(
-      itemCount: membersToShow.length,
-      itemBuilder: (context, index) {
-        Profile profile = membersToShow[index];
-        return Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: GestureDetector(
-            onTap: () {
-              profileController.selectedProfile.value = profile;
-              Get.to(() => MemberDetailScreen(profile: profile,));
-            },
-            child: Container(
-              width: double.maxFinite,
-              clipBehavior: Clip.hardEdge,
-              decoration: BoxDecoration(
-                color: whiteColor,
-                borderRadius: BorderRadius.circular(10.0),
-                boxShadow: recShadow,
-              ),
+    return RefreshIndicator(
+      onRefresh: () async {
+        await _fetchGroupMembers;
+      },
+      child: ListView.builder(
+        itemCount: membersToShow.length,
+        itemBuilder: (context, index) {
+          Profile profile = membersToShow[index];
+          return Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: GestureDetector(
+              onTap: () async {
+                profileController.selectedProfile.value = profile;
+                final result = await Get.to<bool>(() => MemberDetailScreen(
+                      groupId: widget.group.id,
+                      profile: profile,
+                      isActive: _showActiveMembers,
+                    ));
+
+                if (result == true) {
+                  _fetchGroupMembers(); // Refresh the list when returning
+                }
+              },
               child: Container(
-                padding: const EdgeInsets.all(fixPadding * 1.5),
-                margin: const EdgeInsets.symmetric(vertical: fixPadding),
+                width: double.maxFinite,
+                clipBehavior: Clip.hardEdge,
                 decoration: BoxDecoration(
+                  color: whiteColor,
                   borderRadius: BorderRadius.circular(10.0),
-                  color: whiteColor.withOpacity(0.1),
+                  boxShadow: recShadow,
                 ),
-                child: MemberItemWidget(profile: profile),
+                child: Container(
+                  padding: const EdgeInsets.all(fixPadding * 1.5),
+                  margin: const EdgeInsets.symmetric(vertical: fixPadding),
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(10.0),
+                    color: whiteColor.withOpacity(0.1),
+                  ),
+                  child: MemberItemWidget(profile: profile),
+                ),
               ),
             ),
-          ),
-        );
-      },
+          );
+        },
+      ),
     );
   }
 }

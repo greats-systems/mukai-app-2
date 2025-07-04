@@ -101,13 +101,13 @@ class LoginScreen extends StatelessWidget {
                                 children: [
                                   Text(
                                     "Register",
-                                    style: semibold14Black,
+                                    style: TextStyle(color: secondaryColor),
                                     textAlign: TextAlign.center,
                                   ),
                                   Iconify(
                                     Ri.arrow_right_line,
                                     size: 24,
-                                    color: blackOrignalColor,
+                                    color: secondaryColor,
                                   )
                                 ],
                               ),
@@ -204,15 +204,8 @@ class LoginScreen extends StatelessWidget {
         children: [
           Image.asset(
             "assets/images/logo-nobg.png",
-            height: 200.0,
+            height: 180.0,
           ),
-          Text(
-            'express your greatness',
-            style: TextStyle(
-                fontStyle: FontStyle.italic,
-                color: blackOrignalColor,
-                fontSize: 11),
-          )
         ],
       ),
     );

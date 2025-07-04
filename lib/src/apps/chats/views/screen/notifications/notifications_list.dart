@@ -3,6 +3,7 @@ import 'dart:developer';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/schema/chat.dart';
 import 'package:mukai/src/apps/chats/views/screen/notifications/widgets/notification_tile.dart';
@@ -120,7 +121,7 @@ class _NotificationsListState extends State<NotificationsList>
     /*
     return Center(
       child: _isLoading
-          ? CircularProgressIndicator()
+          ? LoadingShimmerWidget()
           : _requests != null
               ? NotificationTile(requests: _requests!,)
               : Text('No notifications'),
@@ -243,7 +244,7 @@ class _NotificationsListState extends State<NotificationsList>
   }
 
   Widget cachedImage(String id) {
-    var url = '${constants.APP_API_ENDPOINT}/assets/${id}';
+    var url = '${EnvConstants.APP_API_ENDPOINT}/assets/$id';
     return CachedNetworkImage(
       width: 60.0,
       height: 60.0,

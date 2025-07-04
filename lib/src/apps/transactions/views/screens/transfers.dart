@@ -1,33 +1,117 @@
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:flutter/material.dart';
+import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/eva.dart';
 import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
+import 'package:mukai/brick/models/profile.model.dart';
+import 'package:mukai/brick/models/transaction.model.dart';
+import 'package:mukai/brick/models/wallet.model.dart';
+import 'package:mukai/src/apps/home/admin/account_transactions.dart';
+import 'package:mukai/src/apps/home/qr_code.dart';
+import 'package:mukai/src/apps/home/transactions_list.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/apps/transactions/views/widgets/transfer_to_wallet.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
+import 'dart:developer';
 
-class TransfersScreen extends StatelessWidget {
+import 'package:qr_flutter/qr_flutter.dart';
+
+class TransfersScreen extends StatefulWidget {
   final String category;
   TransfersScreen({super.key, required this.category});
+
+  @override
+  State<TransfersScreen> createState() => _TransfersScreenState();
+}
+
+class _TransfersScreenState extends State<TransfersScreen> {
   AuthController get authController => Get.put(AuthController());
+
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  final WalletController walletController = WalletController();
+
+  // final WalletController walletController = WalletController();
 
   final TextEditingController amountController = TextEditingController();
+
   final TextEditingController phoneController = TextEditingController();
+
   final province_field_key = GlobalKey<DropdownSearchState>();
+
   final agritex_officer_key = GlobalKey<DropdownSearchState>();
+
   final district_key = GlobalKey<DropdownSearchState>();
+
   final town_city_key = GlobalKey<DropdownSearchState>();
+
+  final WalletController _walletController = WalletController();
+
+  final GetStorage _getStorage = GetStorage();
+
   late double height;
+
   late double width;
+
   final dropDownKey = GlobalKey<DropdownSearchState>();
+
+  String? userId;
+  List<Wallet>? wallets;
+  String? walletId;
+  Wallet? receivingWallet;
+  bool _isDisposed = false;
+  bool _isLoading = false;
+
+  void fetchProfile() async {
+    if (_isDisposed) return;
+
+    setState(() {
+      _isLoading = true;
+      userId = _getStorage.read('userId');
+    });
+
+    try {
+      final walletJson = await _walletController.getIndividualWallets(userId!);
+
+      if (!_isDisposed && mounted) {
+        setState(() {
+          wallets = walletJson;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (!_isDisposed && mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
+  }
+
+  @override
+  void initState() {
+    setState(() => userId = _getStorage.read('userId'));
+    log(widget.category);
+    super.initState();
+    fetchProfile();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    amountController.dispose();
+    phoneController.dispose();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      transactionController.selectedProfile.value = Profile();
+    });
+    // transactionController.transferTransaction.value = Transaction();
+    // transactionController.selectedTransaction.value = Transaction();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -56,13 +140,17 @@ class TransfersScreen extends StatelessWidget {
         centerTitle: false,
         titleSpacing: 20.0,
         toolbarHeight: 70.0,
-        title: Obx(() => SizedBox(
-              child: Text(
-                Utils.trimp(
-                    'Transfer to ${transactionController.selectedTransferOption.value}'),
-                style: medium18WhiteF5,
-              ),
-            )),
+        title: Obx(
+            () => transactionController.selectedTransferOption.value.isNotEmpty
+                ? Text(
+                    Utils.trimp(
+                        '${Utils.trimp(transactionController.selectedTransferOption.value)} Transfer'),
+                    style: medium18WhiteF5,
+                  )
+                : Text(
+                    Utils.trimp('${Utils.trimp(widget.category)} Transfer'),
+                    style: medium18WhiteF5,
+                  )),
       ),
       body: Column(
         children: [
@@ -79,24 +167,38 @@ class TransfersScreen extends StatelessWidget {
                 ),
                 boxShadow: boxShadow,
               ),
-              child: Obx(() => ListView(
+              child: ListView(
                 physics: const BouncingScrollPhysics(),
                 padding: const EdgeInsets.all(fixPadding * 2.0),
                 children: [
                   height20Space,
-                  // if (transactionController.selectedTransferOptionCategory.value ==
-                  //     'mobile_money')
-                  //   sendToMobileWallet(),
-                  if (transactionController.selectedTransferOptionCategory.value ==
-                      'wallet')
-                    TransferToWalletWidget()
-                    else
-                    sendToMobileWallet(),
-
+                  Text('${transactionController.selectedTransferOption.value}'),
+                  Obx(() =>
+                      transactionController.selectedTransferOption.value ==
+                              'manual_wallet'
+                          ? ManualTransferToWalletWidget()
+                          : widget.category == 'internal'
+                              ? sendToWalletPlus()
+                              : widget.category == 'zipit'
+                                  ? sendToWalletPlus()
+                                  : widget.category == 'pos_payment'
+                                      ? posPayment()
+                                      : widget.category == 'cashout'
+                                          ? sendToAgentWallet()
+                                          : widget.category == 'cashin'
+                                              ? memberInitiateTrans()
+                                              : widget.category == 'zipit'
+                                                  ? memberInitiateTrans()
+                                                  : sendToMobileWallet()),
+                  height20Space,
+                  Obx(() =>
+                      transactionController.selectedProfile.value.id != null
+                          ? detailsField()
+                          : SizedBox()),
                   height20Space,
                   registerContent(),
                 ],
-              )),
+              ),
             ),
           )
         ],
@@ -104,18 +206,52 @@ class TransfersScreen extends StatelessWidget {
     );
   }
 
+  accountNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        onChanged: (value) async {
+          transactionController.accountNumber.value = value;
+          if (value.length > 4) {
+            await transactionController.getProfileByIDSearch(value);
+          }
+        },
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: greyB5Color), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Enter Account-ID",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.wallet,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   sendToMobileWallet() {
     return Column(
       children: [
-        Obx(() => transactionController.transferTransaction.value.sending_wallet != null ? Row(
-          children: [
-            Text(
-              'Sending Wallet: ${transactionController.transferTransaction.value.sending_wallet?.substring(28,36)}',
-              style: semibold12black,
-            ),
-
-          ],
-        ) : SizedBox.shrink()),
         heightSpace,
         numberField(),
         heightSpace,
@@ -125,205 +261,362 @@ class TransfersScreen extends StatelessWidget {
     );
   }
 
-  cooperative_category() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Obx(() => DropdownSearch<String>(
-            onChanged: (value) => {
-              authController.cooperative_category.value = value!,
-            },
-            key: dropDownKey,
-            selectedItem:
-                Utils.trimp(authController.cooperative_category.value),
-            items: (filter, infiniteScrollProps) =>
-                authController.cooperative_category_options,
-            decoratorProps: DropDownDecoratorProps(
-              decoration: InputDecoration(
-                border: InputBorder.none,
-                focusedBorder: OutlineInputBorder(
-                  borderSide: BorderSide(
-                      color: primaryColor), // Border color when focused
-                  borderRadius: BorderRadius.circular(10.0),
+  memberInitiateTrans() {
+    return Row(
+      children: [
+        Column(
+          children: [
+            Text('Scan QR-Code to Pay', style: bold16Black),
+            heightBox(height * 0.02),
+            Column(
+              children: [
+                QrImageView(
+                  data: wallets?.first.id ?? 'No wallet ID 3',
+                  version: QrVersions.auto,
+                  size: 140.0,
                 ),
-
-                labelText: 'Select Cooperative Category',
-                labelStyle: const TextStyle(
-                    height: 10,
-                    color: blackColor,
-                    fontSize: 22), // Black label text
-                // border: const OutlineInputBorder(),
-                filled: true,
-                fillColor: recWhiteColor, // White background for input field
-              ),
-              baseStyle: const TextStyle(
-                  color: blackColor,
-                  fontSize: 18), // Black text for selected item
+                Text('${userId?.substring(24, 36)}')
+              ],
             ),
-            popupProps: PopupProps.menu(
-              itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                padding: const EdgeInsets.all(10.0),
-                child: Text(Utils.trimp(item),
-                    style: const TextStyle(color: blackColor, fontSize: 18)),
+          ],
+        ),
+        SizedBox(
+          width: width * 0.43,
+          child: Column(
+            children: [
+              heightBox(height * 0.08),
+              GestureDetector(
+                onTap: () {
+                  transactionController.selectedTransferOption.value = 'wallet';
+                  transactionController.selectedTransferOption.refresh();
+                  Navigator.of(context).push(MaterialPageRoute(
+                    builder: (context) => const QRViewExample(),
+                  ));
+                  // Get.to(() => TransfersScreen(
+                  //       category: 'wallet',
+                  //     ));
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.05,
+                    width: width * 0.9,
+                    // padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: tertiaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 5,
+                      children: [
+                        Container(
+                          alignment: Alignment.center,
+                          child: Image.asset(
+                            "assets/icons/mage_qr-code-fill.png",
+                            height: 40,
+                            color: whiteF5Color,
+                          ),
+                        ),
+                        Text(
+                          'Scan QR Code',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
               ),
-              fit: FlexFit.loose,
-              constraints: const BoxConstraints(),
-              menuProps: const MenuProps(
-                backgroundColor: whiteF5Color,
-                elevation: 4,
+              heightBox(20),
+              GestureDetector(
+                onTap: () {
+                  transactionController.selectedTransferOption.value =
+                      'manual_wallet';
+                  transactionController.selectedTransferOption.refresh();
+                  transactionController.selectedProfile.value = Profile();
+                  Get.to(() => TransfersScreen(
+                        category: 'Direct Wallet',
+                      ));
+                },
+                child: Container(
+                    alignment: Alignment(0, 0),
+                    height: height * 0.05,
+                    width: width * 0.9,
+                    // padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: primaryColor,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      spacing: 5,
+                      children: [
+                        Text(
+                          'Add Wallet Address',
+                          style: bold16White,
+                        ),
+                      ],
+                    )),
               ),
-            ),
-          )),
+            ],
+          ),
+        )
+      ],
     );
   }
 
-  province_field() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Container(
-        decoration: BoxDecoration(
-          color: recWhiteColor,
-          borderRadius: BorderRadius.circular(10.0),
+  posPayment() {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Text('Enter Merchant Number', style: bold16Black),
+          ],
         ),
-        child: Obx(() => DropdownSearch<String>(
-              onChanged: (value) {
-                if (value != null) {
-                  authController.province.value = value;
-                  // Find the province in the list and get its districts
-                  var selectedProvinceData =
-                      authController.province_options_with_districts.firstWhere(
-                    (item) => item.keys.first == value,
-                    orElse: () => {value: []},
-                  );
-                  var selectedProvinceCityData =
-                      authController.province_options_with_districts.firstWhere(
-                    (item) => item.keys.first == value,
-                    orElse: () => {value: []},
-                  );
-                  authController.selected_province_districts_options.value =
-                      selectedProvinceData[value]!;
-                  authController.district.value =
-                      authController.selected_province_districts_options[0];
-                  // // //
-                  authController.selected_province_town_city_options.value =
-                      selectedProvinceCityData[value]!;
-                  authController.town_city.value =
-                      authController.selected_province_town_city_options[0];
-                }
-              },
-              key: province_field_key,
-              selectedItem: authController.province.value,
-              items: (filter, infiniteScrollProps) =>
-                  authController.province_options,
-              decoratorProps: DropDownDecoratorProps(
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-
-                  labelText: 'Select Province',
-                  labelStyle: const TextStyle(
-                      color: blackOrignalColor,
-                      fontSize: 22), // Black label text
-                  // border: const OutlineInputBorder(),
-                  filled: true,
-                  fillColor: recWhiteColor, // White background for input field
+        heightSpace,
+        merchantNumberField(),
+        heightSpace,
+        Row(
+          children: [
+            Column(
+              children: [
+                Text('Scan QR-Code to Pay', style: bold16Black),
+                heightBox(height * 0.02),
+                Column(
+                  children: [
+                    QrImageView(
+                      data: wallets?.first.id ?? 'No wallet ID 3',
+                      version: QrVersions.auto,
+                      size: 140.0,
+                    ),
+                    Text('${userId?.substring(24, 36)}')
+                  ],
                 ),
-                baseStyle: const TextStyle(
-                    color: blackOrignalColor,
-                    fontSize: 18), // Black text for selected item
+              ],
+            ),
+            SizedBox(
+              width: width * 0.43,
+              child: Column(
+                children: [
+                  heightBox(height * 0.08),
+                  GestureDetector(
+                    onTap: () {
+                      transactionController.selectedTransferOption.value =
+                          'wallet';
+                      transactionController.selectedTransferOption.refresh();
+                      Navigator.of(context).push(MaterialPageRoute(
+                        builder: (context) => const QRViewExample(),
+                      ));
+                      // Get.to(() => TransfersScreen(
+                      //       category: 'wallet',
+                      //     ));
+                    },
+                    child: Container(
+                        alignment: Alignment(0, 0),
+                        height: height * 0.05,
+                        width: width * 0.9,
+                        // padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: tertiaryColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 5,
+                          children: [
+                            Container(
+                              alignment: Alignment.center,
+                              child: Image.asset(
+                                "assets/icons/mage_qr-code-fill.png",
+                                height: 40,
+                                color: whiteF5Color,
+                              ),
+                            ),
+                            Text(
+                              'Scan QR Code',
+                              style: bold16White,
+                            ),
+                          ],
+                        )),
+                  ),
+                  heightBox(20),
+                  Container(
+                      alignment: Alignment(0, 0),
+                      height: height * 0.05,
+                      width: width * 0.9,
+                      // padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: primaryColor,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        spacing: 5,
+                        children: [
+                          Text(
+                            "Use NFC Tap n' Pay",
+                            style: bold16White,
+                          ),
+                        ],
+                      )),
+                  heightBox(20),
+                  GestureDetector(
+                    onTap: () {
+                      transactionController.selectedTransferOption.value =
+                          'manual_wallet';
+                      transactionController.selectedTransferOption.refresh();
+                      transactionController.selectedProfile.value = Profile();
+                      Get.to(() => TransfersScreen(
+                            category: 'Direct Wallet',
+                          ));
+                    },
+                    child: Container(
+                        alignment: Alignment(0, 0),
+                        height: height * 0.05,
+                        width: width * 0.9,
+                        // padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: tertiaryColor,
+                          borderRadius: BorderRadius.circular(10),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          spacing: 5,
+                          children: [
+                            Text(
+                              'Add Wallet Address',
+                              style: bold16White,
+                            ),
+                          ],
+                        )),
+                  ),
+                ],
               ),
-              popupProps: PopupProps.menu(
-                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(item,
-                      style: const TextStyle(
-                          color: blackOrignalColor, fontSize: 18)),
-                ),
-                fit: FlexFit.loose,
-                constraints: const BoxConstraints(),
-                menuProps: const MenuProps(
-                  backgroundColor: whiteF5Color,
-                  elevation: 4,
-                ),
-              ),
-            )),
-      ),
+            )
+          ],
+        ),
+      ],
     );
   }
 
-  country_field() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Container(
-        decoration: BoxDecoration(
-          color: recWhiteColor,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Obx(() => DropdownSearch<String>(
-              onChanged: (value) {
-                if (value != null) {
-                  authController.province.value = value;
-                  // Find the province in the list and get its districts
-                  var selectedProvinceData =
-                      authController.province_options_with_districts.firstWhere(
-                    (item) => item.keys.first == value,
-                    orElse: () => {value: []},
-                  );
-                  var selectedProvinceCityData =
-                      authController.province_options_with_districts.firstWhere(
-                    (item) => item.keys.first == value,
-                    orElse: () => {value: []},
-                  );
-                  authController.selected_province_districts_options.value =
-                      selectedProvinceData[value]!;
-                  authController.district.value =
-                      authController.selected_province_districts_options[0];
-                  // // //
-                  authController.selected_province_town_city_options.value =
-                      selectedProvinceCityData[value]!;
-                  authController.town_city.value =
-                      authController.selected_province_town_city_options[0];
-                }
-              },
-              key: province_field_key,
-              selectedItem: authController.province.value,
-              items: (filter, infiniteScrollProps) =>
-                  authController.province_options,
-              decoratorProps: DropDownDecoratorProps(
-                decoration: InputDecoration(
-                  border: InputBorder.none,
+  sendToAgentWallet() {
+    return Column(
+      children: [
+        heightSpace,
+        // agentNumberField(),
+        accountNumberField(),
+        heightSpace,
+        amountField(),
+        heightSpace,
+      ],
+    );
+  }
 
-                  labelText: 'Select Province',
-                  labelStyle: const TextStyle(
-                      color: blackOrignalColor,
-                      fontSize: 22), // Black label text
-                  // border: const OutlineInputBorder(),
-                  filled: true,
-                  fillColor: recWhiteColor, // White background for input field
+  sendToWalletPlus() {
+    return Column(
+      children: [
+        heightSpace,
+        accountNumberField(),
+        heightSpace,
+        amountField(),
+        heightSpace,
+      ],
+    );
+  }
+
+  sendToSelectedWallet() {
+    return Column(
+      children: [
+        heightSpace,
+        Obx(() => transactionController.selectedProfile.value.id != null
+            ? detailsField()
+            : SizedBox()),
+        heightSpace,
+        amountField(),
+        heightSpace,
+      ],
+    );
+  }
+
+  detailsField() {
+    return Card(
+      color: primaryColor.withAlpha(100),
+      margin: EdgeInsets.only(bottom: 16),
+      child: Padding(
+        padding: const EdgeInsets.all(12.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Recieving Account',
+              style: TextStyle(
+                  color: whiteF5Color,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 22),
+            ),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Phone Number:\t',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
                 ),
-                baseStyle: const TextStyle(
-                    color: blackOrignalColor,
-                    fontSize: 18), // Black text for selected item
+                Text(
+                  '${transactionController.selectedProfile.value.phone}',
+                  style: TextStyle(color: whiteF5Color),
+                  // style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'First Name:\t',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
+                ),
+                Text(
+                  '${transactionController.selectedProfile.value.first_name}',
+                  style: TextStyle(color: whiteF5Color),
+                  // style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Last Name:\t',
+                  style: TextStyle(
+                      fontWeight: FontWeight.bold, color: whiteF5Color),
+                ),
+                Text(
+                  '${transactionController.selectedProfile.value.last_name}',
+                  style: TextStyle(color: whiteF5Color),
+                  // style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            SizedBox(height: 12),
+            if (transactionController.selectedProfile.value.wallet_id != null)
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Wallet ID:',
+                    style: TextStyle(
+                        fontWeight: FontWeight.bold, color: whiteF5Color),
+                  ),
+                  Text(
+                    "${transactionController.selectedProfile.value.wallet_id?.substring(24, 36)}",
+                    style: TextStyle(color: whiteF5Color),
+                    // style: TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                ],
               ),
-              popupProps: PopupProps.menu(
-                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(item,
-                      style: const TextStyle(
-                          color: blackOrignalColor, fontSize: 18)),
-                ),
-                fit: FlexFit.loose,
-                constraints: const BoxConstraints(),
-                menuProps: const MenuProps(
-                  backgroundColor: whiteF5Color,
-                  elevation: 4,
-                ),
-              ),
-            )),
+          ],
+        ),
       ),
     );
   }
@@ -360,12 +653,13 @@ class TransfersScreen extends StatelessWidget {
     );
   }
 
-  registerButton() {
+  initiateTransfer() {
     return GestureDetector(
       onTap: () async {
         transactionController.accountNumber.value = '';
         // transactionController.
         await transactionController.initiateTransfer();
+        Get.to(() => TransactionsList());
       },
       child: Container(
         width: width * 0.3,
@@ -393,59 +687,6 @@ class TransfersScreen extends StatelessWidget {
     );
   }
 
-  town_cityField() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Container(
-        decoration: BoxDecoration(
-          color: recWhiteColor,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Obx(() => DropdownSearch<String>(
-              onChanged: (value) => {
-                authController.town_city.value = value!,
-              },
-              key: town_city_key,
-              selectedItem: authController.town_city.value,
-              items: (filter, infiniteScrollProps) =>
-                  authController.selected_province_town_city_options,
-              decoratorProps: DropDownDecoratorProps(
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-
-                  labelText: 'Select Town/City',
-                  labelStyle: const TextStyle(
-                      color: blackOrignalColor,
-                      fontSize: 22), // Black label text
-                  // border: const OutlineInputBorder(),
-                  filled: true,
-                  fillColor: recWhiteColor, // White background for input field
-                ),
-                baseStyle: const TextStyle(
-                    color: blackOrignalColor,
-                    fontSize: 18), // Black text for selected item
-              ),
-              popupProps: PopupProps.menu(
-                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(item,
-                      style: const TextStyle(
-                          color: blackOrignalColor, fontSize: 18)),
-                ),
-                fit: FlexFit.loose,
-                constraints: const BoxConstraints(),
-                menuProps: const MenuProps(
-                  backgroundColor: whiteF5Color,
-                  elevation: 4,
-                ),
-              ),
-            )),
-      ),
-    );
-  }
-
   registerContent() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.center,
@@ -469,7 +710,7 @@ class TransfersScreen extends StatelessWidget {
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   goBackButton(),
-                  registerButton(),
+                  initiateTransfer(),
                 ],
               )),
       ],
@@ -504,6 +745,88 @@ class TransfersScreen extends StatelessWidget {
           ),
           contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
           hintText: "Phone Number",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.phone_android_outlined,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  agentNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        onChanged: (value) => {
+          transactionController.transferTransaction.value.receiving_phone =
+              value,
+        },
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: greyB5Color), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Agent Number",
+          hintStyle: medium15Grey,
+          prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
+          prefixIcon: Center(
+            child: Icon(
+              Icons.phone_android_outlined,
+              color: primaryColor,
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  merchantNumberField() {
+    return Container(
+      decoration: BoxDecoration(
+        color: recWhiteColor,
+        borderRadius: BorderRadius.circular(10.0),
+      ),
+      child: TextField(
+        onChanged: (value) => {
+          transactionController.transferTransaction.value.receiving_phone =
+              value,
+        },
+        style: medium14Black,
+        cursorColor: primaryColor,
+        keyboardType: TextInputType.name,
+        decoration: InputDecoration(
+          border: InputBorder.none,
+          enabledBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: greyB5Color), // Border color when not focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderSide:
+                BorderSide(color: primaryColor), // Border color when focused
+            borderRadius: BorderRadius.circular(10.0),
+          ),
+          contentPadding: EdgeInsets.symmetric(vertical: fixPadding * 1.5),
+          hintText: "Merchant Account",
           hintStyle: medium15Grey,
           prefixIconConstraints: BoxConstraints(maxWidth: 45.0),
           prefixIcon: Center(
@@ -554,22 +877,6 @@ class TransfersScreen extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  appLogo() {
-    return Center(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Image.asset("assets/images/logo-nobg.png", height: 150.0),
-          Text(
-            'express your greatness',
-            style:
-                TextStyle(fontStyle: FontStyle.italic, color: secondaryColor),
-          )
-        ],
       ),
     );
   }

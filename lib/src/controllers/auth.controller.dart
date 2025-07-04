@@ -5,19 +5,20 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
+
 import 'package:mukai/brick/models/auth.model.dart';
 import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/firebase_api.dart';
+import 'package:mukai/main.dart';
 import 'package:mukai/network_service.dart';
 import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
 import 'package:mukai/src/apps/auth/views/login.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/bottom_bar.dart';
-import 'package:mukai/src/controllers/main.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/constants/hardCodedCities.dart';
@@ -29,6 +30,7 @@ import 'package:uuid/uuid.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart' hide Response;
 import 'package:get_storage/get_storage.dart';
+import 'package:http/http.dart' as http;
 
 // 1048336443350-aongaja6tp71ggdrodjau92u2o73frb4.apps.googleusercontent.com
 class AuthBind extends Bindings {
@@ -38,7 +40,7 @@ class AuthBind extends Bindings {
   }
 }
 
-class AuthController extends MainController {
+class AuthController extends GetxController {
   var uuid = const Uuid();
   final dio = Dio();
   final SessionManager _sessionManager = SessionManager(GetStorage(), Dio());
@@ -66,11 +68,19 @@ class AuthController extends MainController {
 
   Future<void> _loadUserData(String userId) async {
     try {
-      final response = await dio.get('$APP_API_ENDPOINT/users/$userId');
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/auth/profiles/$userId',
+          options: Options(
+            headers: {
+              'apikey': _getStorage.read('access_token'),
+              'Authorization': 'Bearer ${_getStorage.read('access_token')}',
+              'Content-Type': 'application/json',
+            },
+          ));
       // Update your profile controller with the user data
       profileController.profile.value = Profile.fromMap(response.data);
-    } catch (e) {
-      log('Failed to load user data: $e');
+    } catch (e, s) {
+      log('Failed to load user data: $e $s');
     }
   }
 
@@ -127,6 +137,13 @@ class AuthController extends MainController {
     'Machinery Manufacturer',
     'Branding and Packaging'
   ].obs;
+  late List<String> genderList = [
+    'male',
+    'female',
+    'other',
+  ];
+  var selectedGender = 'male'.obs;
+  var date_of_birth = DateTime(DateTime.now().year - 16).obs;
   var phoneNumber = ''.obs;
   var otp_secret = ''.obs;
   var userId = ''.obs;
@@ -134,11 +151,13 @@ class AuthController extends MainController {
   var firstName = ''.obs;
   var phone = ''.obs;
   var lastName = ''.obs;
+  var nationalIdNumber = ''.obs;
   var email = ''.obs;
 
   var password = ''.obs;
   var loginOption = 'email'.obs;
   var isLoading = false.obs;
+  var addAuthData = false.obs;
   final count1 = 0.obs;
   final count2 = 0.obs;
   final list = [56].obs;
@@ -163,6 +182,7 @@ class AuthController extends MainController {
   var nIDFileUrl = ''.obs;
   var passportFileUrl = ''.obs;
   var profileImageUrl = ''.obs;
+  var uploadedImageUrl = ''.obs;
   var propertyOwnershipUrl = ''.obs;
 
   var nIDFile = File('').obs;
@@ -250,7 +270,7 @@ class AuthController extends MainController {
   var city = City(name: 'Harare', country: 'Zimbabwe').obs;
   var country = Country(code: 'ZW', name: 'Zimbabwe').obs;
   var province = 'Harare'.obs;
-  var selected_country = 'Harare'.obs;
+  var selected_country = 'Zimbabwe'.obs;
   var province_options = [
     "Bulawayo",
     "Harare",
@@ -452,6 +472,7 @@ class AuthController extends MainController {
     }
   ].obs;
   var selected_province_districts_options = ["Harare"].obs;
+  var selected_country_options = ["Zimbabwe"].obs;
   var selected_country_city_options = ["Harare"].obs;
   var selected_city = "".obs;
   var selected_province = "".obs;
@@ -479,6 +500,45 @@ class AuthController extends MainController {
   }
 
   updateUser() {}
+
+  final accessToken = GetStorage().read('access_token');
+
+  Future<List<String>> getCitiesFromCountry(String countryName) async {
+    log('Fetching cities for country: $countryName');
+    try {
+      var headers = {'Content-Type': 'application/json'};
+      // Updated endpoint to the correct one (https, and latest path)
+      var request = http.Request(
+        'POST',
+        Uri.parse('https://countriesnow.space/api/v0.1/countries/cities'),
+      );
+      request.body = json.encode({"country": countryName.toLowerCase()});
+      request.headers.addAll(headers);
+      http.StreamedResponse response = await request.send();
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.bytesToString();
+        if (responseData.isEmpty) {
+          log('Empty response body');
+          return [];
+        }
+        log('Response data: $responseData');
+        var jsonResponse = json.decode(responseData);
+        if (jsonResponse['error'] == false && jsonResponse['data'] != null) {
+          return List<String>.from(jsonResponse['data']);
+        } else {
+          log('API returned error: ${jsonResponse['msg']}');
+        }
+      } else if (response.statusCode == 301 || response.statusCode == 302) {
+        log('Endpoint moved. Please check the API URL.');
+      } else {
+        log('Failed with status: ${response.reasonPhrase}');
+      }
+    } catch (e, s) {
+      log('Exception occurred: $e\n$s');
+    }
+
+    return [];
+  }
 
   Future<bool> isAccountSessionValid() async {
     try {
@@ -530,18 +590,6 @@ class AuthController extends MainController {
         // Get.offAll(() => MemberHomeScreen());
         throw UnimplementedError();
       }
-      /*
-      if (supabase.auth.currentUser != null) {
-        if (role == 'coop-manager') {
-          Get.offAll(() => const BottomBar());
-        } else {
-          // Get.offAll(() => MemberHomeScreen());
-          throw UnimplementedError();
-        }
-      } else {
-        await logout();
-      }
-      */
     } catch (e) {
       log('Error in setInitialScreen: $e');
       await logout();
@@ -597,7 +645,7 @@ class AuthController extends MainController {
     try {
       isLoading.value = true;
       final response = await dio
-          .get('$APP_API_ENDPOINT/cooperatives/${userId}/cooperatives/');
+          .get('${EnvConstants.APP_API_ENDPOINT}/cooperatives/$userId');
       if (response.statusCode == 200) {
         var data = response.data['data'];
         final List<dynamic> json = data;
@@ -615,14 +663,13 @@ class AuthController extends MainController {
       }
     } catch (e) {
       isLoading.value = false;
-      log('getWalletDetailsByID error: $e');
+      // log('getWalletDetailsByID error: $e');
       isLoading.value = false;
       Helper.errorSnackBar(title: 'Error', message: e.toString(), duration: 10);
     }
   }
 
   Future<bool> getAccount() async {
-    log('Gettting account...');
     try {
       final User? user = supabase.auth.currentUser;
       if (user == null) return false;
@@ -667,7 +714,7 @@ class AuthController extends MainController {
     try {
       isLoading.value = true;
       var isNetworkConnected = await _networkService.isConnected();
-      final response = await GetConnect().get(APP_API_ENDPOINT);
+      final response = await GetConnect().get(EnvConstants.APP_API_ENDPOINT);
       log('isNetworkConnected && response.statusCode $isNetworkConnected ${response.statusCode!}');
 
       if (isNetworkConnected && response.statusCode != null) {
@@ -762,102 +809,11 @@ class AuthController extends MainController {
       }
     }
   }
-  /*
-  Future<void> signin() async {
-    try {
-      isLoading.value = true;
-      log('credentials ${email.value} ${password.value}');
-      final response = await dio.post(
-        '${APP_API_ENDPOINT}/auth/login',
-        data: {
-          'email': email.value,
-          'password': password.value,
-        },
-      );
-      // log('response ${JsonEncoder.withIndent(' ').convert(response.data)}');
-
-      if (response.data['statusCode'] == 200) {
-        log('status code?');
-        final authResponse = AuthResponse.fromJson(response.data);
-        log('Auth response $authResponse');
-        final Session? session = authResponse.session;
-        if (authResponse.user != null) {
-          isLoading.value = false;
-          await _getStorage.write(
-              'refresh_token', authResponse.session!.refreshToken!);
-          await _getStorage.write(
-              'access_token', authResponse.session!.accessToken);
-          final user = authResponse.user;
-          if (user != null && user.id.isNotEmpty) {
-            await _getStorage.write('email', email.value);
-            await _getStorage.write('password', password.value);
-            await _getStorage.write('sessionId', session!.accessToken);
-            await _getStorage.write('sessionExpiration', session.expiresAt);
-            await _getStorage.write('userId', user.id);
-          }
-          log('awaiting setInitialScreen');
-          await setInitialScreen(response.data['user']['account_type']);
-        } else {
-          isLoading.value = false;
-          log('Login failed?');
-        }
-      } else {
-        isLoading.value = false;
-        Helper.errorSnackBar(
-            title: 'Error',
-            message: response.data['message'] ?? 'Login failed');
-      }
-      isLoading.value = false;
-    } catch (error) {
-      isLoading.value = false;
-      if (error is AuthException) {
-        log('loggin AuthException ${error.message}');
-        Helper.errorSnackBar(title: 'Error', message: error.message);
-      } else if (error is DioException) {
-        log('log in DioException $error');
-        Helper.errorSnackBar(
-            title: 'Error', message: "${error.response?.data}");
-      }
-    }
-  }
-  */
 
   Future<String?> fetchUserId() async {
     final id = await _getStorage.read('userId');
     return id;
   }
-  /*
-  Future<void> signin() async {
-    try {
-      isLoading.value = true;
-      final response = await dio.post(
-        '$APP_API_ENDPOINT/auth/login',
-        data: {'email': email.value, 'password': password.value},
-      ).timeout(const Duration(seconds: 30));
-
-      if (response.statusCode == 200) {
-        final authResponse = AuthResponse.fromJson(response.data);
-        await _saveSessionData(authResponse);
-        
-        // Store the tokens and user data
-        await _sessionManager.saveSession(
-          accessToken: authResponse.access_token,
-          refreshToken: authResponse.refresh_token,
-          userId: authResponse.user?.id ?? '',
-        );
-        
-        await _handleSuccessfulLogin(
-          accountType: response.data['user']['account_type'],
-          userId: response.data['user']['id'],
-        );
-      }
-    } catch (e) {
-      // Handle errors
-    } finally {
-      isLoading.value = false;
-    }
-  }
-  */
 
   Future<void> signin() async {
     try {
@@ -865,7 +821,7 @@ class AuthController extends MainController {
       log('Attempting login with email: ${email.value}');
 
       final response = await dio.post(
-        '$APP_API_ENDPOINT/auth/login',
+        '${EnvConstants.APP_API_ENDPOINT}/auth/login',
         data: {
           'email': email.value,
           'password': password.value,
@@ -874,11 +830,9 @@ class AuthController extends MainController {
 
       log('Response received: ${JsonEncoder.withIndent(' ').convert(response.data)}');
 
-      if (response.statusCode == 200) {
+      if (response.statusCode == 200 || response.statusCode == 201) {
         log('Successful login response');
         final authResponse = AuthResponse.fromJson(response.data);
-        // log('Session: ${JsonEncoder.withIndent(' ').convert(authResponse)}');
-
         if (authResponse.session == null || authResponse.user == null) {
           log('Session or user data missing in response');
           // throw Exception('Invalid authentication response');
@@ -895,26 +849,23 @@ class AuthController extends MainController {
           ..email = response.data['user']['email']
           ..account_type = response.data['user']['account_type'];
         userId.value = response.data['user']['id'];
-        await _getStorage.write('userId', response.data['user']['id']);
-        await _getStorage.write('accessToken', response.data['access_token']);
+        // await _getStorage.write('userId', response.data['user']['id']);
+        // await _getStorage.write('accessToken', response.data['access_token']);
+        await _getStorage.write('role', response.data['user']['account_type']);
         await _getStorage.write(
-            'account_type', response.data['user']['account_type']);
-        log('Wrote account_type to storage');
-        await _getStorage.read('account_type');
-        final walletJson = await dio
-            .get('$APP_API_ENDPOINT/wallets/${response.data['user']['id']}');
-        if (walletJson.data != null) {
-          await _getStorage.write('walletId', walletJson.data['id']);
-        }
-        await _handleSuccessfulLogin(
-          accountType: response.data['user']['account_type'],
-          userId: response.data['user']['id'],
-        );
+            'first_name', response.data['user']['first_name']);
+        await _getStorage.write(
+            'last_name', response.data['user']['last_name']);
+        await _getStorage.write('phone', response.data['user']['phone']);
+        await _getStorage.write('email', response.data['user']['email']);
+        await _handleSuccessfulLogin();
+      } else if (response.statusCode == 401) {
+        _handleFailedLogin(response);
       } else {
         _handleFailedLogin(response);
       }
     } on DioException catch (e) {
-      log('DioError during login: ${e.message}');
+      log('DioError during login: ${e}');
       isLoading.value = false;
       Helper.errorSnackBar(
         title: 'Error',
@@ -942,6 +893,13 @@ class AuthController extends MainController {
 
   Future<void> _saveSessionData(AuthResponse authResponse) async {
     try {
+      await _sessionManager.saveSession(
+        accessToken: authResponse.session!.accessToken,
+        refreshToken: authResponse.session!.refreshToken!,
+        userId: authResponse.user!.id,
+        email: authResponse.user!.email!,
+        expiresAt: DateTime.parse(authResponse.session!.expiresAt!.toString()),
+      );
       await _getStorage.write(
           'refresh_token', authResponse.session!.refreshToken!);
       await _getStorage.write(
@@ -952,6 +910,7 @@ class AuthController extends MainController {
       await _getStorage.write(
           'sessionExpiration', authResponse.session!.expiresAt);
       await _getStorage.write('userId', authResponse.user!.id);
+      await _getStorage.write('role', authResponse.user!.role);
       log('Session data saved successfully');
     } catch (e) {
       log('Error saving session data: $e');
@@ -961,29 +920,19 @@ class AuthController extends MainController {
 
   // d475de43-c9ef-4510-9823-7b31e3fc92e0
 
-  Future<void> _handleSuccessfulLogin({
-    required String accountType,
-    required String userId,
-  }) async {
+  Future<void> _handleSuccessfulLogin() async {
     log(person.value.toString());
     try {
-      log('Handling successful login for $accountType');
+      // log('Handling successful login for $accountType');
 
       // Force navigation after successful login
+      final role = await _getStorage.read('account_type');
+      log('_handleSuccessfulLogin role: $role');
       WidgetsBinding.instance.addPostFrameCallback((_) async {
-        if (accountType == 'coop-manager') {
-          Get.offAll(() => BottomBar(
-                role: 'admin',
-              ));
-        } else {
-          Get.offAll(() => BottomBar(
-                role: 'member',
-              ));
-          // Get.offAll(() => const AdminLandingScreen());
-        }
+        Get.offAll(() => BottomBar());
       });
 
-      log('Navigation triggered for $accountType');
+      // log('Navigation triggered for $accountType');
     } catch (e) {
       log('Error handling successful login: $e');
       throw Exception('Failed to handle post-login navigation');
@@ -1097,7 +1046,7 @@ class AuthController extends MainController {
       isLoading.value = true;
       log('wallet docs ${phoneNumber.value} ${fullName.value}');
       var isNetworkConnected = await _networkService.isConnected();
-      final response = await GetConnect().get(APP_API_ENDPOINT);
+      final response = await GetConnect().get(EnvConstants.APP_API_ENDPOINT);
       if (isNetworkConnected && response.statusCode != null) {
         Map<String, dynamic> token = {};
         final AuthResponse res = await supabase.auth.verifyOTP(
@@ -1152,39 +1101,9 @@ class AuthController extends MainController {
     }
   }
 
-  /*
-  Future<void> createUserWallet(String userId) async {
-    final walletJson = {
-      'id': null,
-      'holding_account': null,
-      'address': null,
-      'status': null,
-      'balance': null,
-      'last_transaction_timestamp': null,
-      'parent_wallet_id': null,
-      'provider': null,
-      'default_currency': null,
-      'business_id': null,
-      'is_shared': false,
-      'is_active': true,
-      'is_sub_wallet': false,
-      'profile_id': userId,
-      'coop_id': null,
-    };
-
-    try {
-      final response =
-          await dio.post('$APP_API_ENDPOINT/wallets', data: walletJson);
-      log(response.toString());
-    } catch (e, s) {
-      log('createUserWallet error: $e $s');
-    }
-  }
-  */
-
   Future<void> updateAccount(String userId) async {
     var response = await dio.put(
-      '$APP_API_ENDPOINT/auth/update-account/$userId',
+      '${EnvConstants.APP_API_ENDPOINT}/auth/update-account/$userId',
       data: {
         'id': userId,
         'avatar':
@@ -1224,22 +1143,43 @@ class AuthController extends MainController {
         'account_type': account_type.value,
         'push_token': fMCToken,
         'password': password.value,
+        'country': selected_country.value,
+        'city': selected_city.value,
+        'gender': selectedGender.value,
+        'date_of_birth': date_of_birth.value.toString(),
+        'national_id_number': nationalIdNumber.value,
         'national_id_url': null,
         'passport_url': null,
         'avatar': null,
       };
 
-      log('Auth data: $APP_API_ENDPOINT');
+      // log('Auth data: ${EnvConstants.APP_API_ENDPOINT}');
+      // final x = (
+      //   '${EnvConstants.APP_API_ENDPOINT}/auth/create-account',
+      //   data: auth_data,
+      //   options: Options(
+      //     headers: {
+      //       'Content-Type': 'application/json',
+      //       'Accept': 'application/json',
+      //       'apikey': EnvConstants.SUPABASE_ROLE_KEY,
+      //       'Authorization': 'Bearer ${EnvConstants.SUPABASE_ROLE_KEY}',
+      //     },
+      //   ).toString(),
+      // ).toString();
+      // log(x);
       var auth_response = await dio.post(
-        '$APP_API_ENDPOINT/auth/create-account',
+        '${EnvConstants.APP_API_ENDPOINT}/auth/create-account',
         data: auth_data,
         options: Options(
-          validateStatus: (status) {
-            return status! < 500; // Don't throw for 4xx errors
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'apikey': EnvConstants.SUPABASE_ROLE_KEY,
+            'Authorization': 'Bearer ${EnvConstants.SUPABASE_ROLE_KEY}',
           },
         ),
       );
-      log('response: ${JsonEncoder.withIndent(' ').convert(auth_response.data)}');
+      log(auth_response.data.toString());
       if (auth_response.data == null || auth_response.data == '') {
         Helper.errorSnackBar(
             title: 'Empty response',
@@ -1253,25 +1193,20 @@ class AuthController extends MainController {
         'profile_id': userId.value,
         'most_recent_content': 'pending approval'
       };
-      var walletParams = {
-        'profile_id': userId.value,
-        'balance': 100,
-        'status': 'Initial opening deposit',
-        'default_currency': 'usd',
-        'is_group_wallet': false,
-      };
-      await dio.post('$APP_API_ENDPOINT/chats', data: chatParams);
-      final walletJson =
-          await dio.post('$APP_API_ENDPOINT/wallets', data: walletParams);
-      await _getStorage.write('walletId', walletJson.data['id']);
+      await dio.post('${EnvConstants.APP_API_ENDPOINT}/chats',
+          data: chatParams);
+      // final walletJson =
+      //     await dio.post('${EnvConstants.APP_API_ENDPOINT}/wallets', data: walletParams);
+      // await _getStorage.write('walletId', walletJson.data['id']);
       if (auth_response.statusCode == 201) {
+        // await _getStorage.write(
+        //     'account_type', auth_response.data['user']['account_type']);
+
+        await _getStorage.write(
+            'role', auth_response.data['user']['account_type']);
         if (account_type.value == 'coop-member') {
-          // log('chats POST response: ${JsonEncoder.withIndent(' ').convert(chat_response.data)}');
-          // log(response.data);
           AuthDataResponse new_auth_data =
               AuthDataResponse.fromJson(auth_response.data);
-          log('Registration successful: ${JsonEncoder.withIndent(' ').convert(new_auth_data)}');
-          // await _getStorage.write('userId', new_auth_data.user.id);
           if (profileImageFile.value.path.isNotEmpty) {
             profileImageUrl.value = (await uploadFile(profileImageFile.value))!;
           }
@@ -1281,36 +1216,14 @@ class AuthController extends MainController {
           if (profileImageUrl.value.isNotEmpty ||
               nIDFile.value.path.isNotEmpty) {
             await updateAccount(new_auth_data.user.id);
-            /*
-            var response = await dio.put(
-              '$APP_API_ENDPOINT/auth/update-account/${new_auth_data.user.id}',
-              data: {
-                'id': new_auth_data.user.id,
-                'avatar': profileImageUrl.value.isNotEmpty
-                    ? profileImageUrl.value
-                    : null,
-                'national_id_url':
-                    nIDFileUrl.value.isNotEmpty ? nIDFileUrl.value : null,
-                'passport_url': passportFileUrl.value.isNotEmpty
-                    ? passportFileUrl.value
-                    : null,
-              },
-              options: Options(
-                validateStatus: (status) {
-                  return status! < 500; // Don't throw for 4xx errors
-                },
-              ),
-            );
-            if (response.statusCode == 200) {
-              isLoading.value = false;
-            }
-            */
           }
+
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
               message: 'Your account successfully created',
               duration: 5);
           Get.to(() => MemberRegisterCoopScreen());
+          // Get.to(() => BottomBar());
         } else if (account_type.value == 'coop-manager') {
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
@@ -1318,51 +1231,16 @@ class AuthController extends MainController {
               duration: 5);
           Get.to(() => AdminRegisterCoopScreen());
         }
-        /*
-        AuthDataResponse new_auth_data =
-            AuthDataResponse.fromJson(response.data);
-        log('Registration successful: $new_auth_data');
-        await _getStorage.write('userId', new_auth_data.data.userId);
-        if (profileImageFile.value.path.isNotEmpty) {
-          profileImageUrl.value = (await uploadFile(profileImageFile.value))!;
-        }
-        if (nIDFile.value.path.isNotEmpty) {
-          nIDFileUrl.value = (await uploadFile(nIDFile.value))!;
-        }
-        if (profileImageUrl.value.isNotEmpty || nIDFile.value.path.isNotEmpty) {
-          var response = await dio.put(
-            '${APP_API_ENDPOINT}/accounts/update-account/${new_auth_data.data.userId}',
-            data: {
-              'id': new_auth_data.data.userId,
-              'avatar': profileImageUrl.value.isNotEmpty
-                  ? profileImageUrl.value
-                  : null,
-              'national_id_url':
-                  nIDFileUrl.value.isNotEmpty ? nIDFileUrl.value : null,
-              'passport_url': passportFileUrl.value.isNotEmpty
-                  ? passportFileUrl.value
-                  : null,
-            },
-            options: Options(
-              validateStatus: (status) {
-                return status! < 500; // Don't throw for 4xx errors
-              },
-            ),
-          );
-          if (response.statusCode == 200) {
-            isLoading.value = false;
-          }
-          
-        }
-        */
       } else {
         isLoading.value = false;
         final errorData = auth_response.data;
         final errorMessage = errorData['message'] ?? 'Registration failed';
         throw Exception(errorMessage);
       }
+      addAuthData.value = false;
     } on DioException catch (e) {
       isLoading.value = false;
+      addAuthData.value = false;
       log('Dio error: $e');
       if (e.response != null) {
         log('Error response data: ${e.response?.data}');
@@ -1382,6 +1260,8 @@ class AuthController extends MainController {
       isLoading.value = false;
     }
   }
+
+  // Why am I being redirected to the member UI instead of the admin UI after this function executes?
 
   Future<void> registerCoop() async {
     try {
@@ -1407,7 +1287,7 @@ class AuthController extends MainController {
 
       log('req_data: $req_data');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/cooperatives',
+        '${EnvConstants.APP_API_ENDPOINT}/cooperatives',
         data: req_data,
         options: Options(
           validateStatus: (status) {
@@ -1421,14 +1301,9 @@ class AuthController extends MainController {
             title: 'Well Done',
             message: 'Your cooperative successfully created',
             duration: 5);
-        Get.to(() => BottomBar(
-              role: 'admin',
-            ));
+        _handleSuccessfulLogin();
       } else {
         isLoading.value = false;
-        // final errorData = response.data;
-        // final errorMessage = errorData['message'] ?? 'Registration failed';
-        // throw Exception(errorMessage);
       }
     } on DioException catch (e) {
       isLoading.value = false;
@@ -1444,6 +1319,70 @@ class AuthController extends MainController {
       isLoading.value = false;
       log('Registration error: $e');
       throw Exception('Registration failed: ${e.toString()}');
+    } finally {
+      isLoading.value = false;
+    }
+  }
+
+  Future<void> upadateMemberProfile() async {
+    try {
+      isLoading.value = true;
+
+      var req_data = {
+        // 'coop_id': selected_coop.value.id,
+        'member_id': userId.value,
+        'request_type': 'new account',
+        'status': 'unresolved',
+        'cooperative_id': selected_coop.value.id,
+        'city': town_city.value,
+        'country': city.value.country,
+        'province_state': province.value,
+        'category': cooperative_category.value
+      };
+      log('req_data: $req_data');
+      // log('${APP_API_ENDPOINT}/cooperative_member_requests');
+      var response = await dio.post(
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests',
+        data: req_data,
+      );
+      log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        Helper.successSnackBar(
+            title: 'Well Done',
+            message:
+                'Your request to join ${selected_coop.value.name} successfully sent',
+            duration: 5);
+        Get.to(() => BottomBar(
+              role: 'member',
+            ));
+      }
+    } on DioException catch (e) {
+      isLoading.value = false;
+      log('Dio error: ${e.message}');
+      if (e.response != null) {
+        log('Error response data: ${e.response?.data}');
+        if (e.response?.data['message'] ==
+            'A request for this member already exists') {
+          isLoading.value = false;
+          Helper.successSnackBar(
+              title: 'Well Done',
+              message: 'A request for this member already exists',
+              duration: 5);
+          Get.to(() => BottomBar(
+                role: 'member',
+              ));
+        } else {
+          final errorMessage = e.response?.data['message'] ?? e.message;
+          Helper.errorSnackBar(
+              title: 'Error', message: errorMessage, duration: 5);
+        }
+      } else {
+        throw Exception('Network error occurred');
+      }
+    } catch (e) {
+      isLoading.value = false;
+      log('Registration error: $e');
+      // throw Exception('Registration failed: ${e.toString()}');
     } finally {
       isLoading.value = false;
     }
@@ -1465,9 +1404,9 @@ class AuthController extends MainController {
         'category': cooperative_category.value
       };
       log('req_data: $req_data');
-      log('${APP_API_ENDPOINT}/cooperative_member_requests');
+      // log('${APP_API_ENDPOINT}/cooperative_member_requests');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/cooperative_member_requests',
+        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests',
         data: req_data,
       );
       log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
@@ -1541,7 +1480,7 @@ class AuthController extends MainController {
 
       log('Auth data: $auth_data');
       var response = await dio.post(
-        '$APP_API_ENDPOINT/accounts/create-account',
+        '${EnvConstants.APP_API_ENDPOINT}/accounts/create-account',
         data: auth_data,
         options: Options(
           validateStatus: (status) {
@@ -1561,7 +1500,7 @@ class AuthController extends MainController {
         }
         if (profileImageUrl.value.isNotEmpty || nIDFile.value.path.isNotEmpty) {
           var response = await dio.put(
-            '$APP_API_ENDPOINT/accounts/update-account/${new_auth_data.data.userId}',
+            '${EnvConstants.APP_API_ENDPOINT}/accounts/update-account/${new_auth_data.data.userId}',
             data: {
               'id': new_auth_data.data.userId,
               'avatar': profileImageUrl.value.isNotEmpty
@@ -1631,17 +1570,17 @@ class AuthController extends MainController {
       //     .signUp(email: email.value, password: password.value, data: auth_data);
       log(' auth_data: $auth_data');
 
-      var response = await dio.post('$APP_API_ENDPOINT/accounts/create-account',
+      var response = await dio.post(
+          '${EnvConstants.APP_API_ENDPOINT}/accounts/create-account',
           data: auth_data);
       log('response user: ${response.data}');
       if (response.data['statusCode'] == 200) {
         AuthDataResponse new_auth_data =
             AuthDataResponse.fromJson(response.data);
         log('response new_auth_data: $new_auth_data');
-        await _getStorage.write('role', response.data['user']['account_type']);
+        await _getStorage.write('userId', response.data['user']['id']);
         userId.value = response.data['user']['id'];
-        _handleSuccessfulLogin(
-            accountType: account_type.value, userId: userId.value);
+        _handleSuccessfulLogin();
       }
     } catch (error) {
       log('Error: $error');
@@ -1665,7 +1604,7 @@ class AuthController extends MainController {
   Future<void> logout() async {
     try {
       isLoading.value = true;
-      update();
+      // update();
 
       // 1. Get raw user ID string from storage
       final userId = await _getStorage.read('userId');
@@ -1676,7 +1615,7 @@ class AuthController extends MainController {
       // 2. Call logout endpoint with raw user ID in URL
       final response = await dio
           .post(
-            '$APP_API_ENDPOINT/auth/logout/$userId',
+            '${EnvConstants.APP_API_ENDPOINT}/auth/logout/$userId',
             options: Options(
               headers: {
                 'Content-Type': 'application/json',
@@ -1702,7 +1641,7 @@ class AuthController extends MainController {
       log('Logout error: $e');
     } finally {
       isLoading.value = false;
-      update();
+      // update();
     }
   }
 
@@ -1710,44 +1649,6 @@ class AuthController extends MainController {
     await _getStorage.erase();
     // Clear any other local repositories if needed
   }
-
-  /*
-  Future<void> logout() async {
-    // Get.to(() => LoginScreen());
-    try {
-      final id = await _getStorage.read('userId');
-      log('$APP_API_ENDPOINT/auth/logout/$id');
-      final response =
-          await dio.post('$APP_API_ENDPOINT/auth/logout/$id');
-      // log('$APP_API_ENDPOINT/auth/logout/${userId.value}');
-      // final response =
-      //     await dio.post('$APP_API_ENDPOINT/auth/logout/${userId.value}');
-      log(response.data);
-      isLoading.value = true;
-      // await supabase.auth.signOut();
-      await _getStorage.erase();
-      // await ProfileRepository().clearAllObjects();
-      // await BusinessRepository().clearAllObjects();
-      // await ProductRepository().clearAllObjects();
-      update();
-      isLoading.value = false;
-      // Get.to(() => LoginScreen());
-    } catch (error) {
-      isLoading.value = false;
-      log('error $error');
-      if (error is PostgrestException) {
-        debugPrint('PostgrestException ${error.message}');
-        Helper.errorSnackBar(
-            title: 'Error', message: error.message, duration: 5);
-      }
-      // Get.to(() => LoginScreen());
-      
-    }
-    finally{
-        Get.to(() => LoginScreen());
-      }
-  }
-  */
 
   Future<void> checkAccount() async {
     isLoading.value = true;
@@ -1861,6 +1762,7 @@ class AuthController extends MainController {
     imageFiles.clear();
     ImagePicker imagePicker = ImagePicker();
     XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    log('uploadedImageUrl: ${uploadedImageUrl.value}');
     if (xFile != null) {
       if (purpose == 'nID') {
         nIDFile.value = File(xFile.path);
@@ -1876,6 +1778,8 @@ class AuthController extends MainController {
       }
       isImageAdded.value = true;
       update();
+      uploadedImageUrl.value = (await uploadFile(File(xFile.path)))!;
+      log('uploadedImageUrl: ${uploadedImageUrl.value}');
     }
     update();
   }
@@ -1885,7 +1789,22 @@ class AuthController extends MainController {
       final fileExt = file.path.split('.').last;
       final fileName = '${uuid.v4()}.$fileExt';
       final filePath = 'images/$fileName';
-      return supabase.storage.from('kycfiles').upload(filePath, file);
+      log('uploadFile filePath: ${filePath}');
+      // await supabase.storage.from('kycfiles').remove(['']); // remove all files
+      // await supabase.storage.deleteBucket('kycfiles');
+      // await supabase.storage
+      //     .createBucket('kycfiles', const BucketOptions(public: true));
+      final String fullPath = await supabase.storage.from('kycfiles').upload(
+            filePath,
+            file,
+            fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
+          );
+      if (fullPath.isNotEmpty) {
+        print('Upload error: ${fullPath}');
+      } else {
+        print('Uploaded: ${fullPath}');
+      }
+      return null;
     } catch (e, s) {
       log('uploadImages error: $e $s');
       return null;

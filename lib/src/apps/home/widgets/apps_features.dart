@@ -3,12 +3,14 @@ import 'dart:developer';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/src/apps/converter/views/converter_screen.dart';
-import 'package:mukai/src/apps/home/widgets/assets/add_asset.dart';
+import 'package:mukai/src/apps/home/apps/loans/loan_landing_page.dart';
+import 'package:mukai/src/apps/home/apps/pay_bills/pay_bills_transactions.dart';
+import 'package:mukai/src/apps/home/apps/savings/savings_landing_page.dart';
 import 'package:mukai/src/apps/home/widgets/assets/assets_list.dart';
-import 'package:mukai/src/apps/home/widgets/assets/pay_subs.dart';
-import 'package:mukai/src/apps/home/widgets/recent_transactions.dart';
 import 'package:mukai/src/apps/transactions/views/screens/transfer_transaction.dart';
+import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/theme/theme.dart';
 
 class HomeAccountWidgetApps extends StatefulWidget {
@@ -25,20 +27,45 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
   String category = '1 day';
   late double height;
   late double width;
-  final accountList = [
-    {"image": "assets/icons/Buy stocks.png", "title": "Pay Subs"},
-    {"image": "assets/icons/vaadin_money-withdraw.png", "title": "Withdraw"},
-    {"image": "assets/icons/bx_transfer.png", "title": "Transfer"},
+  final transactList = [
+    // {"image": "assets/icons/Buy stocks.png", "title": "Pay Subs"},
+
+    {"image": "assets/icons/vaadin_money-withdraw.png", "title": "CashOut"},
+    {"image": "assets/icons/game-icons_cash.png", "title": "CashIn"},
     {
       "image": "assets/icons/mingcute_transfer-horizontal-line.png",
-      "title": "Convertor"
+      "title": "Transfer"
     },
+
+    {
+      "image": "assets/icons/ic_outline-business-center.png",
+      "title": "Pay Bill"
+    },
+    {"image": "assets/icons/Group.png", "title": "Airtime"},
+    {"image": "assets/icons/hugeicons_sale-tag-02.png", "title": "Pos Pay"},
   ];
 
-  final walletList = [
-    {"image": "assets/icons/bx_transfer.png", "title": "Transfer Wallet"},
-    {"image": "assets/icons/bi_share-fill.png", "title": "Share wallet"},
-    {"image": "assets/icons/clarity_wallet-solid.png", "title": "Sub Wallets"},
+  final portfolioList = [
+    {
+      "image": "assets/icons/game-icons_wallet.png",
+      "title": "Savings Portfolio"
+    },
+    {
+      "image": "assets/icons/material-symbols_folder-managed-rounded.png",
+      "title": "Assets Manager"
+    },
+    // {"image": "assets/icons/mdi_bank.png", "title": "Linked Banking"},
+    // {"image": "assets/icons/game-icons_cash.png", "title": "Trader Invoices"},
+    // {"image": "assets/icons/wpf_bank-cards.png", "title": "Trader POS"},
+    // {"image": "assets/icons/mdi_file-sign.png", "title": "Trader Inventory"},
+    // {
+    //   "image": "assets/icons/mdi_folder-transfer.png",
+    //   "title": "Financial Literacy"
+    // },
+    // {
+    //   "image": "assets/icons/ic_outline-business-center.png",
+    //   "title": "ZSE/VFEX Insights"
+    // },
   ];
   final stocksList = [
     {"image": "assets/icons/Buy stocks.png", "title": "Buy Stocks"},
@@ -50,8 +77,10 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
     {"image": "assets/icons/game-icons_wallet.png", "title": "Gazette Stocks"},
   ];
   final assetsList = [
-    {"image": "assets/icons/material-symbols_folder-managed-rounded.png", "title": "Assets"},
-
+    {
+      "image": "assets/icons/material-symbols_folder-managed-rounded.png",
+      "title": "Assets"
+    },
     {"image": "assets/icons/gridicons_add-outline.png", "title": "Add Asset"},
     {"image": "assets/icons/Group.png", "title": "Declare Ownership"},
     {"image": "assets/icons/game-icons_cash.png", "title": "Request Valuation"},
@@ -76,24 +105,55 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
 
   void _handleItemTap(String title) {
     switch (title) {
+      case 'Savings Portfolio':
+        Get.to(() => SavingsLandingPageScreen(
+              group: Group(),
+            ));
+      case 'Loans':
+        Get.to(() => CoopLoanLandingPageScreen(group: Group()));
       case 'Withdraw':
-        // Get.to(() => WithdrawScreen());
-        throw UnimplementedError();
+        Get.to(() => TransfersScreen(
+              category: 'cashout',
+            ));
+      case 'CashOut':
+        Get.to(() => TransfersScreen(
+              category: 'cashout',
+            ));
+      case 'CashIn':
+        Get.to(() => TransfersScreen(
+              category: 'cashin',
+            ));
       case 'Transfer':
         Get.to(() => TransferTransactionScreen());
         break;
       case 'Convertor':
         Get.to(() => ConverterScreen());
         break;
-      case 'Add Asset':
-          Get.to(() => AddMemberAssetWidget());
+      case 'Pay Bill':
+        Get.to(() => PayBillsTransactionsScreen());
         break;
-      case 'Assets':
+      case 'Buy Airtime':
+        Get.to(() => TransferTransactionScreen());
+      case 'Pos Pay':
+        Get.to(() => TransfersScreen(
+              category: 'pos_payment',
+            ));
+      case 'Linked Bank':
+        Get.to(() => TransfersScreen(
+              category: 'cashout',
+            ));
+      case 'Assets Manager':
         Get.to(() => MemberAssetsList());
         break;
+      // case 'Pay Subs':
+      //   Get.to(() => MemberPaySubs());
+      //   break;
+
+      /*
       case 'Pay Subs':
-        Get.to(() => MemberPaySubs());
-        break;
+      Get.to(() => TransferTransactionScreen(purpose: 'subscription'));
+      break;
+      */
       case 'Transfer Wallet':
 
         // Get.to(() => TransferWalletScreen());
@@ -112,9 +172,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
         throw UnimplementedError();
       // Add cases for all your other options
       default:
-        Get.snackbar(
-          
-          'Coming Soon', 'This feature is under development');
+        Get.snackbar('Coming Soon', 'This feature is under development');
         break;
     }
   }
@@ -130,25 +188,27 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-    var activeList = widget.category == 'walletList'
-        ? walletList
-        : widget.category == 'accountList'
-            ? accountList
+    var activeList = widget.category == 'transactList'
+        ? transactList
+        : widget.category == 'portfolioList'
+            ? portfolioList
             : widget.category == 'assetsList'
                 ? assetsList
                 : widget.category == 'stocksList'
                     ? stocksList
-                    : accountList;
+                    : portfolioList;
     return Column(
       children: [
+        heightBox(height * 0.01),
         SizedBox(
           width: width,
-          height: widget.category == 'accountList' ||
-                  widget.category == 'walletList'
-              ? height * 0.4
-              : widget.category == 'stocksList'
-                  ? height * 0.25
-                  : height * 0.3,
+          height: height * 0.4,
+          // height: widget.category == 'portfolioList' ||
+          //         widget.category == 'transactList'
+          //     ? height * 0.4
+          //     : widget.category == 'stocksList'
+          //         ? height * 0.25
+          //         : height * 0.3,
           child: GridView.builder(
             physics: const BouncingScrollPhysics(),
             padding: const EdgeInsets.only(
@@ -157,10 +217,10 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
               bottom: fixPadding * 0.0,
             ),
             gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
+                crossAxisCount: 4,
                 mainAxisSpacing: fixPadding * 2.0,
                 crossAxisSpacing: fixPadding * 2.0,
-                childAspectRatio: 0.8),
+                childAspectRatio: 0.57),
             itemCount: activeList.length,
             itemBuilder: (context, index) {
               return InkWell(
@@ -192,6 +252,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
                         ),
                       ),
                     ),
+                    heightBox(height * 0.002),
                     Center(
                       child: SizedBox(
                         width: width * 0.2,

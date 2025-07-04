@@ -22,11 +22,14 @@ class Transaction extends OfflineFirstWithSupabaseModel {
   String? sending_profile_avatar;
   String? status;
   String? transferMode;
+  String? transactionType;
   String? transferCategory;
   double? amount;
   // String? currency;
   String? createdAt;
   String? updatedAt;
+  String? currency;
+  String? narrative;
 
   Transaction({
     // this.currency,
@@ -34,6 +37,7 @@ class Transaction extends OfflineFirstWithSupabaseModel {
     this.purpose,
     this.id,
     this.account_id,
+    this.transactionType,
     this.sending_wallet,
     this.sending_phone,
     this.receiving_phone,
@@ -47,6 +51,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
     // this.receiving_account_number,
     this.createdAt,
     this.updatedAt,
+    this.currency,
+    this.narrative,
   });
 
   // Factory method to create an Transaction from a JSON map
@@ -70,6 +76,7 @@ class Transaction extends OfflineFirstWithSupabaseModel {
       // currency: json['currency'],
       sending_wallet: json['sending_wallet'],
       receiving_wallet: json['receiving_wallet'],
+      transactionType: json['transaction_type'],
       recieving_profile_avatar: json['recieving_profile_avatar'],
       sending_profile_avatar: json['sending_profile_avatar'],
       transferMode: json['transfer_mode'],
@@ -80,6 +87,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
       amount: parseDouble(json['amount'], 0.0),
       createdAt: json['created_at'],
       updatedAt: json['updated_at'],
+      currency: json['currency'],
+      narrative: json['narrative'],
     );
     return transaction;
   }
@@ -88,6 +97,7 @@ class Transaction extends OfflineFirstWithSupabaseModel {
       'account_id': account_id,
       // 'currency': currency,
       'sending_phone': sending_phone,
+      'transaction_type': transactionType,
       'receiving_phone': receiving_phone,
       'sending_wallet': sending_wallet,
       'receiving_wallet': receiving_wallet,
@@ -98,6 +108,8 @@ class Transaction extends OfflineFirstWithSupabaseModel {
       'purpose': purpose,
       'status': status,
       'amount': amount,
+      'currency': currency,
+      'narrative': narrative,
     };
   }
 }

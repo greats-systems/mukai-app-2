@@ -13,17 +13,22 @@ class Cooperative extends OfflineFirstWithSupabaseModel {
   @Sqlite(unique: true)
   final String? id;
   final String? name;
+  final String? wallet_id;
+
   final String? category;
   final String? city;
   final String? county;
   final String? province_state;
   final String? admin_id;
   final List<Profile>? members;
+  final double? monthly_sub;
 
   Cooperative({
     this.id,
     this.name,
+    this.wallet_id,
     this.category,
+    this.monthly_sub,
     this.members,
     this.city,
     this.county,
@@ -36,8 +41,10 @@ class Cooperative extends OfflineFirstWithSupabaseModel {
       var coop = Cooperative(
         id: json["id"],
         admin_id: json['admin_id'],
+        wallet_id: json['wallet_id'],
         name: json['name'],
         category: json['category'],
+        monthly_sub: json['monthly_sub'],
         county: json['county'],
         province_state: json['province_state'],
         city: json['city'],

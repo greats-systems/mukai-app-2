@@ -4,17 +4,19 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
-import 'package:mukai/src/apps/groups/views/screens/member_detail.dart';
+import 'package:mukai/main.dart';
+import 'package:mukai/src/apps/groups/views/screens/members/member_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/member_item.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class GroupMembersList extends StatefulWidget {
   final String groupId;
-   String? category;
+  String? category;
 
-   GroupMembersList({super.key, required this.groupId, this.category});
+  GroupMembersList({super.key, required this.groupId, this.category});
 
   @override
   State<GroupMembersList> createState() => _GroupMembersListState();
@@ -71,7 +73,7 @@ class _GroupMembersListState extends State<GroupMembersList> {
             builder: (context, snapshot) {
               if (snapshot.connectionState == ConnectionState.waiting) {
                 return const Center(
-                  child: CircularProgressIndicator(),
+                  child: LoadingShimmerWidget(),
                 );
               }
               if (snapshot.hasError) {
@@ -98,7 +100,7 @@ class _GroupMembersListState extends State<GroupMembersList> {
                                 profileController.selectedProfile.value =
                                     profile;
                                 Get.to(() => MemberDetailScreen(
-                                  groupId: widget.groupId,
+                                      groupId: widget.groupId,
                                       profile: profile,
                                     ));
                               },

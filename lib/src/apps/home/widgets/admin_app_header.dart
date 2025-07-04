@@ -4,10 +4,14 @@ import 'package:auto_size_text/auto_size_text.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
+import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class AdminAppHeaderWidget extends StatefulWidget {
   final String? title;
@@ -27,24 +31,27 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
   late double height;
   late double width;
   String? userId;
+  String? firstName;
+  String? lastName;
+  String? phone;
+  String? email;
   String? role;
-  Map<String, dynamic>? userProfile = {};
-  bool _isLoading = false;
-  
-  void fetchProfile() async {
-    if (_isDisposed) return;
-    setState(() {
-      _isLoading = true;
-      userId = _getStorage.read('userId');
-      role = _getStorage.read('account_type');
-    });
 
-    final userjson = await profileController.getUserDetails(userId!);
-
+  Future<void> fetchProfile() async {
     if (_isDisposed) return;
+    var _Id = await _getStorage.read('userId');
+    var _Role = await _getStorage.read('role');
+    var _firstName = await _getStorage.read('first_name');
+    var _lastName = await _getStorage.read('last_name');
+    var _phone = await _getStorage.read('phone');
+    var _email = await _getStorage.read('email');
     setState(() {
-      userProfile = userjson;
-      _isLoading = false;
+      userId = _Id;
+      role = _Role;
+      firstName = _firstName;
+      lastName = _lastName;
+      phone = _phone;
+      email = _email;
     });
   }
 
@@ -61,30 +68,26 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
     _isDisposed = true;
     super.dispose();
   }
+
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
     width = size.width;
     height = size.height;
-    return _isLoading
-        ? Center(
-            child: CircularProgressIndicator(),
-          )
-        : Column(
+    return Column(
+      children: [
+        Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Padding(
-                padding: const EdgeInsets.all(20.0),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    profileButton(),
-                    logoButton(),
-                  ],
-                ),
-              ),
-        
+              profileButton(),
+              logoButton(),
             ],
-          );
+          ),
+        ),
+      ],
+    );
   }
 
   logoButton() {
@@ -100,20 +103,8 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
         }
       },
       child: Container(
-        height: 55.0,
-        width: 55.0,
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: whiteF5Color,
-              blurRadius: 10.0,
-              offset: const Offset(0, 0),
-            )
-          ],
-          shape: BoxShape.circle,
-          color: whiteF5Color.withOpacity(0),
-        ),
-        // alignment: Alignment.center,
+        height: 90.0,
+        width: 90.0,
         child: Padding(
           padding: const EdgeInsets.all(5.0),
           child: Image.asset(
@@ -132,6 +123,20 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
       child: Row(
         spacing: 15,
         children: [
+          Container(
+            height: 50.0,
+            width: 50.0,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              color: recColor,
+            ),
+            alignment: Alignment.center,
+            child: const Iconify(
+              Ri.account_circle_fill,
+              size: 50.0,
+              color: whiteColor,
+            ),
+          ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisAlignment: MainAxisAlignment.start,
@@ -139,22 +144,15 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  'Hi, ${userProfile?['first_name'] ?? 'No name'}',
-                  style: semibold18WhiteF5,
-                ),
-              ),
-              SizedBox(
-                width: width * 0.5,
-                child: AutoSizeText(
-                  'Greats Coop',
-                  style: regular12whiteF5,
+                  '${Utils.trimp(firstName ?? '')} ${Utils.trimp(lastName ?? '')}',
+                  style: medium14Black,
                 ),
               ),
               SizedBox(
                 width: width * 0.3,
                 child: AutoSizeText(
-                  '${userProfile?['account_type'] ?? 'No name'}',
-                  style: regular12whiteF5,
+                  Utils.trimp(role ?? ''),
+                  style: medium14Black,
                 ),
               ),
             ],

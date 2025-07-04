@@ -1,10 +1,11 @@
 import 'package:mukai/theme/theme.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:mukai/widget/messages_shimmer.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:developer';
 
-/// Supabase client
-final supabase = Supabase.instance.client;
+class Constants {}
 
 BoxDecoration bgBoxDecoration = BoxDecoration(
   color: recColor,
@@ -13,8 +14,7 @@ BoxDecoration bgBoxDecoration = BoxDecoration(
 );
 
 /// Simple preloader inside a Center widget
-const preloader =
-    Center(child: CircularProgressIndicator(color: Colors.orange));
+const preloader = Center(child: LoadingMessagesShimmerWidget());
 
 /// Simple sized box to space out form elements
 const formSpacer = SizedBox(width: 16, height: 16);
@@ -55,20 +55,55 @@ String truncateDate(String interval) {
   return "date_trunc('$interval', created_at)";
 }
 
-const ENV = 'production';
-const API_ENV = 'localhost';
-const APP_API_ENDPOINT = API_ENV == 'localhost'
-    ? 'http://10.0.2.2:3001'
-    : 'https://supabasekong-w0skgw8swgwcocwowokscokk.freetrader.africa';
-const CMS_ENDPOINT = 'http://10.0.2.2:54321/graphql/v1';
-const GRAPH_API_TOKEN =
-    'Bearer EAAUavcvJKVgBO8nrNqlcy5p5K7Sv7XZAudraZC5PpwMWhFupmm8hED7SqH7RQKZATPu4HI3drryZAn8AzqOpSobT2trLOgwIGLJZBPk9kASXckuKRZCfrYZBeNdRbqSnygiIBGZBEWHUmgWUAg5XmKJZB6N9m0roNxsCFjWuAJ8MlaUy1h7U2ArpBDMJglQ9I9xa1OMrtX31RE1YUZAdaZCuhYD';
-const WEBHOOK_VERIFY_TOKEN = 'simplyledgers_hook';
-const PHONE_ID = '416179854905155';
-const APP_ID = '1436777353652568';
-const AD_ACCOUNT_ID = '1148308405530886';
-const PHONE_NUMBER = '+14847390602';
-const APP_SECRET = "a95c61ee2cd7e8a1c7cbbefd6c03f6a9";
-const API_VERSION = "v20.0";
-const CUSTOM_GOOGLE_APPLICATION_CREDENTIALS =
-    'https://appwrite-usgwgoo8cs8kw4kcowwggkow.livestockledger.co.zw/v1/storage/buckets/credentials/files/66c1b252002ce8f3e48c/view?project=commodity-chain&mode=admin';
+class EnvConstants {
+  static late final String LOCAL_SUPABASE_URL;
+  static late final String SUPABASE_URL;
+  static late final String LOCAL_SERVICE_ROLE_KEY;
+  static late final String SUPABASE_ROLE_KEY;
+  static late final String ENV;
+  static late final String API_ENV;
+  static late final String APP_API_ENDPOINT;
+  static late final String CMS_ENDPOINT;
+  static late final String GRAPH_API_TOKEN;
+  static late final String WEBHOOK_VERIFY_TOKEN;
+  static late final String PHONE_ID;
+  static late final String APP_ID;
+  static late final String AD_ACCOUNT_ID;
+  static late final String PHONE_NUMBER;
+  static late final String APP_SECRET;
+  static late final String API_VERSION;
+  static late final String CUSTOM_GOOGLE_APPLICATION_CREDENTIALS;
+
+  static Future<void> init({String envFile = '.env'}) async {
+    try {
+      log(envFile);
+      await dotenv.load(fileName: envFile);
+      ENV = dotenv.get('ENV', fallback: 'localhost');
+      LOCAL_SUPABASE_URL = dotenv.get('LOCAL_SUPABASE_URL');
+      SUPABASE_URL = dotenv.get('SUPABASE_URL');
+      LOCAL_SERVICE_ROLE_KEY = dotenv.get('LOCAL_SERVICE_ROLE_KEY');
+      SUPABASE_ROLE_KEY = dotenv.get('SUPABASE_ROLE_KEY');
+      API_ENV = dotenv.get('ENV') == 'localhost'
+          ? dotenv.get('DEVICE') == 'physical'
+              ? dotenv.get('LOCAL_NETWORK_ENDPOINT')
+              : dotenv.get('LOCAL_API_ENDPOINT')
+          // : 'http://10.0.2.2:3001';
+          : dotenv.get('PRODUCTION_API_ENDPOINT');
+      APP_API_ENDPOINT = dotenv.get('APP_API_ENDPOINT');
+      // APP_API_ENDPOINT = 'http://10.0.2.2:3001';
+      CMS_ENDPOINT = dotenv.get('CMS_ENDPOINT');
+      GRAPH_API_TOKEN = dotenv.get('GRAPH_API_TOKEN');
+      WEBHOOK_VERIFY_TOKEN = dotenv.get('WEBHOOK_VERIFY_TOKEN');
+      PHONE_ID = dotenv.get('PHONE_ID');
+      APP_ID = dotenv.get('APP_ID');
+      AD_ACCOUNT_ID = dotenv.get('AD_ACCOUNT_ID');
+      PHONE_NUMBER = dotenv.get('PHONE_NUMBER');
+      APP_SECRET = dotenv.get('APP_SECRET');
+      API_VERSION = dotenv.get('API_VERSION');
+      CUSTOM_GOOGLE_APPLICATION_CREDENTIALS =
+          dotenv.get('CUSTOM_GOOGLE_APPLICATION_CREDENTIALS');
+    } on Exception catch (e) {
+      log('EnvConstants error: $e');
+    }
+  }
+}

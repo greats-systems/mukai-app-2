@@ -3,8 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:get/get_navigation/src/root/get_material_app.dart';
 import 'package:mukai/src/apps/settings/settings_controller.dart';
-import 'package:mukai/src/apps/settings/settings_view.dart';
-import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/localization/app_localizations.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 
@@ -13,9 +11,11 @@ class MyApp extends StatelessWidget {
   const MyApp({
     super.key,
     required this.settingsController,
+    required this.initialRoute,
   });
 
   final SettingsController settingsController;
+  final String initialRoute;
 
   @override
   Widget build(BuildContext context) {
@@ -27,11 +27,12 @@ class MyApp extends StatelessWidget {
       listenable: settingsController,
       builder: (BuildContext context, Widget? child) {
         return GetMaterialApp(
+          debugShowCheckedModeBanner: false,
           title: 'Mukai App',
           theme: ThemeData(),
           darkTheme: ThemeData.dark(),
           themeMode: settingsController.themeMode,
-          initialRoute: AppPages.login,
+          initialRoute: initialRoute,
           getPages: AppPages.routes,
           localizationsDelegates: const [
             AppLocalizations.delegate,
