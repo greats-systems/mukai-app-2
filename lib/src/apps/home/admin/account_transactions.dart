@@ -1,6 +1,4 @@
 import 'dart:developer';
-import 'package:get_storage/get_storage.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/transaction.model.dart';
@@ -8,6 +6,7 @@ import 'package:mukai/src/apps/home/admin/admin_transaction_detail.dart';
 import 'package:mukai/src/apps/home/admin/admin_transaction_item.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/theme/theme.dart';
+import 'package:mukai/utils/utils.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
 class AccountTransactionsList extends StatefulWidget {
@@ -20,10 +19,7 @@ class AccountTransactionsList extends StatefulWidget {
 class _AccountTransactionsList extends State<AccountTransactionsList> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  late Future<List<Transaction>?> _futureTransaction;
   bool refresh = false;
-  final GetStorage _getStorage = GetStorage();
-  late final Stream<List<Transaction>> _transactionsStream;
 
   @override
   void initState() {
@@ -36,6 +32,9 @@ class _AccountTransactionsList extends State<AccountTransactionsList> {
   }
 
   listContent(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    double width = size.width;  
+    double height = size.height;
     return StreamBuilder<List<Transaction>>(
       stream: transactionController.streamAccountTransaction(),
       builder: (context, snapshot) {
@@ -47,6 +46,16 @@ class _AccountTransactionsList extends State<AccountTransactionsList> {
           return const LoadingShimmerWidget();
         }
 
+        if(snapshot.data!.isEmpty || snapshot.data == null) {
+            return Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Text(
+                Utils.trimp('No transactions found'),
+                style: regular16Black,
+              ),
+            );
+          }
+
         // final orders = snapshot.data!;
         List<Transaction> data = snapshot.data!;
         return Container(
@@ -57,7 +66,7 @@ class _AccountTransactionsList extends State<AccountTransactionsList> {
             border: Border.all(color: recWhiteColor),
           ),
           child: Padding(
-              padding: const EdgeInsets.all(16.0),
+              padding: EdgeInsets.only(top: height/10),
               child: ListView.builder(
                 itemCount: data
                     .length, // Replace with your marketPlaceProducts count

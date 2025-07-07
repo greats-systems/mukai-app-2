@@ -50,18 +50,18 @@ class DioClient {
 
   void _handleNetworkFailure(DioException error) {
     // No internet, server unreachable, etc
-    Helper.successSnackBar(
-        title: 'You are currently offline!',
-        message: 'Check internet connection',
-        duration: 10);
+    // Helper.successSnackBar(
+    //     title: 'You are currently offline!',
+    //     message: 'Check internet connection',
+    //     duration: 10);
   }
 
   void _handleBadResponse(DioException error) {
     final statusCode = error.response?.statusCode;
     print("Server responded with $statusCode: ${error.response?.data}");
-    Helper.successSnackBar(
-        title: 'Services Response',
-        message: 'Server services did not complete. Retrying ...',
-        duration: 10);
+    // Helper.successSnackBar(
+    //     title: 'Services Response',
+    //     message: 'Server services did not complete. Retrying ...',
+    //     duration: 10);
   }
 }

@@ -79,12 +79,11 @@ class RegisterScreen extends StatelessWidget {
                       return Column(
                         children: [
                           height5Space,
-
-                          // Row(
-                          //   mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          //   children: [profileImageField(), nIDimageField()],
-                          // ),
-                          // height20Space,
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [profileImageField(), nIDimageField()],
+                          ),
+                          height20Space,
                           account_type(),
                           height20Space,
                           genderField(),
@@ -909,6 +908,9 @@ class RegisterScreen extends StatelessWidget {
       ),
       child: IntlPhoneField(
         // focusNode: FocusNode(onKeyEvent: ),
+        // validator: (p0) {
+        //   if()
+        // },
         keyboardType: TextInputType.phone,
         onChanged: (value) => {
           authController.phoneNumber.value = value.completeNumber,

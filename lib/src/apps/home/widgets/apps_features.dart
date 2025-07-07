@@ -42,6 +42,7 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
       "title": "Pay Bill"
     },
     {"image": "assets/icons/Group.png", "title": "Airtime"},
+    {"image": "assets/icons/mdi_bank.png", "title": "Apply for Loan"},
     {"image": "assets/icons/hugeicons_sale-tag-02.png", "title": "Pos Pay"},
   ];
 
@@ -58,10 +59,10 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
     // {"image": "assets/icons/game-icons_cash.png", "title": "Trader Invoices"},
     // {"image": "assets/icons/wpf_bank-cards.png", "title": "Trader POS"},
     // {"image": "assets/icons/mdi_file-sign.png", "title": "Trader Inventory"},
-    // {
-    //   "image": "assets/icons/mdi_folder-transfer.png",
-    //   "title": "Financial Literacy"
-    // },
+    {
+      "image": "assets/icons/mdi_folder-transfer.png",
+      "title": "Financial Literacy"
+    },
     // {
     //   "image": "assets/icons/ic_outline-business-center.png",
     //   "title": "ZSE/VFEX Insights"
@@ -144,6 +145,12 @@ class _HomeAccountWidgetAppsState extends State<HomeAccountWidgetApps> {
             ));
       case 'Assets Manager':
         Get.to(() => MemberAssetsList());
+        break;
+      case 'Apply for Loan':
+        log('message');
+        break;
+      case 'Financial Literacy':
+        log('message');
         break;
       // case 'Pay Subs':
       //   Get.to(() => MemberPaySubs());

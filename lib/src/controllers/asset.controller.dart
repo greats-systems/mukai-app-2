@@ -9,13 +9,13 @@ import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 
-class AssetController {
+class AssetController extends GetxController {
   final selectedAsset = Rx<Asset?>(null);
   var selectedGroup = Rx<Group?>(null);
   final isLoading = Rx<bool>(false);
   final asset = Asset().obs;
   final dio = Dio();
-  final accessToken = GetStorage().read('access_token');
+  final accessToken = GetStorage().read('accessToken');
 
   Future<List<Asset>?> getGroupAssets(String groupId) async {
     List<Asset> assets = [];
@@ -206,8 +206,7 @@ class AssetController {
     }
   }
 
-  Future<void> createIndividualAsset(
-String? profileId) async {
+  Future<void> createIndividualAsset(String? profileId) async {
     // final groupJson = await supabase.from('cooperatives').select('id').eq('name', value)
     try {
       var assetData = {
@@ -233,13 +232,14 @@ String? profileId) async {
         "has_received_vote": false,
       };
       log('assetData: $assetData');
-      final response = await dio.post('${EnvConstants.APP_API_ENDPOINT}/assets/individual',
-          data: assetData,
-          options: Options(headers: {
-            'apikey': accessToken,
-            'Authorization': 'Bearer $accessToken',
-            'Content-Type': 'application/json',
-          }));
+      final response =
+          await dio.post('${EnvConstants.APP_API_ENDPOINT}/assets/individual',
+              data: assetData,
+              options: Options(headers: {
+                'apikey': accessToken,
+                'Authorization': 'Bearer $accessToken',
+                'Content-Type': 'application/json',
+              }));
       if (response.statusCode == 201) {
         await Helper.successSnackBar(
             title: 'Asset Created',

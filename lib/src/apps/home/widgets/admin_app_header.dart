@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -36,22 +37,17 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
   String? phone;
   String? email;
   String? role;
+  Map<String, dynamic>? profile;
 
   Future<void> fetchProfile() async {
     if (_isDisposed) return;
     var _Id = await _getStorage.read('userId');
     var _Role = await _getStorage.read('role');
-    var _firstName = await _getStorage.read('first_name');
-    var _lastName = await _getStorage.read('last_name');
-    var _phone = await _getStorage.read('phone');
-    var _email = await _getStorage.read('email');
+    final profileJson = await profileController.getUserDetails(_Id!);
     setState(() {
       userId = _Id;
       role = _Role;
-      firstName = _firstName;
-      lastName = _lastName;
-      phone = _phone;
-      email = _email;
+      profile = profileJson;
     });
   }
 
@@ -94,13 +90,13 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
     return GestureDetector(
       onTap: () {
         log('AdminAppHeaderWidget\nuserId: $userId\nrole: $role');
-        if (role == 'coop-manager') {
-          Get.to(() => BottomBar(role: 'admin'));
-        } else {
-          Get.to(() => BottomBar(
-                role: 'member',
-              ));
-        }
+        // if (role == 'coop-manager') {
+        //   Get.to(() => BottomBar(role: 'admin'));
+        // } else {
+        //   Get.to(() => BottomBar(
+        //         role: 'member',
+        //       ));
+        // }
       },
       child: Container(
         height: 90.0,
@@ -109,56 +105,84 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
           padding: const EdgeInsets.all(5.0),
           child: Image.asset(
             'assets/images/logo-nobg.png',
+            width: 12,
           ),
         ),
       ),
     );
   }
 
-  profileButton() {
-    return GestureDetector(
-      onTap: () {
-        // Get.to(() => const ProfileScreen());
-      },
-      child: Row(
-        spacing: 15,
-        children: [
-          Container(
-            height: 50.0,
-            width: 50.0,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: recColor,
-            ),
-            alignment: Alignment.center,
-            child: const Iconify(
-              Ri.account_circle_fill,
-              size: 50.0,
-              color: whiteColor,
-            ),
+  Widget profileButton() {
+  return GestureDetector(
+    onTap: () {
+      // Get.to(() => const ProfileScreen());
+    },
+    child: Row(
+      children: [
+        const SizedBox(width: 15),
+        // Circular profile avatar
+        Container(
+          height: 50.0,
+          width: 50.0,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: profile?['avatar'] == null ? recColor : Colors.transparent,
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
+          child: ClipOval(
+            child: profile?['avatar'] == null 
+              ? const Iconify(
+                  Ri.account_circle_fill,
+                  size: 50.0,
+                  color: whiteColor,
+                ) 
+              : CachedNetworkImage(
+                  imageUrl: profile?['avatar']!,
+                  fit: BoxFit.cover,
+                  width: 50.0,
+                  height: 50.0,
+                  placeholder: (context, url) => const LoadingShimmerWidget(),
+                  errorWidget: (context, url, error) => const Iconify(
+                    Ri.account_circle_fill,
+                    size: 50.0,
+                    color: whiteColor,
+                  ),
+                ),
+          ),
+        ),
+        const SizedBox(width: 15),
+        // Name column with first and last name on separate lines
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.3,
+              child: AutoSizeText(
+                Utils.trimp(profile?['first_name'] ?? 'No name'),
+                style: medium14Black,
+                maxLines: 1,
+              ),
+            ),
+            SizedBox(
+              width: MediaQuery.of(context).size.width * 0.3,
+              child: AutoSizeText(
+                Utils.trimp(profile?['last_name'] ?? 'No name'),
+                style: medium14Black,
+                maxLines: 1,
+              ),
+            ),
+            if (role != null && role!.isNotEmpty)
               SizedBox(
-                width: width * 0.3,
+                width: MediaQuery.of(context).size.width * 0.3,
                 child: AutoSizeText(
-                  '${Utils.trimp(firstName ?? '')} ${Utils.trimp(lastName ?? '')}',
-                  style: medium14Black,
+                  Utils.trimp(role!),
+                  style: TextStyle(color: blackColor), // Consider using a smaller, grey style for role
+                  maxLines: 1,
                 ),
               ),
-              SizedBox(
-                width: width * 0.3,
-                child: AutoSizeText(
-                  Utils.trimp(role ?? ''),
-                  style: medium14Black,
-                ),
-              ),
-            ],
-          )
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      ],
+    ),
+  );
+}
 }

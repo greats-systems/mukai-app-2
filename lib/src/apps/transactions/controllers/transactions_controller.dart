@@ -12,6 +12,7 @@ import 'package:mukai/main.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 // import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/main.controller.dart';
+import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -51,6 +52,7 @@ class TransactionController extends MainController {
   var wrf = false.obs;
   var isLoading = false.obs;
   var membersQueried = <Profile>[].obs;
+  var suggestedProfiles = <Profile>[].obs;
   var selectedProfile = Profile(
     first_name: '',
     last_name: '',
@@ -78,15 +80,15 @@ class TransactionController extends MainController {
         .stream(primaryKey: ['id']) // primary key column(s)
         .asyncMap((response) async {
       final id = await _getStorage.read('userId');
-      var wallet_id = _getStorage.read('profile_wallet_id');
-      log('profile_wallet_id: $wallet_id');
+      var profile= await ProfileController().getUserDetails(id);
+      log('walletId: ${profile?['wallet_id']}');
       final fullResponse = await supabase
           .from('transactions')
           .select('''*, 
                   transactions_member_id_fkey(*), 
                   transactions_sending_wallet_fkey(*), 
                   transactions_receiving_wallet_fkey(*)''')
-          .or("member_id.eq.$id,receiving_wallet.eq.$wallet_id,sending_wallet.eq.$wallet_id")
+          .or("member_id.eq.$id,receiving_wallet.eq.${profile?['wallet_id']},sending_wallet.eq.${profile?['wallet_id']}")
           .order('created_at', ascending: false);
       if (fullResponse.isEmpty) return <Transaction>[];
 
@@ -173,7 +175,7 @@ class TransactionController extends MainController {
       if (jsonList.isNotEmpty) {
         var data = jsonList.first;
         log('getProfileByIDSearch data ${data}');
-        profile = Profile.fromMap(data);
+        profile = Profile.fromMap(data[0]);
         selectedProfile.value = profile;
         selectedProfile.refresh();
         transferTransaction.value.receiving_wallet = profile.wallet_id;

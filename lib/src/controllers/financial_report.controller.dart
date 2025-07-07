@@ -6,7 +6,7 @@ import 'package:mukai/brick/models/financial_report.model.dart';
 import 'package:mukai/constants.dart';
 
 class FinancialReportController {
-  final accessToken = GetStorage().read('access_token');
+  final accessToken = GetStorage().read('accessToken');
   final dio = Dio();
   Future<List<FinancialReport>?> getFinancialReport(String walletId) async {
     try {
@@ -33,11 +33,12 @@ class FinancialReportController {
     try {
       final List<dynamic> usdComponent;
       final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId',options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              }));
+          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       // final response =
       //     await dio.get('${EnvConstants.APP_API_ENDPOINT}/transactions/report/coop/$walletId');
       final List<dynamic> json = response.data;
@@ -53,11 +54,12 @@ class FinancialReportController {
   Future<List<FinancialReport>?> getZIGFinancialReport(String walletId) async {
     try {
       final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId',options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              }));
+          '${EnvConstants.APP_API_ENDPOINT}/transactions/report/$walletId',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       // final response =
       //     await dio.get('${EnvConstants.APP_API_ENDPOINT}/transactions/report/coop/$walletId');
       final List<dynamic> json = response.data;

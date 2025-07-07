@@ -101,7 +101,7 @@ class _CooperativesListState extends State<CooperativesList> {
           .eq('member_id', loggedInUserId ?? '')
           .order('created_at', ascending: false);
 
-      if (mounted) {
+      if (mounted && memberData.isNotEmpty) {
         setState(() {
           _groups = memberData[0]['cooperatives'] is Map
               ? [Group.fromMap(memberData[0]['cooperatives'])]

@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:dio/dio.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
@@ -41,24 +44,29 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
   String? walletId;
   String? userId;
   List<Wallet>? wallets;
+  Profile? profile;
   Dio dio = Dio();
   bool _isDisposed = false;
   bool isLoading = false;
+
   Future<void> fetchWalletID() async {
     setState(() {
       isLoading = true;
       userId = _getStorage.read('userId');
     });
+    log('AdminLandingScreen userId: $userId');
 
     try {
       final walletJson = await _walletController.getIndividualWallets(userId!);
-
+      final profileJson = await _profileController.getUserDetails(userId!);
       if (!_isDisposed && mounted) {
         setState(() {
           wallets = walletJson;
+          profile = Profile.fromMap(profileJson!);
           isLoading = false;
         });
       }
+      log('AdminLandingScreen userId: ${JsonEncoder.withIndent('  ').convert(profile)}');
     } catch (e) {
       if (!_isDisposed && mounted) {
         setState(() {
@@ -199,11 +207,11 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
               ),
               heightBox(20),
               Container(
-                  alignment: Alignment(0, 0),
-                  height: height * 0.05,
-                  width: width * 0.9,
-                  // padding: EdgeInsets.all(16),
-                  ),
+                alignment: Alignment(0, 0),
+                height: height * 0.05,
+                width: width * 0.9,
+                // padding: EdgeInsets.all(16),
+              ),
               heightBox(20),
               GestureDetector(
                 onTap: () {

@@ -47,7 +47,7 @@ class ProfileController extends MainController {
 
   AuthController get authController => Get.put(AuthController());
   final dio = Dio();
-  final accessToken = GetStorage().read('access_token');
+  final accessToken = GetStorage().read('accessToken');
 
   Future<Map<String, dynamic>?> getUserDetails(String id) async {
     try {
@@ -88,7 +88,8 @@ class ProfileController extends MainController {
     List<dynamic>? profileWallet = [];
     try {
       final walletJson =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id',options: Options(headers: {
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id',
+              options: Options(headers: {
                 'apikey': accessToken,
                 'Authorization': 'Bearer $accessToken',
                 'Content-Type': 'application/json',
@@ -115,11 +116,12 @@ class ProfileController extends MainController {
     List<dynamic>? profileWallets = [];
     try {
       final profileJson = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/savings-portfolio/profile-portfolio/$id',options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              }));
+          '${EnvConstants.APP_API_ENDPOINT}/savings-portfolio/profile-portfolio/$id',
+          options: Options(headers: {
+            'apikey': _getStorage.read('accessToken'),
+            'Authorization': 'Bearer ${_getStorage.read('accessToken')}',
+            'Content-Type': 'application/json',
+          }));
       if (profileJson.data.isNotEmpty) {
         final json = profileJson.data['data'];
         /*
@@ -133,9 +135,9 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
+        Helper.warningSnackBar(
+            title: 'getProfileSavingsPortfolios DioException',
+            message: error.response.toString(),
             duration: 10);
       }
       return null;
@@ -146,9 +148,10 @@ class ProfileController extends MainController {
     List<dynamic>? profileWallets = [];
     try {
       final profileJson =
-          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id',options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id',
+              options: Options(headers: {
+                'apikey': _getStorage.read('accessToken'),
+                'Authorization': 'Bearer ${_getStorage.read('accessToken')}',
                 'Content-Type': 'application/json',
               }));
       if (profileJson.data.isNotEmpty) {
@@ -164,9 +167,9 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
+        Helper.warningSnackBar(
+            title: 'getProfileWallets DioException',
+            message: error.response.toString(),
             duration: 10);
       }
       return null;
@@ -222,9 +225,9 @@ class ProfileController extends MainController {
       }
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
+        Helper.warningSnackBar(
+            title: 'UpdateUser DioException',
+            message: error.response.toString(),
             duration: 5);
       }
     }
@@ -256,10 +259,10 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
-            duration: 10);
+        Helper.warningSnackBar(
+            title: 'getProfiles DioException',
+            message: error.response.toString(),
+            duration: 5);
       }
       return profiles;
     }
@@ -285,10 +288,10 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
-            duration: 10);
+        Helper.warningSnackBar(
+            title: 'getAcceptedMemberProfileByID DioException',
+            message: error.response.toString(),
+            duration: 5);
       }
       return null;
     }
@@ -304,10 +307,10 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
-            duration: 10);
+        Helper.warningSnackBar(
+            title: 'getMemberProfileByID DioException',
+            message: error.response.toString(),
+            duration: 5);
       }
       return null;
     }
@@ -344,10 +347,10 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
-            duration: 10);
+        Helper.warningSnackBar(
+            title: 'filterProfiles DioException',
+            message: error.response.toString(),
+            duration: 5);
       }
       return profiles;
     }
@@ -376,10 +379,10 @@ class ProfileController extends MainController {
             .catchError((error) {
               isLoading.value = false;
               if (error is DioException) {
-                Helper.successSnackBar(
-                    title: 'Services Response',
-                    message: 'Server services did not complete. Retrying ...',
-                    duration: 10);
+                Helper.warningSnackBar(
+                    title: 'updateProfile DioException',
+                    message: error.response.toString(),
+                    duration: 5);
               }
               if (error is PostgrestException) {
                 debugPrint('PostgrestException ${error.message}');
@@ -392,10 +395,10 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
-            duration: 10);
+        Helper.warningSnackBar(
+            title: 'updateProfile DioException',
+            message: error.response.toString(),
+            duration: 5);
       }
       Helper.errorSnackBar(
           title: 'Error', message: 'Something went wrong', duration: 5);
@@ -421,10 +424,10 @@ class ProfileController extends MainController {
       } catch (error) {
         isLoading.value = false;
         if (error is DioException) {
-          Helper.successSnackBar(
-              title: 'Services Response',
-              message: 'Server services did not complete. Retrying ...',
-              duration: 10);
+          Helper.warningSnackBar(
+              title: 'updateMemberRequest DioException',
+              message: error.response.toString(),
+              duration: 5);
         }
         Helper.errorSnackBar(
             title: 'Error', message: 'Something went wrong', duration: 5);
@@ -448,10 +451,10 @@ class ProfileController extends MainController {
     } catch (error) {
       isLoading.value = false;
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
-            duration: 10);
+        Helper.warningSnackBar(
+            title: 'getUser DioException',
+            message: error.response.toString(),
+            duration: 5);
       }
       Helper.errorSnackBar(
           title: 'Error', message: 'Something went wrong', duration: 5);
@@ -465,10 +468,10 @@ class ProfileController extends MainController {
     } catch (error) {
       log("get profile error $error");
       if (error is DioException) {
-        Helper.successSnackBar(
-            title: 'Services Response',
-            message: 'Server services did not complete. Retrying ...',
-            duration: 10);
+        Helper.warningSnackBar(
+            title: 'getCloudImage DioException',
+            message: error.response.toString(),
+            duration: 5);
       }
       if (error is PostgrestException) {
         debugPrint('PostgrestException ${error.message}');
@@ -511,10 +514,10 @@ class ProfileController extends MainController {
         isLoading.value = false;
         log('Image uploading  cancelled');
         if (error is DioException) {
-          Helper.successSnackBar(
-              title: 'Services Response',
-              message: 'Server services did not complete. Retrying ...',
-              duration: 10);
+          Helper.warningSnackBar(
+              title: 'updateProfile DioException',
+              message: error.response.toString(),
+              duration: 5);
         }
         Helper.errorSnackBar(
             title: 'Error', message: 'Image uploading  cancelled', duration: 5);

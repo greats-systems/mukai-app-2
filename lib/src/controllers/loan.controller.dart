@@ -24,7 +24,7 @@ class LoanController extends GetxController {
   final isSupporting = Rx<bool>(false);
   final dio = Dio();
   final GroupController groupController = GroupController();
-  final accessToken = GetStorage().read('access_token');
+  final accessToken = GetStorage().read('accessToken');
 
   void calculateRepayAmount() async {
     final principal = selectedLoan.value.principalAmount ?? 0;
@@ -89,14 +89,13 @@ class LoanController extends GetxController {
       // selectedLoan.value.remainingBalance = selectedLoan.value.repay;
       // dev.log(JsonEncoder.withIndent(' ').convert(selectedLoan.toJson()));
 
-      final response = await dio.post(
-        '${EnvConstants.APP_API_ENDPOINT}/loans',
-        data: selectedLoan.toJson(),options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              })
-      );
+      final response = await dio.post('${EnvConstants.APP_API_ENDPOINT}/loans',
+          data: selectedLoan.toJson(),
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       // dev.log('Loan created: ${response.data}');
       return response.data;
     } catch (e, s) {
@@ -110,12 +109,13 @@ class LoanController extends GetxController {
 
   Future<List<Loan>?> getProfileLoans(String profileId) async {
     try {
-      final response = await dio
-          .get('${EnvConstants.APP_API_ENDPOINT}/loans/profile/$profileId',options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              }));
+      final response = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/loans/profile/$profileId',
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       for (var loan in response.data) {
         dev.log(loan['loan_term_months'].toString());
       }
@@ -131,9 +131,10 @@ class LoanController extends GetxController {
       'profile_id': profileId,
     };
     try {
-      final response = await dio.get(
-          '${EnvConstants.APP_API_ENDPOINT}/loans/coop/$coopId',
-          data: params,options: Options(headers: {
+      final response =
+          await dio.get('${EnvConstants.APP_API_ENDPOINT}/loans/coop/$coopId',
+              data: params,
+              options: Options(headers: {
                 'apikey': accessToken,
                 'Authorization': 'Bearer $accessToken',
                 'Content-Type': 'application/json',
@@ -150,11 +151,12 @@ class LoanController extends GetxController {
     try {
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/loans/${selectedLoan.value.id}',
-          data: selectedLoan.value.toJson(),options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              }));
+          data: selectedLoan.value.toJson(),
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       dev.log(response.data.toString());
       return response.data;
     } catch (error) {
@@ -167,11 +169,12 @@ class LoanController extends GetxController {
     try {
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/loans/coop/${selectedCoop.value.id}',
-          data: selectedLoan.value.toJson(),options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              }));
+          data: selectedLoan.value.toJson(),
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       dev.log(response.data.toString());
       return response.data;
     } catch (error) {
@@ -201,11 +204,12 @@ class LoanController extends GetxController {
       dev.log(params.toString());
       final response = await dio.patch(
           '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/${selectedCoop.value.id}/loans',
-          data: params,options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
-                'Content-Type': 'application/json',
-              }));
+          data: params,
+          options: Options(headers: {
+            'apikey': accessToken,
+            'Authorization': 'Bearer $accessToken',
+            'Content-Type': 'application/json',
+          }));
       dev.log('updateLoanApproval response: ${response.data.toString()}');
       return response.data;
     } catch (error) {

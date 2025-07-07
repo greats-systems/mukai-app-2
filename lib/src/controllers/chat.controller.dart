@@ -8,7 +8,7 @@ import 'package:mukai/constants.dart';
 import 'package:mukai/brick/models/cooperative-member-request.model.dart';
 import 'package:mukai/src/apps/chats/schema/chat.dart';
 
-final accessToken = GetStorage().read('access_token');
+final accessToken = GetStorage().read('accessToken');
 
 class ChatController {
   final dio = Dio();

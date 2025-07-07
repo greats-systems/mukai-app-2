@@ -151,19 +151,19 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: [
               MetricRow(
                 icon: "assets/icons/Vector.png",
                 title: 'Wallet-ID',
-                zigValue: profile_wallet_id?.substring(24, 36) ?? 'N/A',
+                zigValue: profile_wallet_id?.substring(31, 36).toUpperCase() ?? 'N/A',
                 usdValue: '',
               ),
               MetricRow(
                 icon: "assets/icons/mdi_account-payment-outline.png",
                 title: 'Account-ID',
                 zigValue: '',
-                usdValue: userId?.substring(24, 36) ?? 'N/A',
+                usdValue: userId?.substring(31, 36).toUpperCase() ?? 'N/A',
               ),
             ],
           ),

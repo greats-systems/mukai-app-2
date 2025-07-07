@@ -64,7 +64,7 @@ class _BottomBarState extends State<BottomBar> {
   bool _isLoading = false;
   Future<void> _fetchData() async {
     userId = _getStorage.read('userId');
-    userRole = _getStorage.read('account_type');
+    userRole = _getStorage.read('role');
   }
 
   Future<void> fetchWalletID() async {

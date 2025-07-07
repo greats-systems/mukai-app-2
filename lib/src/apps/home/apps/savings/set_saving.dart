@@ -643,7 +643,7 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Amount',
+          'Amount (US\$)',
           style: semibold14Black,
         ),
         heightSpace,

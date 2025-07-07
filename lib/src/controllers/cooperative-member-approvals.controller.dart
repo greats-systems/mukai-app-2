@@ -9,7 +9,7 @@ import 'package:mukai/brick/models/group.model.dart';
 
 import 'package:mukai/constants.dart';
 
-final accessToken = GetStorage().read('access_token');
+final accessToken = GetStorage().read('accessToken');
 
 class CooperativeMemberApprovalsController {
   final selectedCma = Rx<CooperativeMemberApproval?>(null);

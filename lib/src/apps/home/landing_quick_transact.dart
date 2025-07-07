@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -6,9 +9,7 @@ import 'package:mukai/src/apps/home/widgets/app_header.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
-import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:mukai/utils/utils.dart';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
@@ -34,7 +35,6 @@ class _LandingQuickTransactScreenState
   final autoSizeGroup = AutoSizeGroup();
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  final WalletController _walletController = WalletController();
   final ProfileController _profileController = ProfileController();
   final GetStorage _getStorage = GetStorage();
 
@@ -42,21 +42,24 @@ class _LandingQuickTransactScreenState
   String? userId;
   String? userRole;
   List<Wallet>? wallets;
+  Map<String, dynamic>? profile;
   String? walletId;
 
-  bool _isDisposed = false;
-  bool _isLoading = false;
   final GroupController groupController = GroupController();
   List<Profile>? profiles = [];
 
   Future<void> fetchWalletID() async {
     var _Id = await _getStorage.read('userId');
     var _Role = await _getStorage.read('role');
-    setState(() {
-      _isLoading = true;
-      userId = _Id;
-      userRole = _Role;
-    });
+    final profileJson = await _profileController.getUserDetails(_Id!);
+    if (mounted) {
+  setState(() {
+    profile = profileJson;
+    userId = _Id;
+    userRole = _Role;
+  });
+}
+    log('LandingQuickTransactScreen profile: ${JsonEncoder.withIndent('  ').convert(profile.toString())}');
   }
 
   @override
@@ -135,7 +138,7 @@ class _LandingQuickTransactScreenState
                 child: Column(
                   children: [
                     QrImageView(
-                      data: wallets?.first.id ?? 'No wallet ID 3',
+                      data: profile?['wallet_id'] ?? 'No wallet ID 3',
                       version: QrVersions.auto,
                       size: 250.0,
                     ),

@@ -20,7 +20,7 @@ class WalletController {
   var unlockPortfolio = false.obs;
   var lockKey = ''.obs;
   var selectedWallet = Wallet().obs;
-  final accessToken = GetStorage().read('access_token');
+  final accessToken = GetStorage().read('accessToken');
   Future<List<Wallet>?> getWalletsByProfileID(String userId) async {
     try {
       final response =
@@ -48,12 +48,13 @@ class WalletController {
       log('getProfilePortfolios data: $walletList');
       return walletList.map((item) => Saving.fromMap(item)).toList();
     } catch (e, s) {
-      log('getWalletDetailsByID error: $e $s');
+      log('getProfilePortfolios error: $e $s');
       return null;
     }
   }
 
   Future<List<Wallet>?> getIndividualWallets(String userId) async {
+    // log('--------- getIndividualWallets ${} ----------');
     try {
       final response = await dio.get(
           '${EnvConstants.APP_API_ENDPOINT}/wallets/member/$userId',
@@ -88,7 +89,7 @@ class WalletController {
       log(response.data.toString());
       return null;
     } catch (e, s) {
-      log('getIndividualWallets error: $e $s');
+      log('getGroupWallet error: $e $s');
       return null;
     }
   }

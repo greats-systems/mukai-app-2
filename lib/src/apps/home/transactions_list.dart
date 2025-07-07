@@ -1,6 +1,4 @@
 import 'dart:developer';
-import 'package:get_storage/get_storage.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/transaction.model.dart';
@@ -64,6 +62,15 @@ class _TransactionsList extends State<TransactionsList> {
       
           if (!snapshot.hasData) {
             return const LoadingShimmerWidget();
+          }
+
+          if(snapshot.data!.isEmpty || snapshot.data == null) {
+            return Center(
+              child: Text(
+                Utils.trimp('No transactions found'),
+                style: regular16Black,
+              ),
+            );
           }
       
           // final orders = snapshot.data!;

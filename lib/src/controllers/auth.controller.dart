@@ -5,6 +5,7 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 import 'package:dio/dio.dart';
+import 'package:email_validator/email_validator.dart';
 
 import 'package:mukai/brick/models/auth.model.dart';
 import 'package:mukai/brick/models/coop.model.dart';
@@ -501,7 +502,7 @@ class AuthController extends GetxController {
 
   updateUser() {}
 
-  final accessToken = GetStorage().read('access_token');
+  final accessToken = GetStorage().read('accessToken');
 
   Future<List<String>> getCitiesFromCountry(String countryName) async {
     log('Fetching cities for country: $countryName');
@@ -850,7 +851,7 @@ class AuthController extends GetxController {
           ..account_type = response.data['user']['account_type'];
         userId.value = response.data['user']['id'];
         // await _getStorage.write('userId', response.data['user']['id']);
-        // await _getStorage.write('accessToken', response.data['access_token']);
+        await _getStorage.write('accessToken', response.data['access_token']);
         await _getStorage.write('role', response.data['user']['account_type']);
         await _getStorage.write(
             'first_name', response.data['user']['first_name']);
@@ -858,6 +859,31 @@ class AuthController extends GetxController {
             'last_name', response.data['user']['last_name']);
         await _getStorage.write('phone', response.data['user']['phone']);
         await _getStorage.write('email', response.data['user']['email']);
+        final walletResponse = await dio.get(
+          '${EnvConstants.APP_API_ENDPOINT}/wallets/${response.data['user']['id']}',
+          options: Options(
+            headers: {
+              'apikey': _getStorage.read('accessToken'),
+              'Authorization': 'Bearer ${_getStorage.read('accessToken')}',
+              'Content-Type': 'application/json',
+            },
+          ),
+        );
+        log('walletJson: ${walletResponse.data} ${walletResponse.data.length}');
+        if (walletResponse.data['data'].length == 1) {
+          await _getStorage.write(
+              'walletId', walletResponse.data['data'][0]['id'].toString());
+          // return;
+        } else {
+          for (var wallet in walletResponse.data['data']) {
+            if (wallet['is_group_wallet'] == false  && wallet['default_currency'] == 'usd') {
+              log('individual USD wallet id: ${wallet['id']}');
+              await _getStorage.write(
+                  'walletIdUSD', wallet['id'].toString());
+              // return;
+            }
+          }
+        }
         await _handleSuccessfulLogin();
       } else if (response.statusCode == 401) {
         _handleFailedLogin(response);
@@ -926,7 +952,7 @@ class AuthController extends GetxController {
       // log('Handling successful login for $accountType');
 
       // Force navigation after successful login
-      final role = await _getStorage.read('account_type');
+      final role = await _getStorage.read('role');
       log('_handleSuccessfulLogin role: $role');
       WidgetsBinding.instance.addPostFrameCallback((_) async {
         Get.offAll(() => BottomBar());
@@ -1102,24 +1128,35 @@ class AuthController extends GetxController {
   }
 
   Future<void> updateAccount(String userId) async {
-    var response = await dio.put(
-      '${EnvConstants.APP_API_ENDPOINT}/auth/update-account/$userId',
-      data: {
-        'id': userId,
-        'avatar':
-            profileImageUrl.value.isNotEmpty ? profileImageUrl.value : null,
-        'national_id_url':
-            nIDFileUrl.value.isNotEmpty ? nIDFileUrl.value : null,
-        'passport_url':
-            passportFileUrl.value.isNotEmpty ? passportFileUrl.value : null,
-      },
-      options: Options(
-        validateStatus: (status) {
-          return status! < 500; // Don't throw for 4xx errors
+    log('${profileImageUrl.value}\n'
+        '${nIDFileUrl.value}\n'
+        '${passportFileUrl.value}');
+    try {
+      var response = await dio.patch(
+        '${EnvConstants.APP_API_ENDPOINT}/auth/update-account/$userId',
+        data: {
+          'id': userId,
+          'avatar':
+              profileImageUrl.value.isNotEmpty ? profileImageUrl.value : null,
+          'national_id_url':
+              nIDFileUrl.value.isNotEmpty ? nIDFileUrl.value : null,
+          'passport_url':
+              passportFileUrl.value.isNotEmpty ? passportFileUrl.value : null,
         },
-      ),
-    );
-    log(response.toString());
+        options: Options(
+          validateStatus: (status) {
+            return status! < 500; // Don't throw for 4xx errors
+          },
+        ),
+      );
+      log(response.data.toString());
+    } on Exception catch (e) {
+      log('Error updating account: $e');
+    }
+  }
+
+  bool isValidEmail(String email) {
+    return EmailValidator.validate(email);
   }
 
   Future<void> registerUser() async {
@@ -1148,25 +1185,19 @@ class AuthController extends GetxController {
         'gender': selectedGender.value,
         'date_of_birth': date_of_birth.value.toString(),
         'national_id_number': nationalIdNumber.value,
-        'national_id_url': null,
-        'passport_url': null,
+        'national_id_url': nIDFileUrl.value,
+        'passport_url': passportFileUrl.value,
         'avatar': null,
       };
 
-      // log('Auth data: ${EnvConstants.APP_API_ENDPOINT}');
-      // final x = (
-      //   '${EnvConstants.APP_API_ENDPOINT}/auth/create-account',
-      //   data: auth_data,
-      //   options: Options(
-      //     headers: {
-      //       'Content-Type': 'application/json',
-      //       'Accept': 'application/json',
-      //       'apikey': EnvConstants.SUPABASE_ROLE_KEY,
-      //       'Authorization': 'Bearer ${EnvConstants.SUPABASE_ROLE_KEY}',
-      //     },
-      //   ).toString(),
-      // ).toString();
-      // log(x);
+      log('Auth data: ${auth_data.toString()}');
+      if (!isValidEmail(email.value)) {
+        Helper.errorSnackBar(
+            title: 'Invalid Email',
+            message: 'Please enter a valid email address',
+            duration: 5);
+        return;
+      }
       var auth_response = await dio.post(
         '${EnvConstants.APP_API_ENDPOINT}/auth/create-account',
         data: auth_data,
@@ -1179,7 +1210,9 @@ class AuthController extends GetxController {
           },
         ),
       );
+
       log(auth_response.data.toString());
+
       if (auth_response.data == null || auth_response.data == '') {
         Helper.errorSnackBar(
             title: 'Empty response',
@@ -1187,37 +1220,43 @@ class AuthController extends GetxController {
             duration: 5);
         return;
       }
-      await _getStorage.write('userId', auth_response.data['user']['id']);
-      userId.value = auth_response.data['user']['id'];
-      var chatParams = {
-        'profile_id': userId.value,
-        'most_recent_content': 'pending approval'
-      };
-      await dio.post('${EnvConstants.APP_API_ENDPOINT}/chats',
-          data: chatParams);
-      // final walletJson =
-      //     await dio.post('${EnvConstants.APP_API_ENDPOINT}/wallets', data: walletParams);
-      // await _getStorage.write('walletId', walletJson.data['id']);
       if (auth_response.statusCode == 201) {
-        // await _getStorage.write(
-        //     'account_type', auth_response.data['user']['account_type']);
-
+        await _getStorage.write(
+            'accessToken', auth_response.data['access_token']);
+        await _getStorage.write('userId', auth_response.data['user']['id']);
+        userId.value = auth_response.data['user']['id'];
+        var chatParams = {
+          'profile_id': userId.value,
+          'most_recent_content': 'pending approval'
+        };
+        await dio.post('${EnvConstants.APP_API_ENDPOINT}/chats',
+            data: chatParams,
+            options: Options(headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json',
+              'apikey': _getStorage.read('accessToken'),
+              'Authorization': 'Bearer ${_getStorage.read('accessToken')}',
+            }));
         await _getStorage.write(
             'role', auth_response.data['user']['account_type']);
+        AuthDataResponse new_auth_data =
+            AuthDataResponse.fromJson(auth_response.data);
+        if (profileImageFile.value.path.isNotEmpty) {
+          profileImageUrl.value = await uploadFile(profileImageFile.value);
+        }
+        if (nIDFile.value.path.isNotEmpty) {
+          nIDFileUrl.value = await uploadFile(nIDFile.value);
+        }
+        if (profileImageUrl.value.isNotEmpty || nIDFile.value.path.isNotEmpty) {
+          await updateAccount(new_auth_data.user.id);
+          profileImageUrl.value = '';
+          nIDFileUrl.value = '';
+          passportFileUrl.value = '';
+          profileImageFile.value = File('');
+          nIDFile.value = File('');
+          passportFile.value = File('');
+        }
         if (account_type.value == 'coop-member') {
-          AuthDataResponse new_auth_data =
-              AuthDataResponse.fromJson(auth_response.data);
-          if (profileImageFile.value.path.isNotEmpty) {
-            profileImageUrl.value = (await uploadFile(profileImageFile.value))!;
-          }
-          if (nIDFile.value.path.isNotEmpty) {
-            nIDFileUrl.value = (await uploadFile(nIDFile.value))!;
-          }
-          if (profileImageUrl.value.isNotEmpty ||
-              nIDFile.value.path.isNotEmpty) {
-            await updateAccount(new_auth_data.user.id);
-          }
-
           Helper.successSnackBar(
               title: 'Mukai Community Welcome you  ',
               message: 'Your account successfully created',
@@ -1231,13 +1270,19 @@ class AuthController extends GetxController {
               duration: 5);
           Get.to(() => AdminRegisterCoopScreen());
         }
+      } else if (auth_response.data['errorObject']['status'] == 422) {
+        Helper.warningSnackBar(
+            title: 'Duplicate email',
+            message: 'Email already exists, please use another email',
+            duration: 5);
+        return;
       } else {
         isLoading.value = false;
-        final errorData = auth_response.data;
-        final errorMessage = errorData['message'] ?? 'Registration failed';
-        throw Exception(errorMessage);
+        // final errorData = auth_response.data;
+        // final errorMessage = errorData['message'] ?? 'Registration failed';
+        // throw Exception(errorMessage);
       }
-      addAuthData.value = false;
+      // addAuthData.value = false;
     } on DioException catch (e) {
       isLoading.value = false;
       addAuthData.value = false;
@@ -1290,8 +1335,11 @@ class AuthController extends GetxController {
         '${EnvConstants.APP_API_ENDPOINT}/cooperatives',
         data: req_data,
         options: Options(
-          validateStatus: (status) {
-            return status! < 500;
+          headers: {
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+            'apikey': _getStorage.read('accessToken'),
+            'Authorization': 'Bearer ${_getStorage.read('accessToken')}',
           },
         ),
       );
@@ -1406,9 +1454,13 @@ class AuthController extends GetxController {
       log('req_data: $req_data');
       // log('${APP_API_ENDPOINT}/cooperative_member_requests');
       var response = await dio.post(
-        '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests',
-        data: req_data,
-      );
+          '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_requests',
+          data: req_data,
+          options: Options(headers: {
+            'apikey': _getStorage.read('accessToken'),
+            'Authorization': 'Bearer ${_getStorage.read('accessToken')}',
+            'Content-Type': 'application/json',
+          }));
       log('response: ${JsonEncoder.withIndent(' ').convert(response.data)}');
       if (response.statusCode == 200 || response.statusCode == 201) {
         Helper.successSnackBar(
@@ -1493,13 +1545,13 @@ class AuthController extends GetxController {
             AuthDataResponse.fromJson(response.data);
         log('Registration successful: $new_auth_data');
         if (profileImageFile.value.path.isNotEmpty) {
-          profileImageUrl.value = (await uploadFile(profileImageFile.value))!;
+          profileImageUrl.value = await uploadFile(profileImageFile.value)!;
         }
         if (nIDFile.value.path.isNotEmpty) {
-          nIDFileUrl.value = (await uploadFile(nIDFile.value))!;
+          nIDFileUrl.value = await uploadFile(nIDFile.value);
         }
         if (profileImageUrl.value.isNotEmpty || nIDFile.value.path.isNotEmpty) {
-          var response = await dio.put(
+          var response = await dio.patch(
             '${EnvConstants.APP_API_ENDPOINT}/accounts/update-account/${new_auth_data.data.userId}',
             data: {
               'id': new_auth_data.data.userId,
@@ -1597,7 +1649,7 @@ class AuthController extends GetxController {
 
   changeProfile(String id) async {
     if (profileImageFile.value.path.isNotEmpty) {
-      profileImageUrl.value = (await uploadFile(profileImageFile.value))!;
+      profileImageUrl.value = await uploadFile(profileImageFile.value);
     }
   }
 
@@ -1757,57 +1809,81 @@ class AuthController extends GetxController {
     isLoading.value = false;
   }
 
-  pickFileLocalStorage(String purpose) async {
+  Future<void> pickFileLocalStorage(String purpose) async {
     xImageFiles.clear();
     imageFiles.clear();
-    ImagePicker imagePicker = ImagePicker();
-    XFile? xFile = await imagePicker.pickImage(source: ImageSource.gallery);
+    final ImagePicker imagePicker = ImagePicker();
+    final XFile? xFile =
+        await imagePicker.pickImage(source: ImageSource.gallery);
+
     log('uploadedImageUrl: ${uploadedImageUrl.value}');
+
     if (xFile != null) {
-      if (purpose == 'nID') {
-        nIDFile.value = File(xFile.path);
+      File? selectedFile;
+
+      switch (purpose) {
+        case 'nID':
+          nIDFile.value = File(xFile.path);
+          selectedFile = nIDFile.value;
+          break;
+        case 'propertyOwnership':
+          propertyOwnershipFile.value = File(xFile.path);
+          selectedFile = propertyOwnershipFile.value;
+          break;
+        case 'landMap':
+          landMapFile.value = File(xFile.path);
+          selectedFile = landMapFile.value;
+          break;
+        case 'profileImage':
+          profileImageFile.value = File(xFile.path);
+          selectedFile = profileImageFile.value;
+          break;
+        default:
+          log('Unknown purpose: $purpose');
+          return;
       }
-      if (purpose == 'propertyOwnership') {
-        propertyOwnershipFile.value = File(xFile.path);
-      }
-      if (purpose == 'landMap') {
-        landMapFile.value = File(xFile.path);
-      }
-      if (purpose == 'profileImage') {
-        profileImageFile.value = File(xFile.path);
-      }
+
       isImageAdded.value = true;
       update();
-      uploadedImageUrl.value = (await uploadFile(File(xFile.path)))!;
+
+      final String imageUrl = await uploadFile(selectedFile);
+      if (imageUrl != 'Failed to upload image') {
+        uploadedImageUrl.value = imageUrl;
+      }
+
       log('uploadedImageUrl: ${uploadedImageUrl.value}');
     }
     update();
   }
 
-  Future<String?> uploadFile(File file) async {
+  Future<String> uploadFile(File file) async {
     try {
       final fileExt = file.path.split('.').last;
       final fileName = '${uuid.v4()}.$fileExt';
       final filePath = 'images/$fileName';
-      log('uploadFile filePath: ${filePath}');
-      // await supabase.storage.from('kycfiles').remove(['']); // remove all files
-      // await supabase.storage.deleteBucket('kycfiles');
-      // await supabase.storage
-      //     .createBucket('kycfiles', const BucketOptions(public: true));
-      final String fullPath = await supabase.storage.from('kycfiles').upload(
+
+      log('uploadFile filePath: $filePath');
+
+      await supabase.storage.from('kycfiles').upload(
             filePath,
             file,
             fileOptions: const FileOptions(cacheControl: '3600', upsert: true),
           );
-      if (fullPath.isNotEmpty) {
-        print('Upload error: ${fullPath}');
-      } else {
-        print('Uploaded: ${fullPath}');
-      }
-      return null;
+
+      // if (uploadResponse != null) {
+      //   log('Upload error: $uploadResponse');
+      //   return null;
+      // }
+
+      // Get the public URL of the uploaded file
+      final String publicUrl =
+          supabase.storage.from('kycfiles').getPublicUrl(filePath);
+
+      log('File uploaded successfully. Public URL: $publicUrl');
+      return publicUrl;
     } catch (e, s) {
       log('uploadImages error: $e $s');
-      return null;
+      return 'Failed to upload file: ${e.toString()}';
     }
   }
 }
