@@ -39,6 +39,7 @@ import 'package:mukai/utils/utils.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:uuid/uuid.dart';
 
 class SetSavingsScreen extends StatefulWidget {
   final Group group;
@@ -358,63 +359,6 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
     );
   }
 
-  Widget _buildInterestDropdownField({
-    required String label,
-    required String value,
-    required List<String> options,
-    required ValueChanged<String?> onChanged,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(label, style: semibold14Black),
-        const SizedBox(height: 8),
-        Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 12),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black12,
-                blurRadius: 4,
-                offset: const Offset(0, 2),
-              ),
-            ],
-          ),
-          child: DropdownButtonFormField<String>(
-            value: value.isNotEmpty ? value : null,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.symmetric(horizontal: 12),
-            ),
-            hint: Text(
-              'Select interest rate',
-              style: TextStyle(color: Colors.black),
-            ),
-            items: options.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(
-                  '${(num.parse(value) * 100).toStringAsFixed(0)}%', // Show as percentage
-                  style: TextStyle(color: Colors.black),
-                ),
-              );
-            }).toList(),
-            onChanged: onChanged,
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Please select an interest rate';
-              }
-              return null;
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildDropdownField({
     required String label,
     required String value,
@@ -557,7 +501,53 @@ class SetSavingsScreenState extends State<SetSavingsScreen> {
   setSavingPlanButton() {
     return GestureDetector(
       onTap: () async {
-        await walletController.setSavingPlan();
+        final uuid = Uuid().v4().substring(20, 36);
+        walletController.setSaving.value.unlockKey = uuid;
+        await showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              backgroundColor: whiteColor,
+              title: const Text('Important: Save Your Code'),
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Text(
+                    'A unique code has been generated for your savings plan. Please screenshot or write down this code. You will need it to access or recover your plan.',
+                  ),
+                  const SizedBox(height: 16),
+                  SelectableText(
+                    uuid,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 18,
+                      color: primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  const Text('Keep this code safe!'),
+                ],
+              ),
+              actions: [
+                TextButton(
+                  onPressed: () async {
+                    Navigator.of(context).pop();
+                    await walletController.setSavingPlan();
+                    Get.back(result: true);
+                  },
+                  child: const Text('OK'),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  child: const Text('Cancel'),
+                ),
+              ],
+            );
+          },
+        );
+        
       },
       child: Container(
         width: width * 0.45,

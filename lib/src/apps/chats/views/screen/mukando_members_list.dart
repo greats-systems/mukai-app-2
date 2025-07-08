@@ -32,11 +32,11 @@ class _MukandoMembersListState extends State<MukandoMembersList> {
   List<Profile>? pendingMukandoMembers = [];
   bool _isLoading = true;
   bool _showActiveMembers = true;
-  bool _isDisposed = false; // Add disposal flag
+// Add disposal flag
 
   @override
   void dispose() {
-    _isDisposed = true; // Set flag when widget is disposed
+// Set flag when widget is disposed
     super.dispose();
   }
 

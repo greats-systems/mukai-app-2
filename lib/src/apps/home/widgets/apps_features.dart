@@ -6,7 +6,6 @@ import 'package:get/get.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/src/apps/converter/views/converter_screen.dart';
 import 'package:mukai/src/apps/home/account_loan.dart';
-import 'package:mukai/src/apps/home/apps/individual_loans/individual_loan_application.dart';
 import 'package:mukai/src/apps/home/apps/loans/loan_landing_page.dart';
 import 'package:mukai/src/apps/home/apps/pay_bills/pay_bills_transactions.dart';
 import 'package:mukai/src/apps/home/apps/savings/savings_landing_page.dart';

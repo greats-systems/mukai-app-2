@@ -7,8 +7,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/brick/models/profile.model.dart';
-import 'package:mukai/src/bottom_bar.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
@@ -44,11 +42,13 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
     var _Id = await _getStorage.read('userId');
     var _Role = await _getStorage.read('role');
     final profileJson = await profileController.getUserDetails(_Id!);
-    setState(() {
-      userId = _Id;
-      role = _Role;
-      profile = profileJson;
-    });
+    if (mounted) {
+  setState(() {
+    userId = _Id;
+    role = _Role;
+    profile = profileJson;
+  });
+}
   }
 
   @override

@@ -1260,14 +1260,14 @@ class AuthController extends GetxController {
         }
         if (account_type.value == 'coop-member') {
           Helper.successSnackBar(
-              title: 'Mukai Community Welcome you  ',
+              title: 'MkandoWallet Community Welcome you  ',
               message: 'Your account successfully created',
               duration: 5);
           Get.to(() => MemberRegisterCoopScreen());
           // Get.to(() => BottomBar());
         } else if (account_type.value == 'coop-manager') {
           Helper.successSnackBar(
-              title: 'Mukai Community Welcome you  ',
+              title: 'MkandoWallet Community Welcome you  ',
               message: 'Your account successfully created',
               duration: 5);
           Get.to(() => AdminRegisterCoopScreen());

@@ -3,14 +3,12 @@ import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supab
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:isar/isar.dart';
 import 'package:mukai/brick/brick.g.dart';
 import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
-import 'package:mukai/core/config/environment.dart';
 import 'package:mukai/firebase_options.dart';
 import 'package:mukai/local_storage.dart';
 import 'package:mukai/src/app.dart';
@@ -34,7 +32,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   log('kReleaseMode? $kReleaseMode');
-  final environment = kReleaseMode ? AppEnvironment.prod : AppEnvironment.dev;
+  // final environment = kReleaseMode ? AppEnvironment.prod : AppEnvironment.dev;
   
 
   // 1. Initialize environment variables

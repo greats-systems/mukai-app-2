@@ -7,7 +7,6 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 // import 'package:mukai/src/apps/profile/controllers/profile_provider.dart';
@@ -45,6 +44,69 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
   List<Wallet>? wallet;
   Future? _fetchDataFuture;
   String? role;
+
+  void showRatingDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        double rating = 0;
+        TextEditingController feedbackController = TextEditingController();
+        return AlertDialog(
+          title: const Text('Send Feedback'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('How would you rate your experience?'),
+              const SizedBox(height: 10),
+              StatefulBuilder(
+                builder: (context, setState) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        icon: Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            rating = index + 1.0;
+                          });
+                        },
+                      );
+                    }),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: feedbackController,
+                decoration: const InputDecoration(
+                  labelText: 'Additional feedback',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // You can handle the feedback submission here
+                Navigator.of(context).pop();
+                Get.snackbar('Thank you!', 'Your feedback has been submitted.');
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   Future<void> _fetchData() async {
     try {
@@ -93,6 +155,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
         children: [
           profileButton(),
           logoButton(),
+          // feedbackButton(),
         ],
       ),
     );
@@ -186,9 +249,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
                   width: MediaQuery.of(context).size.width * 0.3,
                   child: AutoSizeText(
                     Utils.trimp(role!),
-                    style: TextStyle(
-                        color:
-                            blackColor), // Consider using a smaller, grey style for role
+                    style: medium14Black, // Consider using a smaller, grey style for role
                     maxLines: 1,
                   ),
                 ),

@@ -33,7 +33,6 @@ class _AccountTransactionsList extends State<AccountTransactionsList> {
 
   listContent(BuildContext context) {
     final size = MediaQuery.sizeOf(context);
-    double width = size.width;  
     double height = size.height;
     return StreamBuilder<List<Transaction>>(
       stream: transactionController.streamAccountTransaction(),

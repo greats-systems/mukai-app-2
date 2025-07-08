@@ -3,21 +3,16 @@ import 'dart:developer';
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
-import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
 import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
-import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
 import 'package:mukai/src/apps/home/landing_quick_transact.dart';
-import 'package:mukai/src/apps/home/qr_code.dart';
 import 'package:mukai/src/apps/home/widgets/admin_app_header.dart';
 import 'package:mukai/src/apps/reports/views/reports_screen.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
-import 'package:mukai/src/apps/transactions/views/screens/transfers.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/chats/views/screen/communications_screen.dart';
 // import 'package:mukai/src/apps/chats/views/widgets/realtime_conversations_list.dart';
 import 'package:mukai/src/apps/home/admin_landing.dart';
-import 'package:mukai/src/apps/settings/screens/adming_setttings_landing.dart';
 import 'package:mukai/src/apps/settings/screens/member_settings_landing.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
@@ -27,7 +22,6 @@ import 'package:get/get.dart';
 import 'package:iconify_flutter_plus/iconify_flutter_plus.dart';
 import 'package:icons_plus/icons_plus.dart';
 import 'package:animated_bottom_navigation_bar/animated_bottom_navigation_bar.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 
 class BottomBar extends StatefulWidget {
   final String? role;
@@ -51,7 +45,7 @@ class _BottomBarState extends State<BottomBar> {
   final WalletController _walletController = WalletController();
   final ProfileController _profileController = ProfileController();
 
-  // late List<Widget> membermanagerPages;
+  // late List<Widget> memberPages;
   String? userId;
   String? userRole;
   int _currentIndex = 0;
@@ -61,7 +55,6 @@ class _BottomBarState extends State<BottomBar> {
   String? walletId;
 
   bool _isDisposed = false;
-  bool _isLoading = false;
   Future<void> _fetchData() async {
     userId = _getStorage.read('userId');
     userRole = _getStorage.read('role');
@@ -69,7 +62,6 @@ class _BottomBarState extends State<BottomBar> {
 
   Future<void> fetchWalletID() async {
     setState(() {
-      _isLoading = true;
       userId = _getStorage.read('userId');
     });
 
@@ -79,13 +71,11 @@ class _BottomBarState extends State<BottomBar> {
       if (!_isDisposed && mounted) {
         setState(() {
           wallets = walletJson;
-          _isLoading = false;
         });
       }
     } catch (e) {
       if (!_isDisposed && mounted) {
         setState(() {
-          _isLoading = false;
         });
       }
     }
@@ -115,10 +105,10 @@ class _BottomBarState extends State<BottomBar> {
     CommunicationsScreen(
       initialselectedTab: 0,
     ),
-    const AdmingSettingsLandingScreen(),
+    const MemberSettingsLandingScreen(),
   ];
 
-  final membermanagerPages = [
+  final memberPages = [
     AdminLandingScreen(),
     ReportsScreen(),
     CommunicationsScreen(
@@ -174,7 +164,7 @@ class _BottomBarState extends State<BottomBar> {
               color: whiteF5Color, // Background color
               child: userRole == 'coop-manager'
                   ? managerPages[_currentIndex]
-                  : membermanagerPages[_currentIndex],
+                  : memberPages[_currentIndex],
             )),
       floatingActionButton: userRole == 'coop-manager' && _currentIndex == 2
           ? addGroup()

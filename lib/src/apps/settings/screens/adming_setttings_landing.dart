@@ -5,7 +5,6 @@ import 'package:iconify_flutter_plus/icons/material_symbols.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
-import 'package:mukai/src/apps/groups/views/screens/members/group_members.dart';
 import 'package:mukai/src/controllers/group.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
@@ -176,10 +175,10 @@ class _AdmingSetttingsLandingScreenState
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.2), // Shadow color
-              blurRadius: 8.0, // Blur radius
-              spreadRadius: 2.0, // Spread radius
-              offset: const Offset(0, 4), // Shadow position (bottom)
+              color: Colors.black.withOpacity(0.2),
+              blurRadius: 8.0,
+              spreadRadius: 2.0,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
@@ -218,18 +217,21 @@ class _AdmingSetttingsLandingScreenState
             Divider(
               color: greyColor.withValues(alpha: 0.2),
             ),
-            Row(
-              spacing: 10,
-              children: [
-                Iconify(
-                  Ri.mail_send_line,
-                  color: primaryColor,
-                ),
-                Text(
-                  'Send feedback',
-                  style: bold16Black,
-                )
-              ],
+            GestureDetector(
+              onTap: showRatingDialog,
+              child: Row(
+                spacing: 10,
+                children: [
+                  Iconify(
+                    Ri.mail_send_line,
+                    color: primaryColor,
+                  ),
+                  Text(
+                    'Send feedback',
+                    style: bold16Black,
+                  )
+                ],
+              ),
             ),
             Divider(
               color: greyColor.withValues(alpha: 0.2),
@@ -256,6 +258,69 @@ class _AdmingSetttingsLandingScreenState
         ),
       )
     ]);
+  }
+
+  void showRatingDialog() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        double rating = 0;
+        TextEditingController feedbackController = TextEditingController();
+        return AlertDialog(
+          title: const Text('Send Feedback'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text('How would you rate your experience?'),
+              const SizedBox(height: 10),
+              StatefulBuilder(
+                builder: (context, setState) {
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        icon: Icon(
+                          index < rating ? Icons.star : Icons.star_border,
+                          color: Colors.amber,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            rating = index + 1.0;
+                          });
+                        },
+                      );
+                    }),
+                  );
+                },
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: feedbackController,
+                decoration: const InputDecoration(
+                  labelText: 'Additional feedback',
+                  border: OutlineInputBorder(),
+                ),
+                maxLines: 3,
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancel'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                // Handle feedback submission here
+                Navigator.of(context).pop();
+                Get.snackbar('Thank you!', 'Your feedback has been submitted.');
+              },
+              child: const Text('Submit'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   logoutDialog() {

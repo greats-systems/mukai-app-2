@@ -180,7 +180,7 @@ class WalletController {
       setSaving.value.id = Uuid().v4();
       setSaving.value.isLocked = true;
       setSaving.value.createdAt = DateTime.now().toIso8601String();
-      setSaving.value.unlockKey = Uuid().v4().substring(20, 36);
+      // setSaving.value.unlockKey = Uuid().v4().substring(20, 36);
       log('setSavingPlan data: ${setSaving.value.toJson()}');
       final json = await supabase
           .from('savings_portfolios')

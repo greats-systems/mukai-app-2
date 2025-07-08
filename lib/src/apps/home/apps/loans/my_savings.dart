@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/src/get_main.dart';
 import 'package:get_storage/get_storage.dart';
+import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/saving.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
@@ -10,6 +11,7 @@ import 'package:mukai/src/apps/home/apps/loans/loan_detail.dart';
 import 'package:mukai/src/apps/groups/views/widgets/loan_item.dart';
 import 'package:mukai/src/apps/home/apps/savings/saving_detail.dart';
 import 'package:mukai/src/apps/home/apps/savings/saving_item.dart';
+import 'package:mukai/src/apps/home/apps/savings/set_saving.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
@@ -68,51 +70,55 @@ class _SavingsScreenState extends State<MySavingsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return _isLoading
-        ? Center(
-            child: LoadingShimmerWidget(),
-          )
-        : savings == null || savings!.isEmpty
-            ? Center(
-                child: Text('No savings yet'),
-              )
-            : ListView.builder(
-                itemCount: savings!.length,
-                itemBuilder: (context, index) {
-                  Saving saving = savings![index];
-                  return Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: GestureDetector(
-                      onTap: () {
-                        // loanController.selectedLoan.value = loan;
-                        Get.to(() => SavingDetailScreen(
-                              // groupId: widget.group.id,
-                              saving: saving,
-                              // isActive: _showActiveMembers,
-                            ));
-                      },
-                      child: Container(
-                        width: double.maxFinite,
-                        clipBehavior: Clip.hardEdge,
-                        decoration: BoxDecoration(
-                          color: whiteColor,
-                          borderRadius: BorderRadius.circular(10.0),
-                          boxShadow: recShadow,
-                        ),
-                        child: Container(
-                          padding: const EdgeInsets.all(fixPadding * 1.5),
-                          margin:
-                              const EdgeInsets.symmetric(vertical: fixPadding),
-                          decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(10.0),
-                            color: whiteColor.withOpacity(0.1),
-                          ),
-                          child: SavingItemWidget(saving: saving),
-                        ),
-                      ),
+    if (_isLoading) {
+      return Center(child: LoadingShimmerWidget());
+    }
+    if (savings == null || savings!.isEmpty) {
+      return Center(child: Text('No savings yet'));
+    }
+    return Column(
+      children: [
+        Expanded(
+          child: ListView.builder(
+            itemCount: savings!.length,
+            itemBuilder: (context, index) {
+              Saving saving = savings![index];
+              return Padding(
+                padding: const EdgeInsets.all(4.0),
+                child: GestureDetector(
+                  onTap: () async {
+                    // Await result from detail or set screen
+                    var result = await Get.to(() => SavingDetailScreen(
+                          saving: saving,
+                        ));
+                    if (result == true) {
+                      fetchId(); // Refresh list if portfolio was updated/unlocked
+                    }
+                  },
+                  child: Container(
+                    width: double.maxFinite,
+                    clipBehavior: Clip.hardEdge,
+                    decoration: BoxDecoration(
+                      color: whiteColor,
+                      borderRadius: BorderRadius.circular(10.0),
+                      boxShadow: recShadow,
                     ),
-                  );
-                },
+                    child: Container(
+                      padding: const EdgeInsets.all(fixPadding * 1.5),
+                      margin: const EdgeInsets.symmetric(vertical: fixPadding),
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(10.0),
+                        color: whiteColor.withOpacity(0.1),
+                      ),
+                      child: SavingItemWidget(saving: saving),
+                    ),
+                  ),
+                ),
               );
+            },
+          ),
+        ),
+      ],
+    );
   }
 }

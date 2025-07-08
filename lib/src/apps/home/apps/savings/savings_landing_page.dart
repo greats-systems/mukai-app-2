@@ -1,20 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/loan.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
-import 'package:mukai/components/app_bar.dart';
-import 'package:mukai/src/apps/home/apps/loans/coop_loans.dart';
-import 'package:mukai/src/apps/home/apps/loans/loan_application.dart';
-import 'package:mukai/src/apps/home/apps/loans/my_loans.dart';
 import 'package:mukai/src/apps/home/apps/loans/my_savings.dart';
 import 'package:mukai/src/apps/home/apps/savings/set_saving.dart';
 import 'package:mukai/src/bottom_bar.dart';
-import 'package:mukai/src/controllers/loan.controller.dart';
-import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/theme/theme.dart';
-import 'package:mukai/utils/utils.dart';
 import 'package:mukai/widget/loading_shimmer.dart';
 
 class SavingsLandingPageScreen extends StatefulWidget {
@@ -32,16 +24,13 @@ class SavingsLandingPageScreen extends StatefulWidget {
 class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
   final tabList = ["MySavings"];
   int selectedTab = 0;
-  final GetStorage _getStorage = GetStorage();
-  final WalletController _walletController = WalletController();
-  final LoanController _loanController = LoanController();
   List<Wallet>? wallets;
   List<Loan>? loans;
   String? userId;
   String? role;
   bool _isLoading = false;
   bool refresh = false;
-  late double height;
+  // late double height;
   late double width;
   late PageController pageController = PageController();
 
@@ -58,9 +47,6 @@ class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final size = MediaQuery.sizeOf(context);
-    width = size.width;
-    height = size.height;
     return Scaffold(
       floatingActionButton: selectedTab == 0
           ? FloatingActionButton(
@@ -75,30 +61,32 @@ class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
       appBar: AppBar(
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(
-            bottom: Radius.circular(20.0), // Adjust the radius as needed
+            bottom: Radius.circular(20.0),
           ),
         ),
         elevation: 0,
         automaticallyImplyLeading: false,
         leading: IconButton(
-          onPressed: () {
-            Get.to(() => BottomBar());
-          },
-          icon: const Icon(
-            Icons.arrow_back,
-            color: whiteColor,
-          ),
+          onPressed: () => Get.to(() => BottomBar()),
+          icon: const Icon(Icons.arrow_back, color: whiteColor),
         ),
         backgroundColor: primaryColor,
         centerTitle: false,
         titleSpacing: 20.0,
         toolbarHeight: 70.0,
         title: Text(
-          Utils.trimp('MySavings Portfolio'),
+          'MySavings Portfolio',
           style: bold18WhiteF5,
         ),
       ),
-      body: buildBody(),
+      body: Column(
+        children: [
+          // Remove the nested ListView and just use the tab previews directly
+          Expanded(
+            child: tabPreviews(),
+          ),
+        ],
+      ),
     );
   }
 
@@ -214,6 +202,8 @@ class _SavingsLandingPageScreenState extends State<SavingsLandingPageScreen> {
   }
 
   Widget tabPreviews() {
+    final size = MediaQuery.of(context).size;
+    final height = size.height - AppBar().preferredSize.height - 20.0;
     return SizedBox(
       height: height,
       child: Padding(

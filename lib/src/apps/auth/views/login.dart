@@ -130,7 +130,8 @@ class LoginScreen extends StatelessWidget {
     return GestureDetector(
       onTap: () {
         if (authController.loginOption.value == 'phone') {
-          authController.login();
+          // authController.login();
+          Get.snackbar('Coming soon', 'Phone login is not available yet');
         } else {
           authController.signin();
         }

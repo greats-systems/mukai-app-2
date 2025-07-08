@@ -4,7 +4,6 @@ import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/src/apps/groups/views/screens/polls/coop_poll_details.dart';
-import 'package:mukai/src/apps/groups/views/screens/polls/coop_polls.dart';
 import 'package:mukai/src/apps/groups/views/widgets/poll_item.dart';
 import 'dart:developer';
 // import 'package:mukai/src/apps/home/apps/cmas/loan_detail.dart';
