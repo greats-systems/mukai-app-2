@@ -937,6 +937,8 @@ class AuthController extends GetxController {
           'sessionExpiration', authResponse.session!.expiresAt);
       await _getStorage.write('userId', authResponse.user!.id);
       await _getStorage.write('role', authResponse.user!.role);
+      // await _getStorage.write(
+      //     'walletId', authResponse.user!.walletId ?? '');
       log('Session data saved successfully');
     } catch (e) {
       log('Error saving session data: $e');

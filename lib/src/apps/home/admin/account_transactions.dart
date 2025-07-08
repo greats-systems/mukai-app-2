@@ -66,7 +66,7 @@ class _AccountTransactionsList extends State<AccountTransactionsList> {
             border: Border.all(color: recWhiteColor),
           ),
           child: Padding(
-              padding: EdgeInsets.only(top: height/10),
+              padding: EdgeInsets.only(top: height/20),
               child: ListView.builder(
                 itemCount: data
                     .length, // Replace with your marketPlaceProducts count

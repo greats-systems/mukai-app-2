@@ -57,11 +57,11 @@ class _AdminLandingScreenState extends State<AdminLandingScreen> {
     log('AdminLandingScreen userId: $userId');
 
     try {
-      final walletJson = await _walletController.getIndividualWallets(userId!);
+      // final walletJson = await _walletController.getIndividualWallets(userId!);
       final profileJson = await _profileController.getUserDetails(userId!);
       if (!_isDisposed && mounted) {
         setState(() {
-          wallets = walletJson;
+          // wallets = walletJson;
           profile = Profile.fromMap(profileJson!);
           isLoading = false;
         });

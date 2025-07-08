@@ -164,8 +164,10 @@ class ProfileController extends MainController {
         return profileWallets;
       }
       return null;
-    } catch (error) {
+    } catch (error, stackTrace) {
       isLoading.value = false;
+      log('getProfileWallets error: $error',
+          stackTrace: stackTrace);  
       if (error is DioException) {
         Helper.warningSnackBar(
             title: 'getProfileWallets DioException',

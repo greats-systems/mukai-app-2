@@ -175,8 +175,8 @@ class _AdminAppHeaderWidgetState extends State<AdminAppHeaderWidget> {
                 width: MediaQuery.of(context).size.width * 0.3,
                 child: AutoSizeText(
                   Utils.trimp(role!),
-                  style: TextStyle(color: blackColor), // Consider using a smaller, grey style for role
-                  maxLines: 1,
+                  style: medium14Black,
+                maxLines: 1,
                 ),
               ),
           ],

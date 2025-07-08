@@ -1,30 +1,10 @@
-/*
-import 'package:flutter/material.dart';
-
-class IndividualLoanApplication extends StatefulWidget {
-  const IndividualLoanApplication({super.key});
-
-  @override
-  State<IndividualLoanApplication> createState() => _IndividualLoanApplicationState();
-}
-
-class _IndividualLoanApplicationState extends State<IndividualLoanApplication> {
-  @override
-  Widget build(BuildContext context) {
-    return const Placeholder();
-  }
-}
-*/
-
 import 'dart:convert';
 import 'dart:developer';
 
 import 'package:dropdown_search/dropdown_search.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
-import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/wallet.model.dart';
-import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
+import 'package:mukai/components/app_bar.dart';
 import 'package:mukai/src/controllers/loan.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/controllers/profile_controller.dart';
@@ -35,18 +15,16 @@ import 'package:mukai/widget/loading_shimmer.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 
-class IndividualLoanApplicationScreen extends StatefulWidget {
-  final Group group;
-  IndividualLoanApplicationScreen({
+class AccountLoanApplicationScreen extends StatefulWidget {
+  AccountLoanApplicationScreen({
     super.key,
-    required this.group,
   });
 
   @override
-  State<IndividualLoanApplicationScreen> createState() => IndividualLoanApplicationScreenState();
+  State<AccountLoanApplicationScreen> createState() => AccountLoanApplicationScreenState();
 }
 
-class IndividualLoanApplicationScreenState extends State<IndividualLoanApplicationScreen> {
+class AccountLoanApplicationScreenState extends State<AccountLoanApplicationScreen> {
   TextEditingController purposeController = TextEditingController();
   TextEditingController principalAmountController = TextEditingController();
   TextEditingController paybackPeriodController = TextEditingController();
@@ -72,8 +50,6 @@ class IndividualLoanApplicationScreenState extends State<IndividualLoanApplicati
   // GroupController get groupController => Get.put(GroupController());
   ProfileController get profileController => Get.put(ProfileController());
   LoanController get loanController => Get.put(LoanController());
-  CooperativeMemberApprovalsController cmaController =
-      Get.put(CooperativeMemberApprovalsController());
   WalletController get walletController => Get.put(WalletController());
   late double height;
   late double width;
@@ -96,24 +72,19 @@ class IndividualLoanApplicationScreenState extends State<IndividualLoanApplicati
     try {
       final id = await _getStorage.read('userId');
       final _role = await _getStorage.read('role');
-      final borrowerWalletJson =
-          await walletController.getIndividualWallets(id);
-      final lenderWalletJson =
-          await walletController.getGroupWallet(widget.group.id!);
+      final userData = await profileController.getUserDetails(id!);
       if (mounted) {
         setState(() {
           userId = id;
           role = _role;
-          borrowerWallet = borrowerWalletJson;
-          lenderWallet = lenderWalletJson;
-          loanController.selectedCoop.value.id = widget.group.id;
+          userJson = userData;
+          _isLoading = false;
         });
       }
-      log('group id: ${widget.group.id}');
       log('group balance: ${lenderWallet?.balance.toString()}');
-      log('IndividualLoanApplicationScreen data\nuser id: $userId\nborrower wallet:${JsonEncoder.withIndent('').convert(borrowerWallet)}\nlender wallet: ${JsonEncoder.withIndent('').convert(lenderWallet)}');
+      log('AccountLoanApplicationScreen data\nuser id: $userId\nborrower wallet:${JsonEncoder.withIndent('').convert(borrowerWallet)}\nlender wallet: ${JsonEncoder.withIndent('').convert(lenderWallet)}');
     } catch (e, s) {
-      log('IndividualLoanApplicationScreen error: $e $s');
+      log('AccountLoanApplicationScreen error: $e $s');
     }
   }
 
@@ -126,7 +97,6 @@ class IndividualLoanApplicationScreenState extends State<IndividualLoanApplicati
   @override
   void dispose() {
     super.dispose();
-    cmaController.cma.value = CooperativeMemberApproval();
     paymentAmount = 0;
     principalAmount = 0;
   }
@@ -140,6 +110,7 @@ class IndividualLoanApplicationScreenState extends State<IndividualLoanApplicati
     return _isLoading
         ? Center(child: LoadingShimmerWidget())
         : Scaffold(
+            appBar: MyAppBar(title: 'Account loan application'),
             body: Container(
               color: whiteF5Color,
               child: loanApplicationForm(),
@@ -164,57 +135,8 @@ class IndividualLoanApplicationScreenState extends State<IndividualLoanApplicati
         collateralSwitch(),
         heightBox(20),
         if (_hasCollateral) collateralField(),
-        Text(
-            '*based on ${((widget.group.interest_rate) * 100).toStringAsFixed(0)}% monthly simple interest'),
-        Obx(() => cmaController.isLoading.value == true
-            ? const LinearProgressIndicator(
-                minHeight: 1,
-                color: whiteColor,
-              )
-            : saveButton(context)),
+        saveButton(context),
       ],
-    );
-  }
-
-  saveInterestButton(BuildContext context) {
-    return Padding(
-      padding: EdgeInsets.only(bottom: MediaQuery.viewInsetsOf(context).bottom),
-      child: GestureDetector(
-        onTap: () async {
-          try {
-            cmaController.createPoll();
-          } on Exception catch (e, s) {
-            log('saveButton error $e $s');
-          }
-          // Navigator.pop(context);
-          Helper.successSnackBar(
-              title: 'Success',
-              message: 'Loan application created',
-              duration: 5);
-        },
-        child: Obx(() => profileController.isLoading.value == true
-            ? const LinearProgressIndicator(
-                color: whiteColor,
-              )
-            : Container(
-                width: double.maxFinite,
-                margin: const EdgeInsets.fromLTRB(fixPadding * 2.0,
-                    fixPadding * 2.0, fixPadding * 2.0, fixPadding * 3.0),
-                padding: const EdgeInsets.symmetric(
-                    horizontal: fixPadding * 2.0, vertical: fixPadding * 1.4),
-                decoration: BoxDecoration(
-                  color: primaryColor,
-                  borderRadius: BorderRadius.circular(10.0),
-                  boxShadow: buttonShadow,
-                ),
-                child: const Text(
-                  "Save Interest Rate",
-                  style: bold18White,
-                  textAlign: TextAlign.center,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              )),
-      ),
     );
   }
 
@@ -227,30 +149,11 @@ class IndividualLoanApplicationScreenState extends State<IndividualLoanApplicati
           loanController.selectedLoan.value.borrowerWalletId =
               borrowerWallet![0].id;
           loanController.selectedLoan.value.lenderWalletId = lenderWallet!.id;
-          loanController.selectedLoan.value.interestRate =
-              widget.group.interest_rate;
           loanController.selectedLoan.value.profileId = userId;
-          loanController.selectedLoan.value.cooperativeId = widget.group.id!;
           loanController.selectedLoan.value.paymentAmount = paymentAmount;
           final loanResponse = await loanController.createLoan(userId!);
           if (loanResponse != null) {
             log('loan response ${loanResponse['id'].toString()}');
-          }
-
-          // Data for voting
-          if (loanResponse != null) {
-            cmaController.cma.value.pollDescription = 'loan application';
-            cmaController.cma.value.groupId = widget.group.id!;
-            cmaController.cma.value.profileId = userId;
-            cmaController.cma.value.updatedAt =
-                DateTime.now().toIso8601String();
-            cmaController.cma.value.additionalInfo = principalAmount;
-            cmaController.cma.value.consensusReached = false;
-            cmaController.selectedGroup.value?.id = widget.group.id;
-            cmaController.cma.value.loanId = loanResponse['id'].toString();
-            cmaController.createPoll();
-          } else {
-            log('No response from loan creation');
           }
         }
       } else {

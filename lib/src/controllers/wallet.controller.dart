@@ -26,8 +26,8 @@ class WalletController {
       final response =
           await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$userId',
               options: Options(headers: {
-                'apikey': accessToken,
-                'Authorization': 'Bearer $accessToken',
+                'apikey': GetStorage().read('accessToken'),
+                'Authorization': 'Bearer ${GetStorage().read('accessToken')}',
                 'Content-Type': 'application/json',
               }));
       // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');
@@ -59,8 +59,8 @@ class WalletController {
       final response = await dio.get(
           '${EnvConstants.APP_API_ENDPOINT}/wallets/member/$userId',
           options: Options(headers: {
-            'apikey': accessToken,
-            'Authorization': 'Bearer $accessToken',
+            'apikey': {EnvConstants.SUPABASE_ROLE_KEY},
+            'Authorization': 'Bearer ${EnvConstants.SUPABASE_ROLE_KEY}',
             'Content-Type': 'application/json',
           }));
       // log('getWalletsByProfileID data: ${JsonEncoder.withIndent(' ').convert(response.data)}');

@@ -156,7 +156,7 @@ class _WalletBalancesWidgetState extends State<WalletBalancesWidget> {
               MetricRow(
                 icon: "assets/icons/Vector.png",
                 title: 'Wallet-ID',
-                zigValue: profile_wallet_id?.substring(31, 36).toUpperCase() ?? 'N/A',
+                zigValue: userProfile?['wallet_id']?.substring(31, 36).toUpperCase() ?? 'N/A',
                 usdValue: '',
               ),
               MetricRow(

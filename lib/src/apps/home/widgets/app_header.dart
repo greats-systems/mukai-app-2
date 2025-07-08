@@ -1,6 +1,7 @@
 import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
@@ -14,6 +15,7 @@ import 'package:mukai/src/controllers/wallet.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:mukai/utils/utils.dart';
+import 'package:mukai/widget/loading_shimmer.dart';
 
 class AppHeaderWidget extends StatefulWidget {
   final String? title;
@@ -34,7 +36,7 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
   var cartTotalAmount = 0.0;
   String store_name = '';
   final GetStorage _getStorage = GetStorage();
-  var profile = Profile(full_name: '', id: '');
+  Map<String, dynamic>? profile;
   late double height;
   late double width;
   late PageController pageController = PageController();
@@ -42,11 +44,18 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
   int selectedTab = 0;
   List<Wallet>? wallet;
   Future? _fetchDataFuture;
+  String? role;
 
   Future<void> _fetchData() async {
     try {
       final userId = await _getStorage.read('userId');
       if (!mounted) return;
+      var _Role = await _getStorage.read('role');
+      final profileJson = await profileController.getUserDetails(userId!);
+      setState(() {
+        role = _Role;
+        profile = profileJson;
+      });
 
       final walletData = await _walletController.getWalletsByProfileID(userId);
       if (!mounted) return;
@@ -113,49 +122,78 @@ class _AppHeaderWidgetState extends State<AppHeaderWidget> {
     );
   }
 
-  profileButton() {
+  Widget profileButton() {
     return GestureDetector(
       onTap: () {
         // Get.to(() => const ProfileScreen());
       },
       child: Row(
-        spacing: 15,
         children: [
+          const SizedBox(width: 15),
+          // Circular profile avatar
           Container(
             height: 50.0,
             width: 50.0,
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: recColor,
+              color: profile?['avatar'] == null ? recColor : Colors.transparent,
             ),
-            alignment: Alignment.center,
-            child: const Iconify(
-              Ri.account_circle_fill,
-              size: 50.0,
-              color: whiteColor,
+            child: ClipOval(
+              child: profile?['avatar'] == null
+                  ? const Iconify(
+                      Ri.account_circle_fill,
+                      size: 50.0,
+                      color: whiteColor,
+                    )
+                  : CachedNetworkImage(
+                      imageUrl: profile?['avatar']!,
+                      fit: BoxFit.cover,
+                      width: 50.0,
+                      height: 50.0,
+                      placeholder: (context, url) =>
+                          const LoadingShimmerWidget(),
+                      errorWidget: (context, url, error) => const Iconify(
+                        Ri.account_circle_fill,
+                        size: 50.0,
+                        color: whiteColor,
+                      ),
+                    ),
             ),
           ),
+          const SizedBox(width: 15),
+          // Name column with first and last name on separate lines
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisAlignment: MainAxisAlignment.start,
             children: [
               SizedBox(
-                width: width * 0.3,
+                width: MediaQuery.of(context).size.width * 0.3,
                 child: AutoSizeText(
-                  '${Utils.trimp(profileController.profile.value.first_name ?? 'No name')} ${Utils.trimp(profileController.profile.value.last_name ?? 'No name')}',
+                  Utils.trimp(profile?['first_name'] ?? 'No name'),
                   style: medium14Black,
+                  maxLines: 1,
                 ),
               ),
               SizedBox(
-                width: width * 0.3,
+                width: MediaQuery.of(context).size.width * 0.3,
                 child: AutoSizeText(
-                  Utils.trimp(profileController.profile.value.account_type ??
-                      'No account type'),
+                  Utils.trimp(profile?['last_name'] ?? 'No name'),
                   style: medium14Black,
+                  maxLines: 1,
                 ),
               ),
+              if (role != null && role!.isNotEmpty)
+                SizedBox(
+                  width: MediaQuery.of(context).size.width * 0.3,
+                  child: AutoSizeText(
+                    Utils.trimp(role!),
+                    style: TextStyle(
+                        color:
+                            blackColor), // Consider using a smaller, grey style for role
+                    maxLines: 1,
+                  ),
+                ),
             ],
-          )
+          ),
         ],
       ),
     );

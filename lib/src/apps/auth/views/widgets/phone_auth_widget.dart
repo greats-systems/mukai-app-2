@@ -1,3 +1,4 @@
+import 'package:intl_phone_field/phone_number.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:flutter/material.dart';
@@ -84,7 +85,7 @@ class PhoneAuthWidget extends StatelessWidget {
     return IntlPhoneField(
       // focusNode: FocusNode(onKeyEvent: ),
       keyboardType: TextInputType.phone,
-      onChanged: (value) => {
+      onChanged: (PhoneNumber value) => {
         authController.phoneNumber.value =
             '${value.countryCode}${value.number.replaceFirst(RegExp(r'0'), '')}',
       },
@@ -98,7 +99,7 @@ class PhoneAuthWidget extends StatelessWidget {
         Icons.keyboard_arrow_down,
         color: blackColor,
       ),
-      style: medium15White,
+      style: TextStyle(color: blackColor),
       dropdownDecoration: const BoxDecoration(
         border: Border(
           right: BorderSide(color: whiteF5Color, width: 2.0),

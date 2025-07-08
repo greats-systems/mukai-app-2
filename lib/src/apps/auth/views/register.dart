@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:iconify_flutter_plus/icons/ri.dart';
+import 'package:intl_phone_field/phone_number.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/routes/app_pages.dart';
 import 'package:mukai/theme/theme.dart';
@@ -479,10 +480,10 @@ class RegisterScreen extends StatelessWidget {
                       authController.selected_country_options.value =
                           selectedProvinceData[value]!;
                     }
-                    if (authController.selected_country_options!=null) {
-  authController.district.value =
-      authController.selected_country_options[0];
-}
+                    if (authController.selected_country_options != null) {
+                      authController.district.value =
+                          authController.selected_country_options[0];
+                    }
                     // // //
                     authController.selected_province_town_city_options.value =
                         selectedProvinceCityData[value]!;
@@ -771,16 +772,55 @@ class RegisterScreen extends StatelessWidget {
     );
   }
 
+  bool checkEmptyFields(TextEditingController controller) {
+    log("Checking if field is empty: ${controller.text}");
+    return controller.text.isEmpty;
+  }
+
   registerButton() {
     return GestureDetector(
       onTap: () {
         if (authController.addAuthData.value == false) {
+          // Check all required fields before proceeding
+          if (checkEmptyFields(firstNameController) ||
+              checkEmptyFields(lastNameController) ||
+              checkEmptyFields(nationalIdController) ||
+              checkEmptyFields(emailController) ||
+              checkEmptyFields(passwordController) ||
+              checkEmptyFields(confirmPasswordController) ||
+              checkEmptyFields(phoneController)) {
+            Get.snackbar(
+              "Missing Fields",
+              "Please fill in all required fields.",
+              backgroundColor: Colors.red[100],
+              colorText: Colors.red[900],
+            );
+            return;
+          }
+          // Mobile number validation (example: must be at least 10 digits)
+          String phone = phoneController.text.replaceAll(RegExp(r'0'), '');
+          if (phone.length < 10) {
+            Get.snackbar(
+              "Invalid Mobile Number",
+              "Please enter a valid mobile number.",
+              backgroundColor: Colors.red[100],
+              colorText: Colors.red[900],
+            );
+            return;
+          }
+          if (passwordController.text != confirmPasswordController.text) {
+            Get.snackbar(
+              "Password Mismatch",
+              "Passwords do not match.",
+              backgroundColor: Colors.red[100],
+              colorText: Colors.red[900],
+            );
+            return;
+          }
           authController.addAuthData.value = true;
           authController.addAuthData.refresh();
         } else {
-          // Handle case where account_type is not empty
-          authController.addAuthData.value = false;
-          authController.addAuthData.refresh();
+          // Additional checks for the next step if needed
           authController.registerUser();
         }
       },
@@ -794,7 +834,6 @@ class RegisterScreen extends StatelessWidget {
             decoration: BoxDecoration(
               color: primaryColor,
               borderRadius: BorderRadius.circular(10.0),
-              // boxShadow: buttonShadow,
             ),
             alignment: Alignment.center,
             child: const Row(
@@ -912,8 +951,9 @@ class RegisterScreen extends StatelessWidget {
         //   if()
         // },
         keyboardType: TextInputType.phone,
-        onChanged: (value) => {
-          authController.phoneNumber.value = value.completeNumber,
+        onChanged: (PhoneNumber value) {
+          log(value.completeNumber);
+          authController.phoneNumber.value = value.completeNumber;
         },
         controller: phoneController,
         disableLengthCheck: true,
