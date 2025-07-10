@@ -46,6 +46,11 @@ class DioClient {
   void _handleTimeout(DioException error) {
     // Handle timeout: show snackbar/dialog, log, etc
     print("Timeout occurred: ${error.message}");
+    // Helper.warningSnackBar(
+    //   title: 'Request Timeout',
+    //   message: 'The request took too long to complete. Please try again.',
+    //   duration: 5,
+    // );
   }
 
   void _handleNetworkFailure(DioException error) {

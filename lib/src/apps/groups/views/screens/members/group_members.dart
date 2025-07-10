@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/components/app_bar.dart';
+import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
 import 'package:mukai/src/apps/groups/views/widgets/group_members_list.dart';
@@ -113,7 +114,7 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
           ),
           onTap: () {
             log('Tapped');
-            Get.to(() => CreateGroup());
+            Get.to(() => AdminRegisterCoopScreen());
           },
         ),
       ),

@@ -146,6 +146,7 @@ class ProfileController extends MainController {
 
   Future<List<dynamic>?> getProfileWallets(String id) async {
     List<dynamic>? profileWallets = [];
+    log('getProfileWallets accessToken: ${_getStorage.read('accessToken')}');
     try {
       final profileJson =
           await dio.get('${EnvConstants.APP_API_ENDPOINT}/wallets/$id',

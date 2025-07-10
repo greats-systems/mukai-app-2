@@ -9,6 +9,7 @@ Future<Cooperative> _$CooperativeFromSupabase(
   return Cooperative(
     id: data['id'] == null ? null : data['id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
+    wallet_id: data['wallet_id'] == null ? null : data['wallet_id'] as String?,
     category: data['category'] == null ? null : data['category'] as String?,
     city: data['city'] == null ? null : data['city'] as String?,
     county: data['county'] == null ? null : data['county'] as String?,
@@ -33,6 +34,8 @@ Future<Cooperative> _$CooperativeFromSupabase(
                       .cast<Future<Profile>>() ??
                   [],
             ),
+    monthly_sub:
+        data['monthly_sub'] == null ? null : data['monthly_sub'] as double?,
   );
 }
 
@@ -44,6 +47,7 @@ Future<Map<String, dynamic>> _$CooperativeToSupabase(
   return {
     'id': instance.id,
     'name': instance.name,
+    'wallet_id': instance.wallet_id,
     'category': instance.category,
     'city': instance.city,
     'county': instance.county,
@@ -61,6 +65,7 @@ Future<Map<String, dynamic>> _$CooperativeToSupabase(
               .toList() ??
           [],
     ),
+    'monthly_sub': instance.monthly_sub,
   };
 }
 
@@ -72,6 +77,7 @@ Future<Cooperative> _$CooperativeFromSqlite(
   return Cooperative(
     id: data['id'] == null ? null : data['id'] as String?,
     name: data['name'] == null ? null : data['name'] as String?,
+    wallet_id: data['wallet_id'] == null ? null : data['wallet_id'] as String?,
     category: data['category'] == null ? null : data['category'] as String?,
     city: data['city'] == null ? null : data['city'] as String?,
     county: data['county'] == null ? null : data['county'] as String?,
@@ -98,6 +104,8 @@ Future<Cooperative> _$CooperativeFromSqlite(
                 ),
               );
             })).toList().cast<Profile>(),
+    monthly_sub:
+        data['monthly_sub'] == null ? null : data['monthly_sub'] as double?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -109,12 +117,13 @@ Future<Map<String, dynamic>> _$CooperativeToSqlite(
   return {
     'id': instance.id,
     'name': instance.name,
+    'wallet_id': instance.wallet_id,
     'category': instance.category,
     'city': instance.city,
     'county': instance.county,
     'province_state': instance.province_state,
     'admin_id': instance.admin_id,
-    'members': instance.members != null ? jsonEncode(instance.members) : null,
+    'monthly_sub': instance.monthly_sub,
   };
 }
 
@@ -135,6 +144,10 @@ class CooperativeAdapter extends OfflineFirstWithSupabaseAdapter<Cooperative> {
     'name': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'name',
+    ),
+    'wallet_id': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'wallet_id',
     ),
     'category': const RuntimeSupabaseColumnDefinition(
       association: false,
@@ -159,8 +172,12 @@ class CooperativeAdapter extends OfflineFirstWithSupabaseAdapter<Cooperative> {
     'members': const RuntimeSupabaseColumnDefinition(
       association: true,
       columnName: 'members',
-      associationType: String,
+      associationType: Profile,
       associationIsNullable: true,
+    ),
+    'monthly_sub': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'monthly_sub',
     ),
   };
   @override
@@ -184,6 +201,12 @@ class CooperativeAdapter extends OfflineFirstWithSupabaseAdapter<Cooperative> {
     'name': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'name',
+      iterable: false,
+      type: String,
+    ),
+    'wallet_id': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'wallet_id',
       iterable: false,
       type: String,
     ),
@@ -221,7 +244,13 @@ class CooperativeAdapter extends OfflineFirstWithSupabaseAdapter<Cooperative> {
       association: true,
       columnName: 'members',
       iterable: true,
-      type: String,
+      type: Profile,
+    ),
+    'monthly_sub': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'monthly_sub',
+      iterable: false,
+      type: double,
     ),
   };
   @override

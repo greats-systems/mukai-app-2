@@ -695,7 +695,7 @@ class _SavingDetailScreenState extends State<SavingDetailScreen> {
                 } on DioException catch (e, s) {
                   log('DioException encountered when casting vote $e $s');
                   Helper.errorSnackBar(
-                      title: 'Error', message: e.toString(), duration: 5);
+                      title: 'Error', message: e.response?.data.toString(), duration: 5);
                   // TODO
                 } on Exception catch (e, s) {
                   log('Error encountered when casting vote $e $s');

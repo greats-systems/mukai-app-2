@@ -10,23 +10,76 @@ import 'package:uuid/uuid.dart';
   sqliteConfig: SqliteSerializable(),
 )
 class Wallet extends OfflineFirstWithSupabaseModel {
+  @Supabase(name: 'id')
+  @Sqlite()
   String? id;
+
+  @Supabase(name: 'holding_account')
+  @Sqlite()
   String? holding_account;
+
+  @Supabase(name: 'address')
+  @Sqlite()
   String? address;
+
+  @Supabase(name: 'status')
+  @Sqlite()
   String? status;
+
+  @Supabase(name: 'balance')
+  @Sqlite()
   double? balance;
+
+  @Supabase(name: 'last_transaction_timestamp')
+  @Sqlite()
   String? last_transaction_timestamp;
+
+  @Supabase(name: 'parent_wallet_id')
+  @Sqlite()
   String? parent_wallet_id;
+
+  @Supabase(name: 'provider')
+  @Sqlite()
   String? provider;
+
+  @Supabase(name: 'default_currency')
+  @Sqlite()
   String? default_currency;
+
+  @Supabase(name: 'business_id')
+  @Sqlite()
   String? business_id;
+
+  @Supabase(name: 'is_shared')
+  @Sqlite()
   bool? is_shared;
+
+  @Supabase(name: 'is_active')
+  @Sqlite()
   bool? is_active;
+
+  @Supabase(name: 'is_sub_wallet')
+  @Sqlite()
   bool? is_sub_wallet;
+
+  @Supabase(name: 'profile_id')
+  @Sqlite()
   String? profile_id;
+
+  @Supabase(name: 'coop_id')
+  @Sqlite()
   String? coop_id;
+
+  @Supabase(name: 'is_group_wallet')
+  @Sqlite()
   bool? is_group_wallet;
+
+  @Supabase(name: 'children_wallets')
+  @Sqlite()
   List<dynamic>? children_wallets;
+
+  @Supabase(name: 'group_id')
+  @Sqlite()
   String? group_id;
   /*
   String? category;
@@ -44,24 +97,26 @@ class Wallet extends OfflineFirstWithSupabaseModel {
   double? balance;
   */
 
-  Wallet(
-      {this.id,
-      this.holding_account,
-      this.address,
-      this.status,
-      this.balance,
-      this.parent_wallet_id,
-      this.provider,
-      this.default_currency,
-      this.business_id,
-      this.is_shared,
-      this.is_active,
-      this.is_sub_wallet,
-      this.profile_id,
-      this.coop_id,
-      this.is_group_wallet,
-      this.children_wallets,
-      this.group_id});
+  Wallet({
+    this.id,
+    this.holding_account,
+    this.address,
+    this.status,
+    this.balance,
+    this.parent_wallet_id,
+    this.provider,
+    this.default_currency,
+    this.business_id,
+    this.is_shared,
+    this.is_active,
+    this.is_sub_wallet,
+    this.profile_id,
+    this.coop_id,
+    this.is_group_wallet,
+    this.children_wallets,
+    this.group_id,
+    this.last_transaction_timestamp,
+  });
 
   // Factory method to create an Wallet from a JSON map
   factory Wallet.fromJson(Map<String, dynamic> json) {
@@ -98,6 +153,7 @@ class Wallet extends OfflineFirstWithSupabaseModel {
       is_group_wallet: json['is_group_wallet'],
       children_wallets: json['children_wallets'],
       group_id: json['group_id'],
+      last_transaction_timestamp: json['last_transaction_timestamp'],
     );
     /*
     return Wallet(
@@ -149,7 +205,8 @@ class Wallet extends OfflineFirstWithSupabaseModel {
       'coop_id': coop_id,
       'is_group_wallet': is_group_wallet,
       'children_wallets': children_wallets,
-      'group_id': group_id
+      'group_id': group_id,
+      'last_transaction_timestamp': last_transaction_timestamp,
     };
   }
 }

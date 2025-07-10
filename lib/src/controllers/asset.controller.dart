@@ -1,22 +1,88 @@
+import 'dart:convert';
 import 'dart:developer';
 
-import 'package:dio/dio.dart';
-import 'package:get_storage/get_storage.dart';
 
 import 'package:get/get.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
-import 'package:mukai/constants.dart';
+import 'package:mukai/data/repositories/asset_repository.dart';
 import 'package:mukai/utils/helper/helper_controller.dart';
 
 class AssetController extends GetxController {
+  final AssetRepository _assetRepo;
   final selectedAsset = Rx<Asset?>(null);
   var selectedGroup = Rx<Group?>(null);
   final isLoading = Rx<bool>(false);
   final asset = Asset().obs;
+  final assets = <Asset>[].obs;
+  /*
   final dio = Dio();
   final accessToken = GetStorage().read('accessToken');
+  */
 
+  AssetController(this._assetRepo);
+
+  Future<List<Asset>?> getGroupAssets(String groupId) async {
+    try {
+      isLoading(true);
+      final result = await _assetRepo.getGroupAssets(groupId);
+      assets.assignAll(result as Iterable<Asset>);
+      return result;
+    } catch (e, s) {
+      log('fetchGroupAssets error: $e $s');
+      return null;
+      // Helper.errorSnackBar(
+      //     title: 'fetchGroupAssets Error', message: e.toString());
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<void> createAsset() async {
+    try {
+      var assetData = {
+        "asset_descriptive_name": asset.value.assetDescriptiveName,
+        "asset_description": asset.value.assetDescription,
+        "status": "active",
+        "valuation_currency": asset.value.valuationCurrency ?? 'USD',
+        "fiat_value": double.parse(asset.value.fiatValue.toString()),
+        "token_value": double.parse(asset.value.fiatValue.toString()),
+        "asset_images": null,
+        "last_transaction_timestamp": null,
+        "verifiable_certificate_issuer_id": null,
+        "governing_board": null,
+        "holding_account": null,
+        "legal_documents": null,
+        "has_verifiable_certificate": false,
+        "is_valuated": false,
+        "is_minted": false,
+        "is_shared": false,
+        "is_active": false,
+        "has_documents": false,
+        "profile_id":
+            asset.value.ownershipType == 'group' ? null : asset.value.profileId,
+        'group_id':
+            asset.value.ownershipType == 'group' ? asset.value.groupId : null,
+        "has_received_vote": false,
+      };
+
+      final newAsset = Asset.fromJson(assetData);
+      isLoading(true);
+      await _assetRepo.createAsset(newAsset);
+      assets.add(newAsset);
+      // Get.back();
+      // Helper.successSnackBar(
+      //     title: 'Success', message: 'Asset saved successfully!', duration: 5);
+    } catch (e, s) {
+      log('addAsset error: $e $s');
+      // Helper.errorSnackBar(
+      //     title: 'addAsset Error', message: e.toString(), duration: 5);
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  /*
   Future<List<Asset>?> getGroupAssets(String groupId) async {
     List<Asset> assets = [];
 
@@ -39,6 +105,7 @@ class AssetController extends GetxController {
               List<Asset>.from(data.map((e) => Asset.fromJson(e))));
           log('getGroupAssets assets: $assets_list');
           assets = assets_list;
+          MkandoWalletSecureStorage().setGroupAssets(groupId, assets_list);r
           return assets;
         } else {
           isLoading.value = false;
@@ -60,7 +127,27 @@ class AssetController extends GetxController {
       return assets;
     }
   }
-
+  */
+  Future<List<Asset>?> getMemberAssets(String profileId) async {
+    try {
+      isLoading(true);
+      final result = await _assetRepo.getAssetsByProfile(profileId);
+      log('getMemberAssets result: $result');
+      if (result.isNotEmpty) {
+        assets.assign(result.first);
+        return result;
+      }
+      return null;
+    } catch (e, s) {
+      log('getMemberAssets error: $e $s');
+      return null;
+      // Helper.errorSnackBar(
+      //     title: 'getMemberAssets Error', message: e.toString(), duration: 5);
+    } finally {
+      isLoading(false);
+    }
+  }
+  /*
   Future<List<Asset>?> getMemberAssets(String profileId) async {
     List<Asset> assets = [];
 
@@ -104,7 +191,25 @@ class AssetController extends GetxController {
       return assets;
     }
   }
+  */
 
+  Future<void> getAssetsByID(String assetId) async {
+    try {
+      isLoading(true);
+      final result = await _assetRepo.getAssetById(assetId);
+      if (result != null) {
+        assets.assign(result);
+      }
+    } catch (e, s) {
+      log('getAssetsByID error: $e $s');
+      // Helper.errorSnackBar(
+      //     title: 'getAssetsByID Error', message: e.toString(), duration: 5);
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  /*
   Future<List<Asset>?> getAssetByID(String assetId) async {
     List<Asset> assets = [];
 
@@ -148,6 +253,7 @@ class AssetController extends GetxController {
       return assets;
     }
   }
+  
 
   Future<void> updateAsset(String assetId) async {
     log('updateAsset: $assetId');
@@ -205,7 +311,62 @@ class AssetController extends GetxController {
           title: 'Asset Deletion Failed', message: e.toString(), duration: 5);
     }
   }
+  */
 
+  Future<void> updateAsset(Asset asset) async {
+    try {
+      isLoading(true);
+      await _assetRepo.updateAsset(asset);
+      // Get.back();
+    } catch (e, s) {
+      log('updateAsset error: $e $s');
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<void> createIndividualAsset() async {
+    try {
+      log('Creating individual asset ${JsonEncoder.withIndent(' ').convert(asset.value.toJson())}');
+      isLoading(true);
+      // asset.value.id = Uuid().v4(); // Ensure a new ID is generated
+      // asset.value.fiatValue = 111;
+      asset.value.valuationCurrency ??= 'USD';
+      asset.value.createdAt = DateTime.now().toIso8601String();
+      await _assetRepo.createIndividualAsset(asset.value);
+      // assets.add(asset.value);
+      // Get.back();
+      // Helper.successSnackBar(
+      //     title: 'Success', message: 'Asset saved successfully!', duration: 5);
+    } catch (e, s) {
+      log('addAsset error: $e $s');
+      // Helper.errorSnackBar(
+      //     title: 'addAsset Error', message: e.toString(), duration: 5);
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  Future<void> deleteAsset(Asset asset) async {
+    try {
+      isLoading(true);
+      await _assetRepo.deleteAsset(asset);
+      assets.remove(asset);
+      Get.back();
+      Helper.successSnackBar(
+          title: 'Success',
+          message: 'Asset deleted successfully!',
+          duration: 5);
+    } catch (e, s) {
+      log('addAsset error: $e $s');
+      Helper.errorSnackBar(
+          title: 'deleteAsset Error', message: e.toString(), duration: 5);
+    } finally {
+      isLoading(false);
+    }
+  }
+
+  /*
   Future<void> createIndividualAsset(String? profileId) async {
     // final groupJson = await supabase.from('cooperatives').select('id').eq('name', value)
     try {
@@ -252,6 +413,7 @@ class AssetController extends GetxController {
           title: 'Asset Creation Failed', message: e.toString(), duration: 5);
     }
   }
+  
 
   Future<void> createAsset(
       String? groupId, String? profileId, String ownershipType) async {
@@ -300,4 +462,5 @@ class AssetController extends GetxController {
           title: 'Asset Creation Failed', message: e.toString(), duration: 5);
     }
   }
+  */
 }

@@ -9,6 +9,7 @@ import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/profile.model.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/data/repositories/asset_repository.dart';
 import 'package:mukai/main.dart';
 import 'package:mukai/src/controllers/asset.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
@@ -66,7 +67,8 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
   AuthController get authController => Get.put(AuthController());
   GroupController get groupController => Get.put(GroupController());
   ProfileController get profileController => Get.put(ProfileController());
-  AssetController get assetController => Get.put(AssetController());
+  AssetController get assetController =>
+      Get.put(AssetController(Get.find<AssetRepository>()));
   late double height;
   late double width;
   Map<String, dynamic>? userJson = {};
@@ -223,34 +225,6 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
-  monthlySubField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Monthly Sub",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: monthlySubController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
   assetValueField() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -264,11 +238,11 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
           child: TextField(
             enabled: role == 'coop-member' ? false : true,
             onChanged: (value) {
-              assetController.asset.value?.fiatValue = double.parse(value);
+              assetController.asset.value?.fiatValue = double.tryParse(value);
             },
             style: semibold14Black,
             cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
+            keyboardType: TextInputType.number,
             controller: fiatValueController,
             decoration: InputDecoration(
               border: InputBorder.none,
@@ -322,59 +296,6 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
     );
   }
 
-  country_field() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Container(
-        decoration: BoxDecoration(
-          color: whiteColor,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Obx(() => DropdownSearch<String>(
-              onChanged: (value) {
-                if (value != null) {
-                  profileController.selectedProfile.value.country = value;
-                  assetController.asset.value?.purpose = value;
-                }
-              },
-              key: country_field_key,
-              selectedItem: profileController.selectedProfile.value.country,
-              items: (filter, infiniteScrollProps) => africanCountries,
-              decoratorProps: DropDownDecoratorProps(
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-
-                  labelText: 'Select Country',
-                  labelStyle: const TextStyle(
-                      color: recColor, fontSize: 22), // Black label text
-                  // border: const OutlineInputBorder(),
-                  filled: true,
-                  fillColor: recWhiteColor, // White background for input field
-                ),
-                baseStyle: const TextStyle(
-                    color: recColor,
-                    fontSize: 18), // Black text for selected item
-              ),
-              popupProps: PopupProps.menu(
-                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(item,
-                      style: const TextStyle(color: recColor, fontSize: 18)),
-                ),
-                fit: FlexFit.loose,
-                constraints: const BoxConstraints(),
-                menuProps: const MenuProps(
-                  backgroundColor: greyColor,
-                  elevation: 4,
-                ),
-              ),
-            )),
-      ),
-    );
-  }
-
   town_cityField() {
     return Container(
       width: double.maxFinite,
@@ -397,78 +318,6 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                   border: InputBorder.none,
 
                   labelText: 'Select Town/City',
-                  labelStyle: const TextStyle(
-                      color: recColor, fontSize: 22), // Black label text
-                  // border: const OutlineInputBorder(),
-                  filled: true,
-                  fillColor: recWhiteColor, // White background for input field
-                ),
-                baseStyle: const TextStyle(
-                    color: recColor,
-                    fontSize: 18), // Black text for selected item
-              ),
-              popupProps: PopupProps.menu(
-                itemBuilder: (context, item, isDisabled, isSelected) => Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Text(item,
-                      style: const TextStyle(color: recColor, fontSize: 18)),
-                ),
-                fit: FlexFit.loose,
-                constraints: const BoxConstraints(),
-                menuProps: const MenuProps(
-                  backgroundColor: greyColor,
-                  elevation: 4,
-                ),
-              ),
-            )),
-      ),
-    );
-  }
-
-  province_field() {
-    return Container(
-      width: double.maxFinite,
-      clipBehavior: Clip.hardEdge,
-      decoration: bgBoxDecoration,
-      child: Container(
-        decoration: BoxDecoration(
-          color: whiteF5Color,
-          borderRadius: BorderRadius.circular(10.0),
-        ),
-        child: Obx(() => DropdownSearch<String>(
-              onChanged: (value) {
-                if (value != null) {
-                  assetController.asset.value?.purpose = value;
-                  var selectedProvinceData =
-                      authController.province_options_with_districts.firstWhere(
-                    (item) => item.keys.first == value,
-                    orElse: () => {value: []},
-                  );
-                  var selectedProvinceCityData =
-                      authController.province_options_with_districts.firstWhere(
-                    (item) => item.keys.first == value,
-                    orElse: () => {value: []},
-                  );
-                  authController.selected_province_districts_options.value =
-                      selectedProvinceData[value]!;
-                  authController.district.value =
-                      authController.selected_province_districts_options[0];
-                  // // //
-                  authController.selected_province_town_city_options.value =
-                      selectedProvinceCityData[value]!;
-                  authController.town_city.value =
-                      authController.selected_province_town_city_options[0];
-                }
-              },
-              key: province_field_key,
-              selectedItem: authController.selected_province.value,
-              items: (filter, infiniteScrollProps) =>
-                  authController.province_options,
-              decoratorProps: DropDownDecoratorProps(
-                decoration: InputDecoration(
-                  border: InputBorder.none,
-
-                  labelText: 'Select Province',
                   labelStyle: const TextStyle(
                       color: recColor, fontSize: 22), // Black label text
                   // border: const OutlineInputBorder(),
@@ -598,145 +447,6 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                 ),
               )),
       ),
-    );
-  }
-
-  cityField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: cityController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              hintText: "Enter City",
-              hintStyle: semibold14Grey,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  walletAddressField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Wallet Address",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: walletAddressController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  totalSubscriptionsPaidField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Total subscriptions paid",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: totalSubsController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  totalFinesIncurredField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Total Fines incurred",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: totalFinesController,
-            decoration: const InputDecoration(
-              border: InputBorder.none,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  lastNameField() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          "Last Name",
-          style: semibold14Black,
-        ),
-        heightSpace,
-        boxWidget(
-          child: TextField(
-            onChanged: (value) {
-              assetController.asset.value?.purpose = value;
-            },
-            style: semibold14Black,
-            cursorColor: primaryColor,
-            keyboardType: TextInputType.name,
-            controller: lastNameController,
-            decoration: InputDecoration(
-              border: InputBorder.none,
-              hintText: userJson?['last_name'] ?? 'No name',
-              hintStyle: semibold14Grey,
-              contentPadding: EdgeInsets.all(fixPadding * 1.5),
-            ),
-          ),
-        )
-      ],
     );
   }
 
@@ -925,7 +635,9 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                 } on DioException catch (e, s) {
                   log('DioException encountered when casting vote $e $s');
                   Helper.errorSnackBar(
-                      title: 'Error', message: e.toString(), duration: 5);
+                      title: 'Error',
+                      message: e.response?.data.toString(),
+                      duration: 5);
                   // TODO
                 } on Exception catch (e, s) {
                   log('Error encountered when casting vote $e $s');
@@ -1046,7 +758,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                     confirmTextColor: whiteColor,
                     onConfirm: () async {
                       if (asset.id != null) {
-                        await assetController.updateAsset(asset.id!);
+                        await assetController.updateAsset(asset);
                         Navigator.pop(context);
                         Helper.successSnackBar(
                             title: 'Success',
@@ -1104,7 +816,7 @@ class _MemberDetailScreenState extends State<AssetDetailScreen> {
                       textConfirm: 'Yes, Delete',
                       confirmTextColor: whiteColor,
                       onConfirm: () async {
-                        await assetController.deleteAsset(asset.id!);
+                        await assetController.deleteAsset(asset);
                         Navigator.pop(context);
                         Navigator.pop(context);
 

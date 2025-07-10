@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:developer';
 
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
-import 'package:isar/isar.dart';
+// import 'package:isar/isar.dart';
 import 'package:mukai/utils/utilities.dart';
 // part 'chat.g.dart';
 
@@ -22,7 +22,7 @@ class Chat {
   late String? most_recent_content;
   late String? most_recent_content_format;
   late String? most_recent_content_time;
-  Id get isarId => fastHash(id);
+  // Id get isarId => fastHash(id);
   late DateTime? createdDate;
   late DateTime? updatedDate;
   late String? lastMessageCategory;
@@ -41,7 +41,7 @@ class Chat {
   late dynamic me;
   late dynamic user;
 
-  final messages = IsarLinks<Message>();
+  // final messages = IsarLinks<Message>();
 
   Chat(
       {required this.id,

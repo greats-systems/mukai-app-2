@@ -26,10 +26,6 @@ Future<Transaction> _$TransactionFromSupabase(
         data['receiving_phone'] == null
             ? null
             : data['receiving_phone'] as String?,
-    // receiving_account_number:
-    //     data['receiving_account_number'] == null
-    //         ? null
-    //         : data['receiving_account_number'] as String?,
     recieving_profile_avatar:
         data['recieving_profile_avatar'] == null
             ? null
@@ -41,6 +37,10 @@ Future<Transaction> _$TransactionFromSupabase(
     status: data['status'] == null ? null : data['status'] as String?,
     transferMode:
         data['transfer_mode'] == null ? null : data['transfer_mode'] as String?,
+    transactionType:
+        data['transaction_type'] == null
+            ? null
+            : data['transaction_type'] as String?,
     transferCategory:
         data['transfer_category'] == null
             ? null
@@ -50,6 +50,8 @@ Future<Transaction> _$TransactionFromSupabase(
         data['created_at'] == null ? null : data['created_at'] as String?,
     updatedAt:
         data['updated_at'] == null ? null : data['updated_at'] as String?,
+    currency: data['currency'] == null ? null : data['currency'] as String?,
+    narrative: data['narrative'] == null ? null : data['narrative'] as String?,
   );
 }
 
@@ -67,15 +69,17 @@ Future<Map<String, dynamic>> _$TransactionToSupabase(
     'sending_phone': instance.sending_phone,
     'receiving_wallet': instance.receiving_wallet,
     'receiving_phone': instance.receiving_phone,
-    // 'receiving_account_number': instance.receiving_account_number,
     'recieving_profile_avatar': instance.recieving_profile_avatar,
     'sending_profile_avatar': instance.sending_profile_avatar,
     'status': instance.status,
     'transfer_mode': instance.transferMode,
+    'transaction_type': instance.transactionType,
     'transfer_category': instance.transferCategory,
     'amount': instance.amount,
     'created_at': instance.createdAt,
     'updated_at': instance.updatedAt,
+    'currency': instance.currency,
+    'narrative': instance.narrative,
   };
 }
 
@@ -104,10 +108,6 @@ Future<Transaction> _$TransactionFromSqlite(
         data['receiving_phone'] == null
             ? null
             : data['receiving_phone'] as String?,
-    // receiving_account_number:
-    //     data['receiving_account_number'] == null
-    //         ? null
-    //         : data['receiving_account_number'] as String?,
     recieving_profile_avatar:
         data['recieving_profile_avatar'] == null
             ? null
@@ -119,6 +119,10 @@ Future<Transaction> _$TransactionFromSqlite(
     status: data['status'] == null ? null : data['status'] as String?,
     transferMode:
         data['transfer_mode'] == null ? null : data['transfer_mode'] as String?,
+    transactionType:
+        data['transaction_type'] == null
+            ? null
+            : data['transaction_type'] as String?,
     transferCategory:
         data['transfer_category'] == null
             ? null
@@ -128,6 +132,8 @@ Future<Transaction> _$TransactionFromSqlite(
         data['created_at'] == null ? null : data['created_at'] as String?,
     updatedAt:
         data['updated_at'] == null ? null : data['updated_at'] as String?,
+    currency: data['currency'] == null ? null : data['currency'] as String?,
+    narrative: data['narrative'] == null ? null : data['narrative'] as String?,
   )..primaryKey = data['_brick_id'] as int;
 }
 
@@ -145,15 +151,17 @@ Future<Map<String, dynamic>> _$TransactionToSqlite(
     'sending_phone': instance.sending_phone,
     'receiving_wallet': instance.receiving_wallet,
     'receiving_phone': instance.receiving_phone,
-    // 'receiving_account_number': instance.receiving_account_number,
     'recieving_profile_avatar': instance.recieving_profile_avatar,
     'sending_profile_avatar': instance.sending_profile_avatar,
     'status': instance.status,
     'transfer_mode': instance.transferMode,
+    'transaction_type': instance.transactionType,
     'transfer_category': instance.transferCategory,
     'amount': instance.amount,
     'created_at': instance.createdAt,
     'updated_at': instance.updatedAt,
+    'currency': instance.currency,
+    'narrative': instance.narrative,
   };
 }
 
@@ -199,10 +207,6 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
       association: false,
       columnName: 'receiving_phone',
     ),
-    'receiving_account_number': const RuntimeSupabaseColumnDefinition(
-      association: false,
-      columnName: 'receiving_account_number',
-    ),
     'recieving_profile_avatar': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'recieving_profile_avatar',
@@ -219,6 +223,10 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
       association: false,
       columnName: 'transfer_mode',
     ),
+    'transactionType': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'transaction_type',
+    ),
     'transferCategory': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'transfer_category',
@@ -234,6 +242,14 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
     'updatedAt': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'updated_at',
+    ),
+    'currency': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'currency',
+    ),
+    'narrative': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'narrative',
     ),
   };
   @override
@@ -296,12 +312,6 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
       iterable: false,
       type: String,
     ),
-    'receiving_account_number': const RuntimeSqliteColumnDefinition(
-      association: false,
-      columnName: 'receiving_account_number',
-      iterable: false,
-      type: String,
-    ),
     'recieving_profile_avatar': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'recieving_profile_avatar',
@@ -326,6 +336,12 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
       iterable: false,
       type: String,
     ),
+    'transactionType': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'transaction_type',
+      iterable: false,
+      type: String,
+    ),
     'transferCategory': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'transfer_category',
@@ -347,6 +363,18 @@ class TransactionAdapter extends OfflineFirstWithSupabaseAdapter<Transaction> {
     'updatedAt': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'updated_at',
+      iterable: false,
+      type: String,
+    ),
+    'currency': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'currency',
+      iterable: false,
+      type: String,
+    ),
+    'narrative': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'narrative',
       iterable: false,
       type: String,
     ),

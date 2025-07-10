@@ -502,7 +502,7 @@ class AuthController extends GetxController {
 
   updateUser() {}
 
-  final accessToken = GetStorage().read('accessToken');
+  final accessToken = GetStorage().read('userId');
 
   Future<List<String>> getCitiesFromCountry(String countryName) async {
     log('Fetching cities for country: $countryName');
@@ -544,29 +544,48 @@ class AuthController extends GetxController {
   Future<bool> isAccountSessionValid() async {
     try {
       log('Check is account auth session valid?');
-      var sessionId = await _getStorage.read('sessionId'); // }
-      if (sessionId != null) {
-        log('session is valid');
-        isSessionLogged.value = true;
-        return isSessionLogged.value;
+      var sessionId = await _getStorage.read('sessionId');
+      var sessionExpirationStr = await _getStorage.read('sessionExpiration');
+      if (sessionId != null && sessionExpirationStr != null) {
+        final sessionExpiration = DateTime.tryParse(sessionExpirationStr);
+        if (sessionExpiration != null && DateTime.now().isBefore(sessionExpiration)) {
+          log('session is valid');
+          isSessionLogged.value = true;
+          return isSessionLogged.value;
+        } else {
+          log('session expired');
+          isSessionLogged.value = false;
+          // Redirect to login if expired
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            Get.offAll(() => LoginScreen());
+          });
+          return false;
+        }
       } else {
         log('session is not valid');
         isSessionLogged.value = false;
-        return isSessionLogged.value;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          Get.offAll(() => LoginScreen());
+        });
+        return false;
       }
     } on TimeoutException catch (e) {
-      // Handle timeout exception
       log('Request timed out: $e');
       isSessionLogged.value = false;
       isLoading.value = false;
       isLoading.refresh();
       log('session is not valid');
-      return isSessionLogged.value;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAll(() => LoginScreen());
+      });
+      return false;
     } catch (error) {
-      // Handle any other errors
       log('An error occurred: $error');
       log('session is not valid');
-      return isSessionLogged.value;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        Get.offAll(() => LoginScreen());
+      });
+      return false;
     }
   }
 
@@ -919,26 +938,24 @@ class AuthController extends GetxController {
 
   Future<void> _saveSessionData(AuthResponse authResponse) async {
     try {
+      // Set access token to expire in 7 days
+      final now = DateTime.now();
+      final expiresAt = now.add(const Duration(days: 7));
       await _sessionManager.saveSession(
         accessToken: authResponse.session!.accessToken,
         refreshToken: authResponse.session!.refreshToken!,
         userId: authResponse.user!.id,
         email: authResponse.user!.email!,
-        expiresAt: DateTime.parse(authResponse.session!.expiresAt!.toString()),
+        expiresAt: expiresAt,
       );
-      await _getStorage.write(
-          'refresh_token', authResponse.session!.refreshToken!);
-      await _getStorage.write(
-          'access_token', authResponse.session!.accessToken);
+      await _getStorage.write('refresh_token', authResponse.session!.refreshToken!);
+      await _getStorage.write('access_token', authResponse.session!.accessToken);
       await _getStorage.write('email', email.value);
       await _getStorage.write('password', password.value);
       await _getStorage.write('sessionId', authResponse.session!.accessToken);
-      await _getStorage.write(
-          'sessionExpiration', authResponse.session!.expiresAt);
+      await _getStorage.write('sessionExpiration', expiresAt.toIso8601String());
       await _getStorage.write('userId', authResponse.user!.id);
       await _getStorage.write('role', authResponse.user!.role);
-      // await _getStorage.write(
-      //     'walletId', authResponse.user!.walletId ?? '');
       log('Session data saved successfully');
     } catch (e) {
       log('Error saving session data: $e');

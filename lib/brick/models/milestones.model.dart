@@ -6,7 +6,7 @@ import 'package:brick_supabase/brick_supabase.dart';
   supabaseConfig: SupabaseSerializable(),
   sqliteConfig: SqliteSerializable(),
 )
-class Milestone {
+class Milestone extends OfflineFirstWithSupabaseModel {
   String name;
   String amount;
   Milestone({required this.name, required this.amount});

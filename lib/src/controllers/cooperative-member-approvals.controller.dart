@@ -2,6 +2,7 @@ import 'dart:developer';
 
 import 'package:dio/dio.dart';
 import 'package:get/get_rx/src/rx_types/rx_types.dart';
+import 'package:get/get_state_manager/src/simple/get_controllers.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/coop.model.dart';
 import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
@@ -11,7 +12,7 @@ import 'package:mukai/constants.dart';
 
 final accessToken = GetStorage().read('accessToken');
 
-class CooperativeMemberApprovalsController {
+class CooperativeMemberApprovalsController extends GetxController {
   final selectedCma = Rx<CooperativeMemberApproval?>(null);
   var selectedGroup = Rx<Group?>(null);
   final isLoading = Rx<bool>(false);

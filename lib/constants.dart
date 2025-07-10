@@ -1,3 +1,4 @@
+import 'package:get_storage/get_storage.dart';
 import 'package:mukai/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:mukai/widget/messages_shimmer.dart';
@@ -55,9 +56,18 @@ String truncateDate(String interval) {
   return "date_trunc('$interval', created_at)";
 }
 
+Map<String, String> getHeaders() {
+    return {
+      'apikey': GetStorage().read('accessToken'),
+      'Authorization': 'Bearer ${GetStorage().read('accessToken')}',
+      'Content-Type': 'application/json',
+    };
+  }
+
 class EnvConstants {
   static late final String LOCAL_SUPABASE_URL;
   static late final String SUPABASE_URL;
+  static late final String SUPABASE_ANON_KEY;
   static late final String LOCAL_SERVICE_ROLE_KEY;
   static late final String SUPABASE_ROLE_KEY;
   static late final String ENV;
@@ -81,6 +91,7 @@ class EnvConstants {
       ENV = dotenv.get('ENV', fallback: 'localhost');
       LOCAL_SUPABASE_URL = dotenv.get('LOCAL_SUPABASE_URL');
       SUPABASE_URL = dotenv.get('SUPABASE_URL');
+      SUPABASE_ANON_KEY = dotenv.get('SUPABASE_ANON_KEY');
       LOCAL_SERVICE_ROLE_KEY = dotenv.get('LOCAL_SERVICE_ROLE_KEY');
       SUPABASE_ROLE_KEY = dotenv.get('SUPABASE_ROLE_KEY');
       API_ENV = dotenv.get('ENV') == 'localhost'

@@ -7,6 +7,7 @@ Future<Profile> _$ProfileFromSupabase(
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return Profile(
+    status: data['status'] == null ? null : data['status'] as String?,
     password: data['password'] == null ? null : data['password'] as String?,
     profile_image_url:
         data['profile_image_url'] == null
@@ -46,6 +47,7 @@ Future<Profile> _$ProfileFromSupabase(
         data['wallet_address'] == null
             ? null
             : data['wallet_address'] as String?,
+    wallet_id: data['wallet_id'] == null ? null : data['wallet_id'] as String?,
     push_token:
         data['push_token'] == null ? null : data['push_token'] as String?,
     business:
@@ -83,6 +85,7 @@ Future<Map<String, dynamic>> _$ProfileToSupabase(
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return {
+    'status': instance.status,
     'password': instance.password,
     'profile_image_url': instance.profile_image_url,
     'profile_image_id': instance.profile_image_id,
@@ -101,6 +104,7 @@ Future<Map<String, dynamic>> _$ProfileToSupabase(
     'id': instance.id,
     'wallet_balance': instance.wallet_balance,
     'wallet_address': instance.wallet_address,
+    'wallet_id': instance.wallet_id,
     'push_token': instance.push_token,
     'business': instance.business,
     'last_access': instance.last_access?.toIso8601String(),
@@ -116,6 +120,7 @@ Future<Profile> _$ProfileFromSqlite(
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return Profile(
+    status: data['status'] == null ? null : data['status'] as String?,
     password: data['password'] == null ? null : data['password'] as String?,
     profile_image_url:
         data['profile_image_url'] == null
@@ -155,6 +160,7 @@ Future<Profile> _$ProfileFromSqlite(
         data['wallet_address'] == null
             ? null
             : data['wallet_address'] as String?,
+    wallet_id: data['wallet_id'] == null ? null : data['wallet_id'] as String?,
     push_token:
         data['push_token'] == null ? null : data['push_token'] as String?,
     business:
@@ -192,6 +198,7 @@ Future<Map<String, dynamic>> _$ProfileToSqlite(
   OfflineFirstWithSupabaseRepository? repository,
 }) async {
   return {
+    'status': instance.status,
     'password': instance.password,
     'profile_image_url': instance.profile_image_url,
     'profile_image_id': instance.profile_image_id,
@@ -210,6 +217,7 @@ Future<Map<String, dynamic>> _$ProfileToSqlite(
     'id': instance.id,
     'wallet_balance': instance.wallet_balance,
     'wallet_address': instance.wallet_address,
+    'wallet_id': instance.wallet_id,
     'push_token': instance.push_token,
     'business':
         instance.business == null ? null : jsonEncode(instance.business),
@@ -231,6 +239,10 @@ class ProfileAdapter extends OfflineFirstWithSupabaseAdapter<Profile> {
   final defaultToNull = true;
   @override
   final fieldsToSupabaseColumns = {
+    'status': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'status',
+    ),
     'password': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'password',
@@ -303,6 +315,10 @@ class ProfileAdapter extends OfflineFirstWithSupabaseAdapter<Profile> {
       association: false,
       columnName: 'wallet_address',
     ),
+    'wallet_id': const RuntimeSupabaseColumnDefinition(
+      association: false,
+      columnName: 'wallet_id',
+    ),
     'push_token': const RuntimeSupabaseColumnDefinition(
       association: false,
       columnName: 'push_token',
@@ -339,6 +355,12 @@ class ProfileAdapter extends OfflineFirstWithSupabaseAdapter<Profile> {
       columnName: '_brick_id',
       iterable: false,
       type: int,
+    ),
+    'status': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'status',
+      iterable: false,
+      type: String,
     ),
     'password': const RuntimeSqliteColumnDefinition(
       association: false,
@@ -445,6 +467,12 @@ class ProfileAdapter extends OfflineFirstWithSupabaseAdapter<Profile> {
     'wallet_address': const RuntimeSqliteColumnDefinition(
       association: false,
       columnName: 'wallet_address',
+      iterable: false,
+      type: String,
+    ),
+    'wallet_id': const RuntimeSqliteColumnDefinition(
+      association: false,
+      columnName: 'wallet_id',
       iterable: false,
       type: String,
     ),

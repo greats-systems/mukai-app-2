@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
+import 'package:mukai/data/repositories/asset_repository.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/asset_detail.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/asset_item.dart';
 // import 'package:mukai/src/apps/home/widgets/transaction_item.dart';
@@ -25,7 +26,7 @@ class CoopAssetsWidget extends StatefulWidget {
 class _MyWidgetState extends State<CoopAssetsWidget> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
-  AssetController get assetController => Get.put(AssetController());
+  AssetController get assetController => Get.put(AssetController(Get.find<AssetRepository>()));
   late double height;
   late double width;
   String? loggedInUserId;

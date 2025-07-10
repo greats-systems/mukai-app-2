@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
+import 'package:mukai/data/repositories/asset_repository.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/add_asset.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/asset_detail.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/asset_item.dart';
@@ -23,27 +24,28 @@ class MemberAssetsList extends StatefulWidget {
 }
 
 class _MyWidgetState extends State<MemberAssetsList> {
-  TransactionController get transactionController =>
-      Get.put(TransactionController());
-  AssetController get assetController => Get.put(AssetController());
+  TransactionController get transactionController => Get.put(TransactionController());
+  final AssetController assetController = Get.find<AssetController>();
   late double height;
   late double width;
   String? loggedInUserId;
-  List<Asset>? assets = [];
+  List<Asset> assets = [];
   bool _isLoading = true;
 
-  void _fetchGroupMembers() async {
+  Future<void> _fetchGroupMembers() async {
     setState(() => _isLoading = true);
     try {
-      GetStorage _getStorage = GetStorage();
-      final userId = await _getStorage.read('userId');
-      var assets_list = await assetController.getMemberAssets(userId);
+      final _getStorage = GetStorage();
+      final userId = _getStorage.read('userId');
+      final assetsList = await assetController.getMemberAssets(userId);
       setState(() {
-        assets = assets_list;
+        assets = assetsList ?? [];
         _isLoading = false;
       });
     } catch (e) {
-      setState(() => _isLoading = false);
+      if (mounted) {
+  setState(() => _isLoading = false);
+}
       log('Error fetching members: $e');
     }
   }
@@ -96,21 +98,19 @@ class _MyWidgetState extends State<MemberAssetsList> {
         ),
         body: _isLoading
             ? const Center(child: LoadingShimmerWidget())
-            : assets!.isEmpty
+            : assets.isEmpty
                 ? const Center(child: Text('No assets found'))
                 : ListView.builder(
-                    itemCount: assets!.length,
+                    itemCount: assets.length,
                     itemBuilder: (context, index) {
-                      Asset asset = assets![index];
+                      final asset = assets[index];
                       return Padding(
                         padding: const EdgeInsets.all(8.0),
                         child: GestureDetector(
                           onTap: () {
                             assetController.selectedAsset.value = asset;
                             log('Profile ID: ${asset.id}');
-                            Get.to(() => AssetDetailScreen(
-                                  asset: asset,
-                                ));
+                            Get.to(() => AssetDetailScreen(asset: asset));
                           },
                           child: Container(
                             width: double.maxFinite,
@@ -122,15 +122,12 @@ class _MyWidgetState extends State<MemberAssetsList> {
                             ),
                             child: Container(
                               padding: const EdgeInsets.all(fixPadding * 1.5),
-                              margin: const EdgeInsets.symmetric(
-                                  vertical: fixPadding),
+                              margin: const EdgeInsets.symmetric(vertical: fixPadding),
                               decoration: BoxDecoration(
                                 borderRadius: BorderRadius.circular(10.0),
                                 color: whiteColor.withOpacity(0.1),
                               ),
-                              child: AssetItemWidget(
-                                asset: asset,
-                              ),
+                              child: AssetItemWidget(asset: asset),
                             ),
                           ),
                         ),

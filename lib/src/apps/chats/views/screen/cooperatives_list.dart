@@ -8,6 +8,7 @@ import 'package:mukai/brick/models/asset.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 import 'package:mukai/brick/models/group_members.model.dart';
 import 'package:mukai/main.dart';
+import 'package:mukai/src/apps/auth/views/admin_register_coop.dart';
 import 'package:mukai/src/apps/auth/views/member_register_coop.dart';
 import 'package:mukai/src/apps/groups/views/screens/members/create_group.dart';
 import 'package:mukai/src/apps/groups/views/screens/dashboard/landing_page.dart';
@@ -175,7 +176,7 @@ class _CooperativesListState extends State<CooperativesList> {
           const SizedBox(height: 10),
           if (!isCoopMember) ...[
             ElevatedButton(
-              onPressed: () => Get.to(() => CreateGroup()),
+              onPressed: () => Get.to(() => AdminRegisterCoopScreen()),
               child: const Text('Create a Group'),
               style: ElevatedButton.styleFrom(
                 backgroundColor: primaryColor,
@@ -246,7 +247,7 @@ class _CooperativesListState extends State<CooperativesList> {
                 ElevatedButton(
                   onPressed: () {
                     // TODO: Navigate to create group screen
-                    Get.to(() => CreateGroup());
+                    Get.to(() => AdminRegisterCoopScreen());
                   },
                   child: const Text('Create a Group'),
                   style: ElevatedButton.styleFrom(
@@ -314,7 +315,7 @@ class _CooperativesListState extends State<CooperativesList> {
                       ElevatedButton(
                         onPressed: () {
                           // TODO: Navigate to create group screen
-                          Get.to(() => CreateGroup());
+                          Get.to(() => AdminRegisterCoopScreen());
                         },
                         child: const Text('Create a Group'),
                         style: ElevatedButton.styleFrom(
@@ -466,27 +467,7 @@ class _CooperativesListState extends State<CooperativesList> {
             child: Text('No profile'),
           );
   }
-
-  Widget _buildProfileImage(Asset? asset) {
-    if (asset != null) {
-      final imageUrl = asset.imageUrl;
-      return SizedBox(
-        height: 50,
-        width: 50,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: imageUrl != null && imageUrl.isNotEmpty
-              ? RenderSupabaseImageIdWidget(filePath: imageUrl)
-              : const Icon(Icons.image, size: 50.0, color: Colors.grey),
-        ),
-      );
-    } else {
-      return Center(
-        child: Text('No profile image'),
-      );
-    }
-  }
-
+  
   String _formatName(Group? asset) {
     if (asset != null) {
       return asset.name?.toUpperCase() ?? 'N';

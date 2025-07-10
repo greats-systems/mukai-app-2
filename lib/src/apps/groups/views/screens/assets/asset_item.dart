@@ -83,7 +83,7 @@ class _AssetItemWidgetState extends State<AssetItemWidget> {
                               _buildAccountInfo(asset),
                             ],
                           ),
-                          SizedBox(
+                       if (asset.hasReceivedVote!=null)   SizedBox(
                             width: height / 8,
                             height: width / 8,
                             child: Card(
@@ -114,26 +114,6 @@ class _AssetItemWidgetState extends State<AssetItemWidget> {
         : Center(
             child: Text('No profile'),
           );
-  }
-
-  Widget _buildProfileImage(Asset? asset) {
-    if (asset != null) {
-      final imageUrl = asset.imageUrl;
-      return SizedBox(
-        height: 50,
-        width: 50,
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(20),
-          child: imageUrl != null && imageUrl.isNotEmpty
-              ? RenderSupabaseImageIdWidget(filePath: imageUrl)
-              : const Icon(Icons.image, size: 50.0, color: Colors.grey),
-        ),
-      );
-    } else {
-      return Center(
-        child: Text('No profile image'),
-      );
-    }
   }
 
   String _formatName(Asset? asset) {
@@ -250,7 +230,7 @@ class _AssetItemWidgetState extends State<AssetItemWidget> {
 
   void _showConfirmationDialog(Asset? asset, bool isAccept) {
     final action = isAccept ? 'accept' : 'decline';
-    final name = '${asset?.title?.toUpperCase() ?? ''} '
+    final name = '${asset?.assetDescription?.toUpperCase() ?? ''} '
         '${asset?.id?.toUpperCase() ?? ''}';
     final id = asset?.id?.substring(0, 8) ?? '';
 

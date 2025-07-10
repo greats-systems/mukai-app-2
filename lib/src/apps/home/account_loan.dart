@@ -67,6 +67,20 @@ class AccountLoanApplicationScreenState extends State<AccountLoanApplicationScre
   double? principalAmount;
   num? paymentAmount;
   String? collateral;
+  List<String> banks = [
+    'AFC Bank',
+    'BancABC',
+    'CBZ Bank',
+    'Ecobank',
+    'FBC Bank',
+    'First Capital Bank',
+    'Metbank',
+    'NMB Bank',
+    'POSB Bank',
+    'Stanbic Bank',
+    'Steward Bank',
+    'ZB Bank',
+  ];
 
   void fetchData() async {
     try {
@@ -135,7 +149,7 @@ class AccountLoanApplicationScreenState extends State<AccountLoanApplicationScre
         collateralSwitch(),
         heightBox(20),
         if (_hasCollateral) collateralField(),
-        saveButton(context),
+        // saveButton(context),
       ],
     );
   }
@@ -190,7 +204,7 @@ class AccountLoanApplicationScreenState extends State<AccountLoanApplicationScre
                   boxShadow: buttonShadow,
                 ),
                 child: const Text(
-                  "Save Loan",
+                  "Save Individual Loan",
                   style: bold18White,
                   textAlign: TextAlign.center,
                   overflow: TextOverflow.ellipsis,

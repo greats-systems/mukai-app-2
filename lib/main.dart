@@ -5,16 +5,18 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
-import 'package:isar/isar.dart';
 import 'package:mukai/brick/brick.g.dart';
+import 'package:mukai/brick/repository.dart';
 import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
+import 'package:mukai/data/repositories/asset_repository.dart';
 import 'package:mukai/firebase_options.dart';
 import 'package:mukai/local_storage.dart';
 import 'package:mukai/src/app.dart';
 import 'package:mukai/src/apps/settings/settings_controller.dart';
 import 'package:mukai/src/apps/settings/settings_service.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
+import 'package:mukai/src/controllers/asset.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
 import 'injection_container.dart' as injection_container;
 import 'package:firebase_core/firebase_core.dart';
@@ -23,25 +25,40 @@ import 'package:sqflite/sqflite.dart' show databaseFactory;
 import 'package:supabase/supabase.dart';
 import 'package:brick_supabase/brick_supabase.dart';
 
-late Isar isar;
 late SupabaseProvider supabaseProvider;
 late var restOfflineRequestQueue;
 late String initialRoute;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  log('kReleaseMode? $kReleaseMode');
-  // final environment = kReleaseMode ? AppEnvironment.prod : AppEnvironment.dev;
-  
-
-  // 1. Initialize environment variables
-  // await dotenv.load(fileName: ".env");
   await EnvConstants.init(envFile: '.env');
   // await EnvConstants.init(envFile: environment.envFile);
 
   // 2. Initialize local storage
   await GetStorage.init();
+  final dio = Dio();
+  
+  // Initialize Supabase first
+  await supabase_flutter.Supabase.initialize(
+    url: EnvConstants.SUPABASE_URL,
+    anonKey: EnvConstants.SUPABASE_ROLE_KEY,
+  );
+
+  // Configure repository
+  final repository = await MyRepository.configure(databaseFactory);
+  
+  // Dependency Injection
+  Get.put(dio);
+  Get.put(repository);
+  Get.put(AssetRepository(repository, dio));
+  Get.put(AssetController(Get.find<AssetRepository>()));
+
+  log('kReleaseMode? $kReleaseMode');
+  // final environment = kReleaseMode ? AppEnvironment.prod : AppEnvironment.dev;
+
+  // 1. Initialize environment variables
+  // await dotenv.load(fileName: ".env");
+  
 
   // 3. Initialize session manager and check auth state
   final sessionManager = SessionManager(GetStorage(), Dio());
@@ -51,19 +68,8 @@ Future<void> main() async {
   try {
     // 4. Initialize Supabase
     var supabaseUrl = EnvConstants.SUPABASE_URL;
-    // EnvConstants.ENV == 'localhost'
-    //     ? EnvConstants.LOCAL_SUPABASE_URL
-    //     : EnvConstants.SUPABASE_URL;
-    // var supabaseUrl = dotenv.get('ENV') == 'local'
-    //     ? dotenv.get('LOCAL_SUPABASE_URL')
-    //     : dotenv.get('SUPABASE_URL');
     var supabaseAnonKey = EnvConstants.SUPABASE_ROLE_KEY;
-    // EnvConstants.ENV == 'localhost'
-    //     ? EnvConstants.LOCAL_SERVICE_ROLE_KEY
-    //     : EnvConstants.SUPABASE_ROLE_KEY;
-    // var supabaseAnonKey = dotenv.get('ENV') == 'local'
-    //     ? dotenv.get('LOCAL_SERVICE_ROLE_KEY')
-    //     : dotenv.get('SUPABASE_ROLE_KEY');
+
 
     final (client, queue) = OfflineFirstWithSupabaseRepository.clientQueue(
       databaseFactory: databaseFactory,
@@ -73,14 +79,7 @@ Future<void> main() async {
     log('SUPABASE_URL: $supabaseUrl\nSUPABASE_ROLE_KEY: $supabaseAnonKey');
     restOfflineRequestQueue = queue;
 
-    await supabase_flutter.Supabase.initialize(
-      url: supabaseUrl,
-      anonKey: supabaseAnonKey,
-      httpClient: client,
-      authOptions: supabase_flutter.FlutterAuthClientOptions(
-        localStorage: MkandoWalletSecureStorage(),
-      ),
-    );
+    MyRepository.configure(databaseFactory);
 
     supabaseProvider = SupabaseProvider(
       SupabaseClient(supabaseUrl, supabaseAnonKey, httpClient: client),
@@ -114,6 +113,7 @@ Future<void> main() async {
       ),
     );
   };
+  await MyRepository().initialize();
 
   // 8. Run the app with initial route based on auth state
   runApp(MyApp(
@@ -121,5 +121,6 @@ Future<void> main() async {
     initialRoute: initialRoute,
   ));
 }
+
 
 final supabase = supabase_flutter.Supabase.instance.client;

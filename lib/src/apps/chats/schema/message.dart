@@ -1,6 +1,6 @@
 // Flutter Equivalent for Django Message model
 
-import 'package:isar/isar.dart';
+// import 'package:isar/isar.dart';
 import 'package:mukai/utils/utilities.dart';
 // part 'message.g.dart';
 
@@ -8,7 +8,7 @@ import 'package:mukai/utils/utilities.dart';
 class Message {
   late String? chatId;
   late String? id;
-  Id get isarId => fastHash(id!);
+  // Id get isarId => fastHash(id!);
   late DateTime? createdDate;
   late DateTime? messageTimestamp;
   late DateTime? updatedDate;
@@ -85,7 +85,7 @@ class Message {
 
   Map<String, dynamic> toJson() {
     return {
-      'isarId': isarId,
+      // 'isarId': isarId,
       'id': id,
       'isMe': isMe,
       'text': text,

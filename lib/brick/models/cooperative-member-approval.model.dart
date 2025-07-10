@@ -1,16 +1,62 @@
-class CooperativeMemberApproval {
+import 'package:brick_offline_first_with_supabase/brick_offline_first_with_supabase.dart';
+import 'package:brick_sqlite/brick_sqlite.dart';
+import 'package:brick_supabase/brick_supabase.dart';
+
+@ConnectOfflineFirstWithSupabase(
+  supabaseConfig: SupabaseSerializable(),
+  sqliteConfig: SqliteSerializable(),
+)
+class CooperativeMemberApproval extends OfflineFirstWithSupabaseModel {
+  @Supabase(name: 'id')
+  @Sqlite(name: 'id')
   String? id;
+
+  @Supabase(name: 'created_at')
+  @Sqlite(name: 'created_at')
   String? createdAt;
+
+  @Supabase(name: 'profile_id')
+  @Sqlite(name: 'profile_id')
   String? profileId;
+
+  @Supabase(name: 'group_id')
+  @Sqlite(name: 'group_id')
   String? groupId;
+
+  @Supabase(name: 'number_of_members')
+  @Sqlite(name: 'number_of_members')
   int? numberOfMembers;
+
+  @Supabase(name: 'supporting_votes')
+  @Sqlite(name: 'supporting_votes')
   List<String>? supportingVotes;
+
+  @Supabase(name: 'opposing_votes')
+  @Sqlite(name: 'opposing_votes')
   List<String>? opposingVotes;
+
+  @Supabase(name: 'poll_description')
+  @Sqlite(name: 'poll_description')
   String? pollDescription;
+
+  @Supabase(name: 'asset_id')
+  @Sqlite(name: 'asset_id')
   String? assetId;
+
+  @Supabase(name: 'loan_id')
+  @Sqlite(name: 'loan_id')
   String? loanId;
+
+  @Supabase(name: 'updated_at')
+  @Sqlite(name: 'updated_at')
   String? updatedAt;
+
+  @Supabase(name: 'additional_info')
+  @Sqlite(name: 'additional_info')
   dynamic additionalInfo;
+
+  @Supabase(name: 'consensus_reached')
+  @Sqlite(name: 'consensus_reached')
   bool? consensusReached;
 
   CooperativeMemberApproval({
