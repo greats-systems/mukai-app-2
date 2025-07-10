@@ -54,8 +54,7 @@ class LoanApplicationScreenState extends State<LoanApplicationScreen> {
   // GroupController get groupController => Get.put(GroupController());
   ProfileController get profileController => Get.put(ProfileController());
   LoanController get loanController => Get.put(LoanController());
-  CooperativeMemberApprovalsController cmaController =
-      Get.put(CooperativeMemberApprovalsController());
+  CooperativeMemberApprovalsController cmaController =Get.find<CooperativeMemberApprovalsController>();
   WalletController get walletController => Get.put(WalletController());
   late double height;
   late double width;

@@ -9,10 +9,12 @@ import 'package:mukai/brick/models/cooperative-member-approval.model.dart';
 import 'package:mukai/brick/models/group.model.dart';
 
 import 'package:mukai/constants.dart';
+import 'package:mukai/data/repositories/cooperative_member_approval_repository.dart';
 
 final accessToken = GetStorage().read('accessToken');
 
 class CooperativeMemberApprovalsController extends GetxController {
+  final CooperativeMemberApprovalRepository _cmaRepository;
   final selectedCma = Rx<CooperativeMemberApproval?>(null);
   var selectedGroup = Rx<Group?>(null);
   final isLoading = Rx<bool>(false);
@@ -21,25 +23,39 @@ class CooperativeMemberApprovalsController extends GetxController {
   final dio = Dio();
   // final consensusReached = bool().obs;
 
+  CooperativeMemberApprovalsController(this._cmaRepository);
+
   Future<void> createPoll() async {
     // cma.value.consensusReached = false;
     try {
+      isLoading.value = true;
+      cma.value.createdAt = DateTime.now().toIso8601String();
+      await _cmaRepository.createPoll(cma.value);
+      /*
       // log(cma.value.toJson().toString());
       final response = await dio.post(
           '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals',
           data: cma.value.toJson());
       log(response.data.toString());
+      */
     } catch (e, s) {
       log('createPoll error: $e $s');
+    } finally {
+      isLoading.value = false;
     }
   }
 
   Future<List<CooperativeMemberApproval>?> getCoopPolls(
       String coopId, String userId) async {
-    var params = {
-      'profile_id': userId,
-    };
     try {
+      final response = await _cmaRepository.getCoopPolls(cma.value
+        ..groupId = coopId
+        ..profileId = userId);
+      if (response != null) {
+        return response;
+      }
+      return null;
+      /*
       final response = await dio.get(
           '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/coop/$coopId',
           data: params);
@@ -64,6 +80,7 @@ class CooperativeMemberApprovalsController extends GetxController {
 
       log('Parsed ${polls.length} polls');
       return polls;
+      */
     } catch (error, st) {
       log('getCoopPolls error: $error $st');
       return null;
@@ -72,6 +89,12 @@ class CooperativeMemberApprovalsController extends GetxController {
 
   Future<CooperativeMemberApproval?> viewPollDetails(String pollId) async {
     try {
+      final response = await _cmaRepository.viewPollDetails(pollId);
+      if (response != null) {
+        return CooperativeMemberApproval.fromJson(response as Map<String, dynamic>);
+      }
+      return null;
+      /*
       final response = await dio.get(
           '${EnvConstants.APP_API_ENDPOINT}/cooperative_member_approvals/$pollId',
           options: Options(headers: {
@@ -80,6 +103,7 @@ class CooperativeMemberApprovalsController extends GetxController {
             'Content-Type': 'application/json',
           }));
       return response.data;
+      */
     } catch (error) {
       log('viewApprovalsDetails error: $error');
       return null;
@@ -88,6 +112,12 @@ class CooperativeMemberApprovalsController extends GetxController {
 
   Future<Map<String, dynamic>?> updatePoll() async {
     try {
+      final response = await _cmaRepository.updatePoll(cma.value);
+      if (response != null) {
+        return response;
+      }
+      return null;
+      /*
       var data = {
         'group_id': cma.value.groupId,
         'profile_id': cma.value.profileId,
@@ -120,6 +150,7 @@ class CooperativeMemberApprovalsController extends GetxController {
 
       // log('Poll update response: ${response.data}');
       return response.data;
+      */
     } on DioException catch (error) {
       log('Error updating poll: ${error.response?.data}');
       return {

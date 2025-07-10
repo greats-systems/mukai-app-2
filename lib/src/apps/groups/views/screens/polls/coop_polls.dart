@@ -46,7 +46,7 @@ class _MyCoopPollsWidgetState extends State<CoopPollsWidget> {
   TransactionController get transactionController =>
       Get.put(TransactionController());
   CooperativeMemberApprovalsController get cmaController =>
-      Get.put(CooperativeMemberApprovalsController());
+      Get.find<CooperativeMemberApprovalsController>();
   late double height;
   late double width;
   String? loggedInUserId;

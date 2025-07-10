@@ -21,7 +21,7 @@ class CoopPollsScreen extends StatefulWidget {
 
 class _PollsScreenState extends State<CoopPollsScreen> {
   final GetStorage _getStorage = GetStorage();
-  final CooperativeMemberApprovalsController _cmaController = Get.put(CooperativeMemberApprovalsController());
+  final CooperativeMemberApprovalsController _cmaController = Get.find<CooperativeMemberApprovalsController>();
   // final LoanController _loanController = LoanController();
   List<CooperativeMemberApproval>? cmas;
   // List<Loan>? cmas;

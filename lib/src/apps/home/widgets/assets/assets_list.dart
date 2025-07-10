@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get_storage/get_storage.dart';
 import 'package:mukai/brick/models/asset.model.dart';
-import 'package:mukai/data/repositories/asset_repository.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/add_asset.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/asset_detail.dart';
 import 'package:mukai/src/apps/groups/views/screens/assets/asset_item.dart';

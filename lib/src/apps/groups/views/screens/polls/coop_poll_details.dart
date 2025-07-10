@@ -38,8 +38,7 @@ class _CoopPollDetailsScreenState extends State<CoopPollDetailsScreen> {
   TextEditingController numberOfMembersController = TextEditingController();
   TextEditingController supportingVotesController = TextEditingController();
   TextEditingController opposingVotesController = TextEditingController();
-  CooperativeMemberApprovalsController cmaController =
-      Get.put(CooperativeMemberApprovalsController());
+  CooperativeMemberApprovalsController cmaController =Get.find<CooperativeMemberApprovalsController>();
   // TextEditingController repaymentAmountController = TextEditingController();
   // LoanController cmaController = Get.put(LoanController());
   // ProfileController profileController = Get.put(ProfileController());

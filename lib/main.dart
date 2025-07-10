@@ -10,14 +10,15 @@ import 'package:mukai/brick/repository.dart';
 import 'package:mukai/classes/session_manager.dart';
 import 'package:mukai/constants.dart';
 import 'package:mukai/data/repositories/asset_repository.dart';
+import 'package:mukai/data/repositories/cooperative_member_approval_repository.dart';
 import 'package:mukai/firebase_options.dart';
-import 'package:mukai/local_storage.dart';
 import 'package:mukai/src/app.dart';
 import 'package:mukai/src/apps/settings/settings_controller.dart';
 import 'package:mukai/src/apps/settings/settings_service.dart';
 import 'package:mukai/src/apps/transactions/controllers/transactions_controller.dart';
 import 'package:mukai/src/controllers/asset.controller.dart';
 import 'package:mukai/src/controllers/auth.controller.dart';
+import 'package:mukai/src/controllers/cooperative-member-approvals.controller.dart';
 import 'injection_container.dart' as injection_container;
 import 'package:firebase_core/firebase_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' as supabase_flutter;
@@ -48,10 +49,19 @@ Future<void> main() async {
   final repository = await MyRepository.configure(databaseFactory);
   
   // Dependency Injection
+  // 1. Register Dio and Repository
   Get.put(dio);
   Get.put(repository);
+
+  // 2. Register AssetRepository and AssetController
   Get.put(AssetRepository(repository, dio));
   Get.put(AssetController(Get.find<AssetRepository>()));
+
+  // 3. Register CooperativeMemberApprovalRepository and CooperativeMemberApprovalsController
+  Get.put(CooperativeMemberApprovalRepository(
+      repository, dio));
+  Get.put(CooperativeMemberApprovalsController(
+      Get.find<CooperativeMemberApprovalRepository>()));
 
   log('kReleaseMode? $kReleaseMode');
   // final environment = kReleaseMode ? AppEnvironment.prod : AppEnvironment.dev;

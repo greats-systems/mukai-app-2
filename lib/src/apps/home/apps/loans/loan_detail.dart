@@ -42,8 +42,7 @@ class _LoanDetailScreenState extends State<LoanDetailScreen> {
   TextEditingController principalAmountController = TextEditingController();
   TextEditingController repaymentAmountController = TextEditingController();
   LoanController loanController = Get.put(LoanController());
-  CooperativeMemberApprovalsController cmaController =
-      Get.put(CooperativeMemberApprovalsController());
+  CooperativeMemberApprovalsController cmaController =Get.find<CooperativeMemberApprovalsController>();
   // ProfileController profileController = Get.put(ProfileController());
   late double height;
   late double width;
